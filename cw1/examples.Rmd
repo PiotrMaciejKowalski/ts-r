@@ -1,0 +1,239 @@
+---
+title: 'TS1 : Podstawy programowania w R'
+author: "Piotr Kowalski"
+date: "3 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Przypomnimy tu najprostsze składowe języka R
+
+# Podstawowe elementy składni
+
+# Przypisywanie wartości 
+R posiada wyjątkowo wiele metod do przypisywania wartości do zmiennych
+
+```{r}
+x = 2
+y <- 3
+2 -> z
+assign('r', 9)
+```
+
+Sprawdźmy ich działanie
+```{r}
+x
+y
+z
+r
+```
+
+Mimo wszystko najczęściej spotykane w R są operatory strzałki w lewo oraz znaku równości.
+
+# Typy danych 
+
+R posiada kilka typów które są szczególnie często wykorzystywane jak 
+
+* wektory
+* listy
+* ramki danych
+
+## Wektory
+
+```{r}
+x = c(1,3)
+x
+```
+
+Dla wektorów zdefiniowane są podstawowe operacje arytmetyczne, które pozwalają na ich bardzo praktyczne stosowanie i upraszczanie skomplikowanych obliczeń
+
+```{r}
+x + 3
+2*x
+c(1,2,0,0)+x
+```
+
+### Szybkie tworzenie wektorów
+
+Z uwagi na wielkie zapotrzebowanie wektorów R udostępnia kilka metod ich szybkiego tworzenia 
+
+```{r}
+1:15
+```
+
+```{r}
+seq(1,15, by=3)
+```
+
+```{r}
+seq(length=5,from=0, by=3)
+```
+
+```{r}
+rep(7, times=8)
+```
+
+### Wektory nieliczbowe
+
+Wektory w R mogą być tworzone nie koniecznie z użyciem liczb. W szczególności wektory wartości logicznych czy znaków
+
+```{r}
+x = 1:20
+x<13
+```
+
+```{r}
+c('t','e','s','t')
+```
+
+### Dostęp do składowych wektora
+
+```{r}
+x = c(1,3,6,8,0)
+x[1]
+x[2:3]
+```
+
+## Listy
+
+W odróżnieniu od wektora listy potrafią gromadzić dane o wielu różnych typach
+
+```{r}
+l = list(nazwaPozycji1='kolumna1', nazwaPozycji2=c(1,3))
+l
+```
+
+tu mamy również pewną szczególną metodę dostępu do składowych z pomocą symbolu dolara
+
+```{r}
+l$nazwaPozycji2
+```
+
+## Ramki danych
+
+W reszcie struktura, która uczyniła z R pierwszy język programowania, którym mogli się posługiwać nieprogramiści-statystycy do swoich celów - czyli ramki danych. W rozumieniu danych, które są w nich zgromadzone przypominają one arkusze excela. 
+
+
+```{r}
+dane = data.frame(indeks=c(165000,165001,165002),imie=c('Artur','Marcin','Kamil'),ocena=c(3,3.5,4))
+
+dane
+```
+
+Ramki danych są połączeniem list i wektorów i udostępniają 
+
+```{r}
+dane$imie
+```
+
+```{r}
+dane[2,]
+```
+
+# Instrukcje języka R
+
+## Instrukcja warunkowa if
+
+W R są dostępne 3 instrukcje warunkowe
+
+* if 
+* switch
+* oraz funkcja ifelse
+
+z uwagi jednak na niszowe użycie składni switch i ifelse omówimy jedynie najpopularniejsze If
+
+```
+if (warunek) {
+  ciag instrukcji 
+} else {
+  ciag alternatywnych instrukcji
+}
+```
+
+Ponadto w instrukcji poniżej blok else może zostać pominięty. przyjmując postać
+
+```
+if (warunek) {
+  ciag instrukcji
+}
+```
+
+```{r}
+x = 3
+
+if(x < 4){
+  print('Mniejsza od 4')
+} else {
+  print('Nie mniejsza od 4')
+}
+```
+
+```{r}
+x =5
+if(x < 4){
+  print('Mniejsza od 4')
+}
+```
+
+## Pętle
+
+Pętle są kolejnym elementem składni języka programowania. Pętle pozwalają na wykonywanie tych samych ciągów instrukcji aż do uzyskania określonego efektu. 
+
+W R występuje bardzo wiele form pętli. 
+
+* for
+* while
+* replicate
+* repeat
+
+Omówimy dwie najistotnieje: for i while
+
+```{r}
+x = c(1,2,3,4)
+for (i in x){
+  paste(cat('Podwajamy wartosc ',i, ' ', 2*i,'\n'))
+}
+```
+
+```{r}
+i = 0
+while(i < 3){
+  print('Puk')
+  i = i + 1
+}
+```
+
+Różnica najczęściej polega na tym, że for stosowany jest kiedy przetwarzamy jakiś zbiór danych lub znamy konkretną ilość powtórzeń które chcemy wykonać - natomiast while w przeciwnym wypadku.
+
+## Tworzenie funkcji w R
+
+W R podobnie jak w większości języków programowania, cały stworzony kod jest podzielony i pogrupowany w małe porcje nazywane funkcjami. Funkcje co do zasady mają za zadanie rozwiazywanie pojedynczy problem. Np. wypisać czy dana liczba jest podzielna przez 2
+
+```{r}
+czy_podzielna = function(liczba){
+  if (liczba %% 2 == 0)
+    cat(liczba, 'jest podzielna\n')
+  else
+    cat(liczba, 'jest niepodzielna\n')
+}
+```
+
+Ważnym jest aby pamiętać, że funkcja dostarcza kod gotowy do wykonania, lecz sama go nie wykonuje. By obejrzeć efekt działania należy funkcję użyć
+
+```{r}
+czy_podzielna(4)
+czy_podzielna(5)
+```
+
+składnia tworzenia funkcji w R jest istotnie prosta
+
+```
+nazwa_nowej_funkcji = function(lista parametrow){
+  ciag instrukcji wykonywany przez funkcje
+}
+```
+
+
