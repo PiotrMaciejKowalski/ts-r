@@ -4,8 +4,9 @@
 
 tabliczka_mnozenia = function(rozmiar){
 
-    if (is.integer(rozmiar)) {
-        x <- 1:rozmiar
+    if (rozmiar > 0) {
+        rozmiar_calk <- as.integer(rozmiar)
+        x <- 1:rozmiar_calk
         A <- outer(x, x, FUN = "*")
         return(A)
     } else {
