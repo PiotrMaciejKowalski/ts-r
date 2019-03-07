@@ -8,7 +8,11 @@ miejsce_zerowe = function(a, b){
   ## 0 = ax+b
   ## zatem -b = ax
   ## wiec x = -b/a
-  
-  odpowiedz = -b / a
+  if (a ==0 || b==0)
+    odpowiedz = 0
+  else if (a==0)
+    odpowiedz = NA
+  else
+    odpowiedz = -b / a
   return(odpowiedz)
 }
