@@ -9,9 +9,8 @@ tabliczka_mnozenia = function(rozmiar){
     if (rozmiar_calk <= 0) {
         print("Nie można skonstruować tabliczki mnożenia o takich wymiarach")
     } else {
-        matrix(rep(1:rozmiar_calk, times = rozmiar_calk), c(rozmiar_calk, rozmiar_calk)) *
-            matrix(rep(1:rozmiar_calk, times = rozmiar_calk), c(rozmiar_calk, rozmiar_calk), byrow = TRUE
-            )
+        A <- matrix(rep(1:rozmiar_calk, times = rozmiar_calk), c(rozmiar_calk, rozmiar_calk))
+        return(A * t(A))
     }
 
 }
