@@ -233,6 +233,10 @@ x</code></pre>
 <pre><code>## [1] 2 6</code></pre>
 <pre class="r"><code>c(1,2,0,0)+x</code></pre>
 <pre><code>## [1] 2 5 1 3</code></pre>
+<pre class="r"><code>c(1,2,3)*c(1,0)</code></pre>
+<pre><code>## Warning in c(1, 2, 3) * c(1, 0): długość dłuszego obiektu nie jest
+## wielokrotnością długości krótszego obiektu</code></pre>
+<pre><code>## [1] 1 0 3</code></pre>
 <div id="szybkie-tworzenie-wektorow" class="section level3">
 <h3>Szybkie tworzenie wektorów</h3>
 <p>Z uwagi na wielkie zapotrzebowanie wektorów R udostępnia kilka metod ich szybkiego tworzenia</p>
@@ -244,6 +248,8 @@ x</code></pre>
 <pre><code>## [1]  0  3  6  9 12</code></pre>
 <pre class="r"><code>rep(7, times=8)</code></pre>
 <pre><code>## [1] 7 7 7 7 7 7 7 7</code></pre>
+<pre class="r"><code>rep(c(1,2), times=4)</code></pre>
+<pre><code>## [1] 1 2 1 2 1 2 1 2</code></pre>
 </div>
 <div id="wektory-nieliczbowe" class="section level3">
 <h3>Wektory nieliczbowe</h3>
@@ -262,6 +268,8 @@ x[1]</code></pre>
 <pre><code>## [1] 1</code></pre>
 <pre class="r"><code>x[2:3]</code></pre>
 <pre><code>## [1] 3 6</code></pre>
+<pre class="r"><code>x[c(1,3)]</code></pre>
+<pre><code>## [1] 1 6</code></pre>
 </div>
 </div>
 <div id="listy" class="section level2">
@@ -317,18 +325,19 @@ dane</code></pre>
 <pre><code>if (warunek) {
   ciag instrukcji
 }</code></pre>
-<pre class="r"><code>x = 3
+<pre class="r"><code>x = 5
 
 if(x &lt; 4){
   print('Mniejsza od 4')
 } else {
   print('Nie mniejsza od 4')
 }</code></pre>
-<pre><code>## [1] &quot;Mniejsza od 4&quot;</code></pre>
-<pre class="r"><code>x =5
+<pre><code>## [1] &quot;Nie mniejsza od 4&quot;</code></pre>
+<pre class="r"><code>x =3
 if(x &lt; 4){
   print('Mniejsza od 4')
 }</code></pre>
+<pre><code>## [1] &quot;Mniejsza od 4&quot;</code></pre>
 </div>
 <div id="petle" class="section level2">
 <h2>Pętle</h2>
@@ -341,13 +350,13 @@ if(x &lt; 4){
 <li>repeat</li>
 </ul>
 <p>Omówimy dwie najistotnieje: for i while</p>
-<pre class="r"><code>x = c(1,2,3,4)
+<pre class="r"><code>x = c(1,2,7,4)
 for (i in x){
   paste(cat('Podwajamy wartosc ',i, ' ', 2*i,'\n'))
 }</code></pre>
 <pre><code>## Podwajamy wartosc  1   2 
 ## Podwajamy wartosc  2   4 
-## Podwajamy wartosc  3   6 
+## Podwajamy wartosc  7   14 
 ## Podwajamy wartosc  4   8</code></pre>
 <pre class="r"><code>i = 0
 while(i &lt; 3){
