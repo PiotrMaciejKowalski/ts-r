@@ -4,13 +4,12 @@
 
 tabliczka_mnozenia = function(rozmiar){
 
-    rozmiar_calk <- ceiling(rozmiar)
-
-    if (rozmiar_calk <= 0) {
-        print("Nie można skonstruować tabliczki mnożenia o takich wymiarach")
+    if (is.integer(rozmiar)) {
+        x <- 1:rozmiar
+        A <- outer(x, x, FUN = "*")
+        return(A)
     } else {
-        A <- matrix(rep(1:rozmiar_calk, times = rozmiar_calk), c(rozmiar_calk, rozmiar_calk))
-        return(A * t(A))
+        print("Nie można skonstruować tabliczki mnożenia o takich wymiarach")
     }
 
 }
