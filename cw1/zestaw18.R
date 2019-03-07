@@ -3,7 +3,17 @@
 ## Napisz program generujacy macierz z tabliczka mnozenia o okreslonym rozmiarze
 
 tabliczka_mnozenia = function(rozmiar){
-  
+
+    rozmiar_calk <- ceiling(rozmiar)
+
+    if (rozmiar_calk <= 0) {
+        print("Nie można skonstruować tabliczki mnożenia o takich wymiarach")
+    } else {
+        matrix(rep(1:rozmiar_calk, times = rozmiar_calk), c(rozmiar_calk, rozmiar_calk)) *
+            matrix(rep(1:rozmiar_calk, times = rozmiar_calk), c(rozmiar_calk, rozmiar_calk), byrow = TRUE
+            )
+    }
+
 }
 
 ## np. tabliczka_mnozenia(4)
