@@ -4,5 +4,11 @@
 ## zerowe funkcji y=ax+b
 
 miejsce_zerowe = function(a, b){
+  ## MAmy znaleźć zatem rozwiązanie równania 
+  ## 0 = ax+b
+  ## zatem -b = ax
+  ## wiec x = -b/a
   
+  odpowiedz = -b / a
+  return(odpowiedz)
 }
