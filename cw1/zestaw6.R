@@ -6,7 +6,8 @@
 mniejsza_od_pierwiastka = function(liczba){
   
   if(!is.numeric(liczba)){
-    return(cat('Argument nie jest liczbą!'))
+    return(NA)
+    #Argument nie jest liczbą
   } else if (liczba<0) {
     return(NA)
     #Pierwiastek z liczby ujemnej jest liczbą zespoloną.
