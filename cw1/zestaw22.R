@@ -2,7 +2,6 @@
 
 ## Przygotuj funkcję, która otrzymując wektor danych na wejściu zwraca wektor tych samych elementów
 ## podanych w odwrotnej kolejności
-
 odwrocona_kolejnosc <- function(wektor){
   i <- 1
   odwrocony_wektor=wektor
@@ -13,5 +12,4 @@ odwrocona_kolejnosc <- function(wektor){
     i=i+1
   }
  return(odwrocony_wektor)
-  }
-
+}
