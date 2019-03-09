@@ -1,7 +1,7 @@
 ## Zadanie 
 
-## Przygotowac funkcje, ktÛra w zaleønoúci od podanego parametru wypisuje litery 
-## alfabetu w pÍtli (po 'z' znowu 'a') i przerywa po wypisaniu n liter
+## Przygotowac funkcje, kt√≥ra w zale≈ºno≈õci od podanego parametru wypisuje litery 
+## alfabetu w p?tli (po 'z' znowu 'a') i przerywa po wypisaniu n liter
 
 alfabet = function(n){
   abc<-c('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z')
@@ -10,7 +10,7 @@ alfabet = function(n){
     cat(abc[(i-1)%%(length(abc))+1])
   }}
   else{
-    cat("Operacja niemoøliwa do wykonania.")
+    cat("Operacja niemo≈ºliwa do wykonania.")
   }
 }
 ##TESTY
