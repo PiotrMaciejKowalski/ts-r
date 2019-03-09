@@ -19,17 +19,17 @@ moda_z_tekstu = function(zdanie){
   moda=x[i]} 
     i=i+1}
   i2=1
-  licznik=0
+  licz=0
   while(i2<27){
-    if(max>0 && y[i2]==max){licznik=licznik+1}
+    if(max>0 && y[i2]==max){licz=licz+1}
     i2=i2+1
   }
   i3=1
-  if(licznik>1){
+  if(licz>1){
     moda=""
-    while(licznik>0 && i3<27){
+    while(licz>0 && i3<27){
       if(y[i3]==max){moda=paste(moda,x[i3],sep=", ")
-      licznik=licznik-1}
+      licz=licz-1}
       i3=i3+1
       
     }
