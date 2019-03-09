@@ -1,7 +1,7 @@
 ## Zadanie 
 
 ## Przygotowac funkcje, która w zależności od podanego parametru wypisuje litery 
-## alfabetu w p?tli (po 'z' znowu 'a') i przerywa po wypisaniu n liter
+## alfabetu w pętli (po 'z' znowu 'a') i przerywa po wypisaniu n liter
 
 alfabet = function(n){
   abc<-c('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z')
