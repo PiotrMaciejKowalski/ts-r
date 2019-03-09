@@ -31,7 +31,6 @@ moda_z_tekstu = function(zdanie){
       if(y[i3]==max){moda=paste(moda,x[i3],sep=", ")
       licz=licz-1}
       i3=i3+1
-      
     }
   }
   print(moda)
