@@ -1,0 +1,15 @@
+{
+  "imie" : "Piotr",
+  "nazwisko" : "Kowalski",
+  "stopień naukowy" : [
+    { "matematyka" : "doktor", 
+      "uczelnia" : "Polska Akademia Nauk"},
+    { "informatyka" : "magister inżynier",
+      "uczelnia" : "Politechnika Łódzka",
+      "wydział" : "FTIMS"}  
+   ],
+   "zajęcia" : [
+    { "nazwa" : "SZBD i SQL w analizie danych"},
+    { "nazwa" : "Szeregi czasowe i prognozowanie w biznesie"}   
+   ]
+}
