@@ -10,7 +10,7 @@ moda_z_tekstu = function(zdanie){
   j=1
   max=0
   moda=NULL
-  for (j in 1:27){
+  for (j in 1:26){
     n=gsub(x[j],"",zdanie_malymi_literami)
     ilosc_liter_w_zdaniu[j]=nchar(zdanie_malymi_literami)-nchar(n)
   }
