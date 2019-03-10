@@ -10,11 +10,15 @@ moda_z_tekstu = function(zdanie){
   j=1
   max=0
   moda=NULL
-  while(j<27){
+  for (j in 1:27){
     n=gsub(x[j],"",zdanie_malymi_literami)
     ilosc_liter_w_zdaniu[j]=nchar(zdanie_malymi_literami)-nchar(n)
-    j<-j+1
   }
+  # while(j<27){
+  #   n=gsub(x[j],"",zdanie_malymi_literami)
+  #   ilosc_liter_w_zdaniu[j]=nchar(zdanie_malymi_literami)-nchar(n)
+  #   j<-j+1
+  # }
   while(i<27){
     if( ilosc_liter_w_zdaniu[i]>max){
        max= ilosc_liter_w_zdaniu[i]
