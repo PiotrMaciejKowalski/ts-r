@@ -4,7 +4,7 @@
 ## Szyfr Cezara polega na przesuniecia kazdego znaku w slowie o stala liczbe znakow
 
 szyfrowanie = function(slowo, przesuniecie){
-
+  return(slowo)
   }
 
 deszyfrowanie = function(zaszyfrowane, przesuniecie){
