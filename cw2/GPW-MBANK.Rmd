@@ -26,8 +26,11 @@ Przygotujemy dane do pracy, przekształcając je do innej formy z pomocą pakiet
 
 ```{r obrobka}
 library(tidyr)
-dane <- dane[1:5]
+
+year2019 <- grepl("2019", dane$Data)
+dane <- dane[year2019, names(dane) != "Wolumen"]
 dane <- gather(dane, "Kurs", "Notowanie", -Data)
+
 head(dane)
 ```
 
