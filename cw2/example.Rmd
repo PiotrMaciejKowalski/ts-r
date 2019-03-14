@@ -1,0 +1,427 @@
+---
+title: "Wczytywanie i prezentowanie danych"
+author: "Piotr Kowalski"
+date: "10 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wczytywanie danych 
+
+Wykorzystanie R w dowolnym projekcie uwzględniającym dane wymaga zawsze wgranie ich do zasobów środowiska. Z uwagi na wiele różnych formatów w jakich dane te można składować - zadanie to okazuje się posiadać znacząco wiele skomplikowania, aby warto było temu specjalny oddzielny czas. 
+
+A dane faktycznie mogą być dla nas dostarczane w naprawdę ogromnej ilości formatów
+
+## Odczytywanie danych z plików tekstowych
+
+W pierwszej części zajmiemy się importowaniem danych z plików zapisujących liczby zapomocą ciągów znaków, odczytywalnych i edytowalnych za pomocą dowolnych narzędzi w typie notatnika. Pliki takie formalnie nazywane są plikami plain-text. W plikach takich występuje znaczna swoboda organizowania danych co zaowocowało stworzeniem wielu różnych sposobów porządkowania danych już w ich wnętrzu. Omówmy kolejno i zaprezentujmy jak wykorzystać R do odczytywania danych z poszczególnych rodzajów plików.
+
+### Pliki w typie separowalnych tabulacją
+
+Wśród jednym z podstawowych prawideł w naukach komputerowych jest sformułowanie, że jeśli coś zostało uporządkowane w sposób łatwy do czytania dla człowieka - to jednocześnie czytanie tego przez programy komputerowe stało się bardzo utrudnione. Przykładem tego są do tej pory często spotyknae pliki w których dane w plikach tekstowych są zapisywane tak aby po wyświetleniu w notatniku tworzyły elegancki układ kolumnowy. Pliki takie często wykorzystują niedrukowany znak tabulacji w porządkowaniu prezentacji. Pliki takie z reguły posiadają rozszerzenie .txt przynależne plikom tekstowym. Przykładem zawartości takiego pliku może być następująca treść
+```
+Ania  Łódź  121
+Marek Warszawa  168
+Kasia Kraków  167
+```
+
+Do odczytywania plików w takim formacie używa się funkcji read.table języka R. Dokładna jego składnia dostępna jest pod komendą help
+
+```{r}
+?read.table
+```
+
+Należy w tym miejscu dodać, że na podstawie działania tej funkcji zostanie utworzony obiekt ramki danych R - o którym mówiliśmy na poprzednich zajęciach.
+W zależności od tego czy plik ten posiada w pierwszej linijce zdefiniowane nazwy kolumn czy też nie - ustawiany jest parametr jej użycia HEADER = TRUE/FALSE.
+
+```{r}
+df = read.table('sample_files/tab_separated.txt', header = FALSE)
+df
+```
+
+Użycie tego polecenia możemy rozwijać np poprzez podanie własnych nagłówków kolumn (fajnie je mieć zawsze tworząd DataFrame)
+
+```{r}
+df = read.table('sample_files/tab_separated.txt', header = FALSE, col.names = c('Imię', 'Miasto', 'Wejścia na stronę'))
+df
+```
+Co pozwala nam np. na odnoszenie sie do nich z osobna
+
+```{r}
+df$Miasto
+```
+
+Należy się w tym miejscu jeszcze kilka uwag o stosowaniu tego typu danych.
+
+* Jest on nieprofesjonalny, nie powinniśmy sami generować plików danych w tym formacie, ani zachęcać inne osoby do tego
+* Korzystanie z niego prędzej czy później zakończy się wczytaniem jakiejś niespójności danych (wartość zostanie źle przypisana do kolumny)
+* Poprawianie plików w tej postaci jest bardzo utrudnione gdyż rozdział opiera się najczęściej o znak niedrukowany (tu jest tab czy spacja?)
+* Błędy w takich plikach są wykrywane z reguły za późno
+
+Najlepszą strategią jest stosowanie conajmniej następnego formatu danych, który pomimo różnych problemów należy do jednego z najczęściej wykorzystywanych.
+
+### Pliki CSV
+
+Nazwa plików CSV pochodzi od Comma-Separated-Value, czyli plików z wartościami rozdzielonymi przecinkami. Pomimo takiej nazwy w takich plikach najczęściej separatorem okazuje się być znak średnika ';'. Niezmiennie jednak plikom tym nadaje się rozszerzenie .csv - które w sposób oczywisty pokazuje, że dane w tych plikach są uporządkowane do odczytu i nie są bylejakimi plikami tekstowymi.
+
+Przykładem takiego pliku jest taki zawierający następującą treść:
+```
+"Ania","Łódź",121
+"Marek","Warszawa",168
+"Kasia","Kraków",167
+```
+
+Jak widać w strukturze tego pliku wszystkie ciągi tekstowe są otoczone znakami cudzysłowu, kiedy liczby nie są specjalnie opisane. 
+
+Wartym odnotowania jest, że w R funkcjami służącymi do wczytywania danych są funkcje read.csv, read.csv2 - które są specjalnymi przypadkami funkcji read.table. Możemy to obserwować w dokumentacji wszystkich tych funkcji
+
+```
+read.table(file, header = FALSE, sep = "", quote = "\"'",
+           dec = ".", numerals = c("allow.loss", "warn.loss", "no.loss"),
+           row.names, col.names, as.is = !stringsAsFactors,
+           na.strings = "NA", colClasses = NA, nrows = -1,
+           skip = 0, check.names = TRUE, fill = !blank.lines.skip,
+           strip.white = FALSE, blank.lines.skip = TRUE,
+           comment.char = "#",
+           allowEscapes = FALSE, flush = FALSE,
+           stringsAsFactors = default.stringsAsFactors(),
+           fileEncoding = "", encoding = "unknown", text, skipNul = FALSE)
+           
+read.csv(file, header = TRUE, sep = ",", quote = "\"",
+         dec = ".", fill = TRUE, comment.char = "", ...)
+
+read.csv2(file, header = TRUE, sep = ";", quote = "\"",
+          dec = ",", fill = TRUE, comment.char = "", ...)
+```
+
+Prezentowane są tutaj również domyślne zestawy znaków specjalnych, które będą odpowiednio rozpoznawane przy odczycie jak
+
+* sep - określa znak separatora oddzielającego dwie kolejne wartości
+* quote - określa znak otaczający ciągi znaków (teksty)
+* dec - określający znak oddzielający część całkowitą od ułamkowej liczby zmiennoprzecinkowej
+* comment.char - określający znak komentujący w pliku (wyklucza wszystkie znaki do końca linijki z odczytu).
+
+Oprócz tego ważnym parametrem możebyć również fileEncoding który wskazuje na rodzaj kodowania pliku. Wszystkie te parametry być może trzeba będzie przestawić aby poprawnie wczytać jakiś wybrany plik CSV
+
+
+```{r}
+df = read.csv('sample_files/csv.csv', header = FALSE, sep = ',', quote = '\"', dec = '.')
+df
+```
+
+### Odczytywanie plików excel
+
+Aby odczytywać pliki pochodzące z programu excel trzeba wykonać już znacznie więcej pracy. Główną przyczyną za tym stojącą jest to, że pliki pakietów biurowych nie są już plain-text ale rich-text (gdzie wartości są dodatkowo opisane formatami, formułami, etc.) albo w ogóle plikami binarnymi. 
+
+Do ich odczytywania wykorzystamy zatem dodatkowy pakiet nazywany XLConnect. 
+
+```{r}
+library(XLConnect)
+```
+
+
+
+Dalej wczytywanie
+
+```{r}
+df = readWorksheetFromFile('sample_files/excel.xlsx', sheet = 1)
+df
+```
+
+Składnie można sprawdzić za pomocą (widzimy problem z nagłówkiem)
+
+```{r}
+?readWorksheetFromFile
+```
+
+```{r}
+df = readWorksheetFromFile('sample_files/excel.xlsx', header = FALSE, sheet = 1)
+df
+```
+
+
+Za pomocą powyższej komendy można zaczytać pojedynczy arkusz excela i przekazać go do Data Frame w R. Nie można na raz wczytać więcej, gdyż tym Data Frame nie wspiera tworzenia więcej niż jednej tabeli danych. Nie ma natomiast problemu aby wczytać dane z jednego pliku, ale różnych arkuszy do różnych zmiennych. Przydatna jest wtedy składnia tworząca tzw workbooki
+
+```{r}
+workbook = loadWorkbook('sample_files/excel.xlsx')
+df = readWorksheet(workbook,header = FALSE, sheet = 1)
+df
+```
+
+
+#### O XLConnect
+
+Uwaga pakiet XLConnect zależy poprzez pakiet rJava od lokalnej instalacji JDK Javy, przez co proces jego instalacji może mocno zależeć od konfiguracji pomiędzy lokalnym środowiskiem R a Javą.
+
+### Pakiet ReadXL
+
+Drugą opcją do pracy z plikami excel jest pakiet readxl
+
+```{r}
+library(readxl)
+```
+
+Przejdźmy do odczytu danych
+
+```{r}
+df = read_excel('sample_files/excel.xlsx',col_names = c('imie','miasto','liczba'),  sheet = 1)
+df
+```
+
+PS. O ReadXL można poczytać na jego stronie na [github](https://github.com/tidyverse/readxl) :) 
+
+### Pliki json
+
+Kolejnym rodzajem plików plain-text są pliki json. Zgodnie z nazwą JavaScriptObjectNotation służyły one oryginalnie do opisu struktur obiektowych języka JavaScript,ich serializacji i przesyłania w wywołaniach metod AJAX (Asynchronous Javascript and XML). Jednak jako bardzo przemyślana koncepcja stały się popularniejsze nawet od języka, który je powołał do życia.
+Wysoko ceniony za kompaktowość (reprezentacja obiektu zajmuje bardzo niewiele znaków), czytelność (posiada bardzo klarowny przegląd) i znaczne możliwości reprezentacji. 
+Poniżej prezentujemy przykład notacji obiektu w formacie JSON
+```
+{
+  "imie" : "Piotr",
+  "nazwisko" : "Kowalski",
+  "stopień naukowy" : [
+    { "matematyka" : "doktor", 
+      "uczelnia" : "Polska Akademia Nauk"},
+    { "informatyka" : "magister inżynier",
+      "uczelnia" : "Politechnika Łódzka",
+      "wydział" : "FTIMS"}  
+   ],
+   "zajęcia" : [
+    { "nazwa" : "SZBD i SQL w analizie danych"},
+    { "nazwa" : "Szeregi czasowe i prognozowanie w biznesie"}   
+   ]
+}
+```
+
+Format ten nie jest często wykorzystywany do gromadzenia danych (choć i takie zastosowania go zdarzają się), ale bardzo często wykorzystywany jest do komunikacji lub gromadzenia konfiguracji. Posiada pewna szczególną przewagę nad formatami w rodzaju csv. Umożliwia znacznie swobodniejszą strukturę danych od CSV. CSV wymaga stałych typów i zestawów kolumn. JSON nie stawia podobnych wymagań. Jest stosowany do gromadzenia danych, nie posiadających stabilnej struktury.
+
+Zgodnie z przytoczonym przykładem
+
+* klamry gromadzą obiekty w całość,
+* pola reprezentowane są w parach "nazwaPola" : wartosc,
+* wartości tekstowe są ujmowane w cudzysłów,
+* przecinek oddziela kolejne pola
+* obiekt może być wartością pola
+* za pomocą nawiasów kwadratowych można tworzyć tablice jako grupy
+
+Aby wczytywać pliki zapisane w JSON należy używać pakietu rjson
+
+```{r}
+library(rjson)
+```
+
+```{r}
+jsData = fromJSON(file = 'sample_files/json.json')
+jsData
+```
+
+### Pliki XML
+
+Podobnie jak w przypadku plików JSON, pliki XML też nie są popularnym wyborem do gromadzenia danych, ale podobnie jak JSON posiadają szerokie możliwości reprezentowania złożonych danych w strukturze. XML odróżnia się od JSON w zasadzie tym, że posiada jeszcze szersze metody modelowania - jednak posiada dużo bardziej opisowo rozbudowaną strukturę. Powyższy przykład danych przeniesliśmy do postaci XML
+
+```
+<osoba>
+  <imie>Piotr</imie>
+  <nazwisko>Kowalski</nazwisko>
+  <stopien_naukowy>
+    <stopien kierunek="matematyka">
+      <tytul>doktor</tytul>
+      <uczelnia>Polska Akademia Nauk</uczelnia>
+    </stopien>
+    <stopien kierunek="informatyka">
+      <tytul>magister inżynier</tytul>
+      <uczelnia>Politechnika Łódzka</uczelnia>
+      <wydzial>FTIMS</wydzial>
+    </stopien>
+  </stopien_naukowy>
+  <zajecia>
+    <przedmiot>SZBD i SQL w analizie danych</przedmiot>
+    <przedmiot>Szeregi czasowe i prognozowanie w biznesie</przedmiot>
+  </zajecia>
+</osoba>
+```
+
+Do pracy z plikami xml stosowana jest paczka XML (któżby zgadł :-) )
+
+```{r}
+library(XML)
+```
+
+Wczytujemy
+
+```{r}
+xmlFile = xmlTreeParse('sample_files/xml.xml')
+xmlFile
+```
+
+```{r}
+xmlFile$doc$children$osoba
+```
+
+```{r}
+df = xmlToDataFrame('sample_files/data.xml', colClasses = c(data="double"))
+df
+```
+
+### Tabele HTML
+
+Możliwość pracy z plikami XML ma jeszcze jedną dodatkową zaletę. Strony HTML są (niemal) zgodne ze standardem plików XML. Oznacza więc możliwość wydobywania danych umieszczonych na strona internetowych z wnętrza skryptów. Wbrew pozorom jest to niezwykle przydatne, gdyż znacząca część instytucji niechętnie dzieli się dostępem do pełni swoich zbiorów danych, natomiast publikuje z różnych powodów pewne dane. Zaprezentujemy jak wydobyć dane z takiej tabeli online
+
+```{r}
+url = 'http://im.p.lodz.pl/~pkowalski/index.php/zainteresowania/18-ksiazki'
+df = readHTMLTable(url, which = 1, header = TRUE)
+head(df)
+```
+
+
+## Odczytywanie plików w typie Dataset
+
+Poniżej zaprezentujemy jeszcze podsumowanie z zakresu pakietów i metod które pozwalają na otworzenie plików danych eksportowanych z innych narzędzi statystycznych czy baz danych
+
+| Typ danych | Pakiet | Funkcja |
+| --- | --- | --- |
+| SPSS | foreign | read.spss() |
+| STATA | foreign | read.dta() |
+| SYSTAT| foreign | read.systat() |
+| SAS | sas7bdat | read.sas7bdat()|
+| Minitab | foreign | read.mtp() |
+| RDA, RData|  NA | load() |
+
+## Odczytywanie danych poprzez interfejsy bazodanowe
+
+Możliwe jest również tworzenie połączeń do relacyjnych (i nierelacyjnych) baz danych i w ramach utworzonych sesji, pobieranie z nich potrzebnych danych. Wykorzystuje się do tego narzędzia znane jako ODBC (sterowniki baz danych) oraz ORM (narzędzia mapowania obiektowo-relacyjnego). Umiejętności te wykraczają poza obecny zakres kursu. Sygnalizujemy zatem tylko istnienie tych dróg.
+
+# Narzędzia tekstowe prezentowania danych
+
+Zaczytajmy jakiś dostępny zbiór danych dla potrzeb zaprezentowania możliwości pojawiających w zakresie podstawowego prezentowania danych.
+
+```{r}
+url = 'http://www.biecek.pl/R/auta.csv'
+df = read.csv2(url, dec='.', colClasses = c('factor','factor','numeric','factor','integer','numeric','factor','integer'))
+```
+
+## Head
+
+Pierwszą z wykonywanych operacji na danych jest z reguły head - wyświetlający kilka pierwszych wierszy ze zbioru danych. Pozwala to ocenić czy proces odczytu zakończył się poprawnie.
+
+```{r}
+head(df)
+```
+
+Jeśli jakiś typ został niepoprawnie odczytany jako factor <fctr> możemy dokonać jego rzutowania na inny typ 
+```{r}
+moc = as.integer(levels(df$KM))[df$KM]
+df$KM = moc
+head(df)
+```
+
+## Charakterystyka zmiennych ilościowych
+
+Dla zmiennych ilościowych sposród naszych danych możemy wyznaczyć cały szereg statystyk począwszy od min, max
+
+```{r}
+min(df$Cena)
+```
+
+```{r}
+max(df$Przebieg)
+```
+
+Do przedstawienia najważniejszych charakterystyk zmiennych wystarczy wyświetlić
+
+```{r}
+summary(df)
+```
+
+Wsród dostępnych funkcji mamy np
+
+* max, min
+* mean, length, range
+
+A po dołączeniu pakietu stats
+
+```{r}
+library(stats)
+```
+
+również
+
+* weighted.mean
+* median
+* quantile
+* IQR
+* var, sd
+* cor, cov
+* mad - median absolute deviation
+
+## Charakterystyka zmiennych ilościowych
+
+Aby uzyskać informacje o strukturze zmiennych jakościowych do dyspozycji mamy inną funkcję generującą tabelę wystąpień
+
+```{r}
+table(df$Paliwo)
+```
+```{r}
+table(df$Model)
+```
+
+
+# Narzędzia graficzne prezentowania danych
+
+Narzędzia tekstowe dają nam jedynie początkowe pojęcie o strukturze danych. Do pogłębienia tej wiedzy potrzebne są nam wykresy. Wprowadźmy kilka początkowych wykresów
+
+## Wykres słupkowy
+
+Biznes kocha słupki. Analitycy danych zatem muszą korzystać z nich przy prezentowaniu wyników swoich analiz. Najprostszez zastosowanie zakłada pokazanie częstości rozkładu zmiennej jakościowej w danych
+
+```{r}
+barplot( table(df$Paliwo))
+```
+
+```{r}
+barplot(table(df$Paliwo,df$Marka), beside = TRUE, col=c("red","green","blue"))
+legend("topright", c('Benzyna','LPG','Diesel'), fill =c("red","green","blue"))
+```
+
+
+## Histogram
+
+Podobny dość wykres uzyskujemy stosująć histogram. Możemy jednak zastosować go do zmiennych ilościowych , niejako niejawnie uzyskując podział do szeregu rozdzielczego.
+
+```{r}
+hist(df$Przebieg)
+```
+
+## Boxplot
+
+Wykres pudełkowy w którym wykres tworzony jest przegląd najistotniejszy statystyk w zmiennej. Zastosowanie ma jednak jedynie jeśli kilka zmiennych jest miarowanych w podobny sposób
+
+```{r}
+boxplot(10*df$KM, df$Pojemnosc, names=c("KM","Pojemnosc" ))
+```
+
+Można go również uruchomić w trybie porównania z formuła
+
+```{r}
+boxplot(df$KM ~ df$Paliwo)
+```
+
+## Wykres punktowy (scatter-plot)
+
+```{r}
+plot(df$Pojemnosc, df$KM)
+```
+
+```{r}
+library(car)
+sp(df$KM~df$Pojemnosc)
+```
+
+Powyżej zaprezentowaliśmy kilka podstawowych wykresów. Oprócz tego pojawiają się również dodatkowe funkcje do tworzenia wykresów w innych pakietach. Dwa pakiety zasługują tutaj na szczególne wyróżnienie:
+* ggplot2
+* lattice
+
+Możliwości tych pakietów zostaną zaprezentowane w kolejnych tygodniach.

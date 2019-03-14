@@ -1,0 +1,19 @@
+<osoba>
+  <imie>Piotr</imie>
+  <nazwisko>Kowalski</nazwisko>
+  <stopien_naukowy>
+    <stopien kierunek="matematyka">
+      <tytul>doktor</tytul>
+      <uczelnia>Polska Akademia Nauk</uczelnia>
+    </stopien>
+    <stopien kierunek="informatyka">
+      <tytul>magister inżynier</tytul>
+      <uczelnia>Politechnika Łódzka</uczelnia>
+      <wydzial>FTIMS</wydzial>
+    </stopien>
+  </stopien_naukowy>
+  <zajecia>
+    <przedmiot>SZBD i SQL w analizie danych</przedmiot>
+    <przedmiot>Szeregi czasowe i prognozowanie w biznesie</przedmiot>
+  </zajecia>
+</osoba>
