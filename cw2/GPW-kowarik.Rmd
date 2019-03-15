@@ -1,0 +1,25 @@
+---
+title: "GPW_notowania"
+author: "OKowarik"
+date: "14 marca 2019"
+output: html_document
+---
+Korzystając z pakietu
+```{r}
+library(XLConnect)
+```
+wczytujemy dane notowań spółki Amica z ostatniego roku pobrane ze strony 'https://www.money.pl/gielda/spolki-gpw/PLAMICA00010,archiwum.html' .
+```{r}
+dane = readWorksheetFromFile('Amica_GPW_Kowarik.xlsx', sheet = 1)
+```
+Następnie "okrajamy" te dane do interesującego nas zakresu.
+```{r}
+dane_okrojone<- dane[2:5]
+dane_okrojone
+```
+Na koniec za pomocą funkcji chartSeries z pakietu quantmod tworzymy wykres giełdowy 
+```{r}
+library(quantmod)
+dane_do_wykresu <- xts(dane_okrojone, order.by = as.Date(dane[, 1]))
+chartSeries(dane_do_wykresu, TA = NULL)
+```
