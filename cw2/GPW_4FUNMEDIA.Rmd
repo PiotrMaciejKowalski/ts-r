@@ -45,9 +45,9 @@ mtext("Histogramy notowań spółki akcyjnej 4FUNMEDIA na GPW", side = 3, line =
 ```
 
 ##Wykresy a statystyki.
-Wyżej obliczone (za pomocą funkcji summary(d4FM)) statystyki (dokładniej: medianę, kwantyle, minimum i maksimum) możemy przedstawić za pomocą wykresu pudełkowego. Służy do tego funkcja boxplot. Aby analiza była bardziej szczegółowa dodajmy kolumnę odpowiedzialną za dzień tygodnia.
+Wyżej obliczone (za pomocą funkcji summary(d4FM)) statystyki (dokładniej: medianę, kwantyle, minimum i maksimum) możemy przedstawić za pomocą wykresu pudełkowego. Służy do tego funk(cja boxplot. Aby analiza była bardziej szczegółowa dodajmy kolumnę odpowiedzialną za dzień tygodnia(notowania nie pojawiają się w soboty i niedziele).
 ```{r dni_tygodnia}
-dniTygodnia <- c("Śr","Czw","Pią","Sob","Niedz","Pon","Wt")
+dniTygodnia <- c("Śr","Czw","Pią","Pon","Wt")
 for(i in 1:nrow(d4FM)){
   d4FM[i,5]<-dniTygodnia[(i-1)%%(length(dniTygodnia))+1]
   
@@ -72,7 +72,7 @@ mtext("Wykresy pudełkowe notowań spółki akcyjnej 4FUNMEDIA na GPW", side = 3
 par(mfrow = c(1,1))
 
 ```
-Niestety, wykresy przedstawione w ten sposób są mało czytelne. Narysujmy więc jeden po drugim. Przy okazji przypomnijmy w jaki sposób możemy odczytać z nich statystyki.
+Narysujmy wykresy jeden po drugim. Przy okazji przypomnijmy w jaki sposób możemy odczytać z nich statystyki.
 
 ##Wykresy a statystyki cd.. Jak odczytywać dane z wykresów pudełkowych?
 ```{r boxplot_1}
