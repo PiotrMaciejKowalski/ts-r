@@ -1,0 +1,95 @@
+---
+title: "Wykresy notowań mBanku"
+author: "Jakub Bujnowicz"
+date: "12 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Przygotowanie danych
+
+Ten skrypt stworzony został w celu przedstawienia danych o notowaniach mBanku w formie 
+wykresów. Wszystkie dane użyte do stworzenia poniższych wykresów pobrane zostały 
+[stąd.](https://stooq.pl/q/?s=mbk) 
+
+Wczytamy notowania.
+
+```{r wczytywanie}
+dane <- read.csv("GPW-MBANK.csv")
+head(dane)
+```
+
+Przygotujemy dane do pracy, przekształcając je do innej formy z pomocą pakietu *tidyr*.
+
+```{r obrobka}
+library(tidyr)
+
+year2019 <- grepl("2019", dane$Data)
+dane <- dane[year2019, names(dane) != "Wolumen"]
+dane <- gather(dane, "Kurs", "Notowanie", -Data)
+
+head(dane)
+```
+
+Ponieważ wszystkie dane pochodzą z bieżącego roku, usuniemy tę informację z wektora dla
+przejrzystości dalszych wykresów.
+
+```{r usuniecie_roku}
+levels(dane$Data) <- gsub("2019-", "", levels(dane$Data))
+head(dane)
+```
+
+
+### Rysowanie wykresów
+
+Do tworzenia wykresów użyty zostanie pakiet *ggplot2*. W większości wykresów zastosowany
+zostanie podział na kursy otwarcia, zamknięcia, minimalne i maksymalne. 
+
+Podstawowych informacji o notowaniach dostarczy wykres wartości od czasu.
+
+```{r wykresy_ciagle}
+library(ggplot2)
+p <- ggplot(dane, 
+            aes(x = Data, 
+                y = Notowanie, 
+                group = Kurs,
+                col = Kurs)) + 
+    theme(axis.text.x = element_text(angle = 90, 
+                                     hjust = 1))
+p_nox_axis <- p + theme(axis.text.x = element_blank(),
+                        axis.ticks.x = element_blank())
+
+p_nox_axis + geom_line() + facet_wrap( ~ Kurs)
+```
+
+To samo na jednym wykresie.
+
+```{r wykres_ciagly}
+p + geom_line()
+```
+
+Na wykresie pudełkowym przedstawione zostały mediany każdego kursu, wraz z 95% 
+przedziałami ufności oznaczonymi przez wcięcie. Ramki pudełka wyznaczają granice rozstępu
+kwartylowego, nastomiast czarne kropki są obserwacjami odstającymi.
+
+```{r pudelkowy}
+p_nox_axis + geom_boxplot(aes(fill = Kurs), 
+                          col = "black",
+                          notch = TRUE) + labs(x = "Kurs")
+```
+
+Na koniec porównanie rozkładów kursów przez histogramy.
+
+```{r histogramy, message = FALSE}
+p_onlyx <- ggplot(dane, 
+                  aes(x = Notowanie,
+                      group = Kurs,
+                      fill = Kurs))
+p_onlyx + geom_histogram(col = "black") + 
+    facet_wrap( ~ Kurs) +
+    labs(y = "Liczba wystąpień")
+```
+
