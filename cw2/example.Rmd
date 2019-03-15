@@ -65,7 +65,7 @@ Najlepszą strategią jest stosowanie conajmniej następnego formatu danych, k
 
 ### Pliki CSV
 
-Nazwa plików CSV pochodzi od Comma-Separated-Value, czyli plików z wartościami rozdzielonymi przecinkami. Pomimo takiej nazwy w takich plikach najczęściej separatorem okazuje się być znak średnika ';'. Niezmiennie jednak plikom tym nadaje się rozszerzenie .csv - które w sposób oczywisty pokazuje, że dane w tych plikach są uporządkowane do odczytu i nie są bylejakimi plikami tekstowymi.
+Nazwa plików CSV pochodzi od Comma-Separated-Values, czyli plików z wartościami rozdzielonymi przecinkami. Pomimo takiej nazwy w takich plikach najczęściej separatorem okazuje się być znak średnika ';'. Niezmiennie jednak plikom tym nadaje się rozszerzenie .csv - które w sposób oczywisty pokazuje, że dane w tych plikach są uporządkowane do odczytu i nie są bylejakimi plikami tekstowymi.
 
 Przykładem takiego pliku jest taki zawierający następującą treść:
 ```
