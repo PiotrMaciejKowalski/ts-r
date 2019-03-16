@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Przedmiotem analizy będą dane pobrane ze strony money.pl (https://www.money.pl/gielda/spolki-gpw/PL4FNMD00013,archiwum.html) dotyczące notowań spółki akcyjnej 4fun Media na Giełdzie Papierów Wartościowych w Warszawie. Dane pochodzą z okresu 02.01.2019-15.03.2019 (notowania z dnia 01.01.2019 nie są dostępne).
 
 ```{r wczytywanie}
-d4FM <- read.csv2("GPW-4FUNMEDIA-csv.csv")
+d4FM <- read.csv2("GPW-4FUNMEDIA-csv2.csv")
 head(d4FM)
 ```
 Zanim zaczniemy analizować dane, "obetnijmy" je do interesujących nas kolumn zawierających zmienne ilościowe.
@@ -45,7 +45,7 @@ mtext("Histogramy notowań spółki akcyjnej 4FUNMEDIA na GPW", side = 3, line =
 ```
 
 ##Wykresy a statystyki.
-Wyżej obliczone (za pomocą funkcji summary(d4FM)) statystyki (dokładniej: medianę, kwantyle, minimum i maksimum) możemy przedstawić za pomocą wykresu pudełkowego. Służy do tego funk(cja boxplot. Aby analiza była bardziej szczegółowa dodajmy kolumnę odpowiedzialną za dzień tygodnia(notowania nie pojawiają się w soboty i niedziele).
+Wyżej obliczone (za pomocą funkcji summary(d4FM)) statystyki (dokładniej: medianę, kwantyle, minimum i maksimum) możemy przedstawić za pomocą wykresu pudełkowego. Służy do tego funkcja boxplot. Aby analiza była bardziej szczegółowa dodajmy kolumnę odpowiedzialną za dzień tygodnia(notowania nie pojawiają się w soboty i niedziele).
 ```{r dni_tygodnia}
 dniTygodnia <- c("Śr","Czw","Pią","Pon","Wt")
 for(i in 1:nrow(d4FM)){
@@ -60,8 +60,8 @@ par(mfrow = c(2, 2), pty = "m")
 bpmO <- with(d4FM, reorder(d4FM$V5, -d4FM$Otwarcie, FUN = median))
 boxplot(d4FM$Otwarcie ~ bpmO, data = d4FM,col = rainbow(7) , main= "Otwarcie ~ DniTygodnia", ylab = "Otwarcie", xlab = "DniTygodnia")
 
-bpmZ <- with(d4FM, reorder(d4FM$V5, -d4FM$Zamknięcie, FUN = median))
-boxplot(d4FM$Zamknięcie ~ bpmZ, data = d4FM,col = rainbow(7) , main= "Zamknięcie ~ DniTygodnia", ylab = "Zamknięcie", xlab = "DniTygodnia")
+bpmZ <- with(d4FM, reorder(d4FM$V5, -d4FM$Zamkniecie, FUN = median))
+boxplot(d4FM$Zamkniecie ~ bpmZ, data = d4FM,col = rainbow(7) , main= "Zamknięcie ~ DniTygodnia", ylab = "Zamknięcie", xlab = "DniTygodnia")
 
 bpmMa <- with(d4FM, reorder(d4FM$V5, -d4FM$Maks., FUN = median))
 boxplot(d4FM$Maks. ~ bpmMa, data = d4FM,col = rainbow(7) , main= "Max. ~ DniTygodnia", ylab = "Max.", xlab = "DniTygodnia")
@@ -80,7 +80,7 @@ boxplot(d4FM$Otwarcie ~ bpmO, data = d4FM,col = rainbow(7) , main= "Otwarcie ~ D
 ```
 
 ```{r boxplot_2}
-boxplot(d4FM$Zamknięcie ~ bpmZ, data = d4FM,col = rainbow(7) , main= "Zamknięcie ~ DniTygodnia", ylab = "Zamknięcie", xlab = "DniTygodnia")
+boxplot(d4FM$Zamkniecie ~ bpmZ, data = d4FM,col = rainbow(7) , main= "Zamknięcie ~ DniTygodnia", ylab = "Zamknięcie", xlab = "DniTygodnia")
 ```
 
 ```{r boxplot_3}
