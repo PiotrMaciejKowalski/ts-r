@@ -1,0 +1,75 @@
+---
+title: "Notowania akcji spółki  Atlanta Poland S.A. (ATP) w 2019 roku"
+author: "Izabela Stobiecka"
+date: "13 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Poniższy plik przedstawia graficznie notowania akcji spółki Atlanta Poland S.A. (ATP) w 2019 roku z uwzględnieniem ceny otwarcia, zamknięcia, maksymalnej i minimalnej. 
+
+Atlanta Poland S.A. istnieje od 1990 roku i jest jedną z największych  firm w Polsce importującą oraz sprzedającą bakalie wykorzystywane do produkcji wyrobów czekoladowych, słodyczy, ciastek oraz pieczywa. W 2005 roku firma stała się spółką giełdową, notowaną na Warszawskiej Giełdzie Papierów Wartościowych.
+
+## Pobranie i wczytanie danych
+Dane o notowaniach ATP pobrałam z portalu <https://stooq.pl> w postaci pliku w formacie .csv. Zimportujmy te dane do R. Pomijam ostatnią kolumnę (wolumen)- nie będzie nas interesować.
+```{r}
+dane=read.csv('atp_d.csv')[,1:5]
+head(dane)
+
+```
+
+##Interpretacja graficzna
+Załączę bibliotekę, która pozwoli mi na dostęp do dodatkowych palet kolorów.
+```{r}
+library("RColorBrewer")
+```
+
+Rozpocznę rysowanie wykresów od wykresu pudełkowego dla każdego z atrybutów. 
+```{r}
+boxplot(dane$Otwarcie,dane$Najwyzszy,dane$Najnizszy,dane$Zamkniecie, main="Wykres pudełkowy dla ceny ATP",names=names(dane)[2:5], col=brewer.pal(n = 4, name = "PRGn"))
+```
+
+
+Możemy łatwo zauważyć, że nie mamy żadnych wartości odstających (uff). Z wykresu możemy odczytać najwyższe i najniższe wartości każdego z atrybutów, medianę oraz kwantyle, jednak nie daje nam on informacji o tym kiedy interesujące nas wartości zostały osiągnięte. Aby uzyskać odpowiedź na to pytanie narysujmy wykresy liniowe wartości każdego z atrybutów w zależności od daty.
+```{r}
+par(mfrow = c(2, 2), pty = "m")
+plot(dane$Otwarcie, type="l", main="Otwarcie",col=brewer.pal(n = 4, name = "PRGn")[1], xlab = "Data", ylab="Cena ATP", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+plot(dane$Najwyzszy, type="l", main="Najwyższy",col=brewer.pal(n = 4, name = "PRGn")[2], xlab = "Data", ylab="Cena ATP",xaxt="n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+plot(dane$Najnizszy, type="l", main="Najniższy",col=brewer.pal(n = 4, name = "PRGn")[3], xlab = "Data", ylab="Cena ATP",xaxt="n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+plot(dane$Zamkniecie, type="l", main="Zamknięcie",col=brewer.pal(n = 4, name = "PRGn")[4], xlab = "Data", ylab="Cena ATP",xaxt="n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+
+
+Widzimy więc, jak ceny ATP zmieniały się w czasie. W tej formie trudniej nam jest jednak zobaczyć różnice między poszczególnymi atrybutami. Nanieśmy więc wszystkie krzywe na jeden wykres.
+```{r}
+plot(dane$Otwarcie, type="l", main="Wykres liniowy dla ceny ATP",col=brewer.pal(n = 4, name = "PRGn")[1], xlab = "Data", ylab="Cena ATP",xaxt="n")
+lines(dane$Najwyzszy, type="l", col=brewer.pal(n = 4, name = "PRGn")[2])
+lines(dane$Najnizszy, type="l", col=brewer.pal(n = 4, name = "PRGn")[3])
+lines(dane$Zamkniecie, type="l", col=brewer.pal(n = 4, name = "PRGn")[4])
+legend("topright",names(dane)[2:5],col=brewer.pal(n = 4, name = "PRGn"),lwd=2)
+axis(1, at = dane$Data, labels = levels(dane$Data))
+
+```
+
+
+Dzięki temu wykresowi możemy stwierdzić na przykład, że cena akcji była największa na początku roku i wynosiła powyżej 5,20 zł jak i stwierdzić, że osiągnęła swoje minimum pod koniec lutego na poziomie niższym niż 4 zł. Oczywiście możemy łatwo sprawdzić czy nasza obserwacja jest poprawna.
+
+```{r}
+max=max(dane$Najwyzszy)
+pozycja=match(max,dane$Najwyzszy)
+data=levels(dane$Data)[pozycja]
+cat(c('W dniu',data,'cena akcji osiągnęła najwyższą wartość wynoszącą',max))
+```
+
+```{r}
+min=min(dane$Najnizszy)
+pozycja=match(min,dane$Najnizszy)
+data=levels(dane$Data)[pozycja]
+cat(c('W dniu',data,'cena akcji osiągnęła najniższą wartość wynoszącą',min))
+```
