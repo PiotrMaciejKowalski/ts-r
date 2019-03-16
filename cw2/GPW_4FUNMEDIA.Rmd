@@ -1,0 +1,94 @@
+---
+title: "GPW-4FUNMEDIA"
+author: "Anita Księżak"
+date: "15 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Wczytywanie danych i wstępna obróbka.
+
+Przedmiotem analizy będą dane pobrane ze strony money.pl (https://www.money.pl/gielda/spolki-gpw/PL4FNMD00013,archiwum.html) dotyczące notowań spółki akcyjnej 4fun Media na Giełdzie Papierów Wartościowych w Warszawie. Dane pochodzą z okresu 02.01.2019-15.03.2019 (notowania z dnia 01.01.2019 nie są dostępne).
+
+```{r wczytywanie}
+d4FM <- read.csv2("GPW-4FUNMEDIA-csv2.csv")
+head(d4FM)
+```
+Zanim zaczniemy analizować dane, "obetnijmy" je do interesujących nas kolumn zawierających zmienne ilościowe.
+```{r obróbka}
+d4FM <- d4FM[,2:5]
+head(d4FM)
+```
+Warto zwrócić uwagę na to, że dla zmiennych ilościowych (przed rozpoczęciem analizy) wyświetlić możemy najważniejsze charakterystyki zmiennych. Używamy do tego funkcji summary.
+
+```{r podstawowe_charakterystyki}
+summary(d4FM)
+```
+##Podstawowe wykresy.
+Jednym z podstawowych wykresów dostępnym w R jest histogram. Tworzymy go za pomocą funkcji hist. Jest jednym z najbardziej popularnych wykresów statystycznych. Służy on do przedstawienia liczebności obserwacji, danych w zadanych przedziałach badanej zmiennej.
+Zanim narysujemy wykres, przygotujmy odpowiednio dane.
+
+```{r histogramy}
+par(mfrow = c(2, 2), pty = "m")
+macierzO <- as.matrix(d4FM[,1])
+hist(macierzO, main = "Otwarcie-Częstotliwość",xlab = "Otwarcie" ,ylab = "Częstotliwość", col = grey.colors(11))
+macierzZ <- as.matrix(d4FM[,2])
+hist(macierzZ, main = "Zamknięcie-Częstotliwość",xlab = "Zamknięcie" ,ylab = "Częstotliwość", col = grey.colors(11))
+macierzMa <- as.matrix(d4FM[,3])
+hist(macierzMa, main = "Max.-Częstotliwość",xlab = "Max." ,ylab = "Częstotliwość", col = grey.colors(11))
+macierzMi <- as.matrix(d4FM[,4])
+hist(macierzMi, main = "Min.-Częstotliwość",xlab = "Min" ,ylab = "Częstotliwość", col = grey.colors(11))
+mtext("Histogramy notowań spółki akcyjnej 4FUNMEDIA na GPW", side = 3, line = -1.5, outer = TRUE)
+```
+
+##Wykresy a statystyki.
+Wyżej obliczone (za pomocą funkcji summary(d4FM)) statystyki (dokładniej: medianę, kwantyle, minimum i maksimum) możemy przedstawić za pomocą wykresu pudełkowego. Służy do tego funkcja boxplot. Aby analiza była bardziej szczegółowa dodajmy kolumnę odpowiedzialną za dzień tygodnia(notowania nie pojawiają się w soboty i niedziele).
+```{r dni_tygodnia}
+dniTygodnia <- c("Śr","Czw","Pią","Pon","Wt")
+for(i in 1:nrow(d4FM)){
+  d4FM[i,5]<-dniTygodnia[(i-1)%%(length(dniTygodnia))+1]
+  
+}
+```
+W celu ułatwienia analizy wykresów pudełkowych, uporządkujmy dane ze względu na medianę. Następnie narysujmy pożądane wykresy.
+
+```{r boxplot}
+par(mfrow = c(2, 2), pty = "m")
+bpmO <- with(d4FM, reorder(d4FM$V5, -d4FM$Otwarcie, FUN = median))
+boxplot(d4FM$Otwarcie ~ bpmO, data = d4FM,col = rainbow(7) , main= "Otwarcie ~ DniTygodnia", ylab = "Otwarcie", xlab = "DniTygodnia")
+
+bpmZ <- with(d4FM, reorder(d4FM$V5, -d4FM$Zamkniecie, FUN = median))
+boxplot(d4FM$Zamkniecie ~ bpmZ, data = d4FM,col = rainbow(7) , main= "Zamknięcie ~ DniTygodnia", ylab = "Zamknięcie", xlab = "DniTygodnia")
+
+bpmMa <- with(d4FM, reorder(d4FM$V5, -d4FM$Maks., FUN = median))
+boxplot(d4FM$Maks. ~ bpmMa, data = d4FM,col = rainbow(7) , main= "Max. ~ DniTygodnia", ylab = "Max.", xlab = "DniTygodnia")
+
+bpmMi <- with(d4FM, reorder(d4FM$V5, -d4FM$Min., FUN = median))
+boxplot(d4FM$Min. ~ bpmMi, data = d4FM,col = rainbow(7) , main= "Min. ~ DniTygodnia", ylab = "Min.", xlab = "DniTygodnia")
+mtext("Wykresy pudełkowe notowań spółki akcyjnej 4FUNMEDIA na GPW", side = 3, line = -1.5, outer = TRUE)
+par(mfrow = c(1,1))
+
+```
+Narysujmy wykresy jeden po drugim. Przy okazji przypomnijmy w jaki sposób możemy odczytać z nich statystyki.
+
+##Wykresy a statystyki cd.. Jak odczytywać dane z wykresów pudełkowych?
+```{r boxplot_1}
+boxplot(d4FM$Otwarcie ~ bpmO, data = d4FM,col = rainbow(7) , main= "Otwarcie ~ DniTygodnia", ylab = "Otwarcie", xlab = "DniTygodnia")
+```
+
+```{r boxplot_2}
+boxplot(d4FM$Zamkniecie ~ bpmZ, data = d4FM,col = rainbow(7) , main= "Zamknięcie ~ DniTygodnia", ylab = "Zamknięcie", xlab = "DniTygodnia")
+```
+
+```{r boxplot_3}
+boxplot(d4FM$Maks. ~ bpmMa, data = d4FM,col = rainbow(7) , main= "Max. ~ DniTygodnia", ylab = "Max.", xlab = "DniTygodnia")
+```
+
+```{r boxplot_4}
+boxplot(d4FM$Min. ~ bpmMi, data = d4FM,col = rainbow(7) , main= "Min. ~ DniTygodnia", ylab = "Min.", xlab = "DniTygodnia")
+```
+
+Idąc od dołu odczytujemy następujące wartości: wartość minimalna (dolny wąs), pierwszy kwartyl (dolna krawędź pudełka), mediana (gruba linia na środku pudełka), trzeci kwartyl (górna krawędź pudełka) oraz wartość maksymalna (górny wąs). Kółeczka oznaczają marginalne wartości, odrzucane przy wyliczaniu podstawowych statystyk.
