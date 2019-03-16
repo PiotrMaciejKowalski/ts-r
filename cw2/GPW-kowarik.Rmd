@@ -15,7 +15,7 @@ dane = readWorksheetFromFile('Amica_GPW_Kowarik.xlsx', sheet = 1)
 Następnie "okrajamy" te dane do interesującego nas zakresu.
 ```{r}
 dane_okrojone<- dane[2:5]
-dane_okrojone
+head(dane_okrojone)
 ```
 Na koniec za pomocą funkcji chartSeries z pakietu quantmod tworzymy wykres giełdowy 
 ```{r}
