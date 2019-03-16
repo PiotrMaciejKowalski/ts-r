@@ -1,0 +1,56 @@
+---
+title: "FEX-ZAR/JPY"
+author: "Michał Szumicki"
+date: "16 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wczytywanie i obróbka danych
+
+Dane zostały pobrane ze strony http://www.histdata.com/
+Interesowały mnie dane z okresu od 01.02.2019r. - 08.03.2019r. (z godz. 8:00, 12:00, 16:00 i 20:00).
+Przed dokonaniem analizy usunąłem nadmiar danych otrzymując 193 obserwacje
+
+library(readxl)
+DANE <- read_excel("Dane.xlsx")
+DANE$SZCZYT <- as.numeric(DANE$SZCZYT)
+DANE$DOŁEK <- as.numeric(DANE$DOŁEK)
+
+
+## Graficzna prezentacja danych
+
+
+###wykres opisujący zmianę kursu randa południowoafrykańskiego do jena japońskiego
+plot(
+  DANE$DATA,
+  DANE$OTWARCJE,
+  type = "o",
+  xaxt = "n",
+  xlab = "data",
+  ylab = "1 rand południowoafrykański / jen japoński"
+)
+etykiety <-
+  DANE$DATA[seq(1, length(DANE$DATA) - 1, length.out = 4)]
+axis(1, etykiety, as.character(etykiety))
+
+
+
+###wykres opisujący różnicę między szczytem a dołkiem kursu
+
+plot(
+  DANE$DATA,
+  DANE$SZCZYT - DANE$DOŁEK,
+  type = "o",
+  xaxt = "n",
+  xlab = "data",
+  ylab = "Różnica między szczytam a dołkiem"
+)
+etykiety1 <-
+  DANE$DATA[seq(1, length(DANE$DATA) - 1, length.out = 4)]
+
+axis(1, etykiety1, as.character(etykiety1))
+
