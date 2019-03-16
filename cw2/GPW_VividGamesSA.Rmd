@@ -1,0 +1,106 @@
+---
+title: "GPW-Vivid Games SA"
+author: "Joanna Szymańska"
+date: "16 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wczytywanie danych
+
+Poniższy plik przedstawia dane dotyczące notowań spółki Vivid Games SA w okresie 16.03.2018.-16.03.2019.
+
+## O spółce
+
+Vivid Games SA to nowoczesne studio deweloperskie zajmujące się projektowaniem, produkcją oraz publikowaniem gier na konsole przenośne i stacjonarne, komputery klasy PC i Mac, oraz nowoczesne telefony komórkowe (smartfony) – które stanowią najbardziej dynamicznie rozwijający się sektor rynku.
+
+```{r dane}
+dgpw1 <- read.csv("GPW-VividGamesSA-dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
+head(dgpw1)
+```
+```{r}
+dgpw<-dgpw1[,2:5]
+head(dgpw)
+```
+
+Poniżej widoczne jest krótkie podsumowanie dla każej z czterech badanych wartości - w tym najmniejsza i największa osiągnięta wartość oraz średnia i mediana.
+```{r}
+summary(dgpw)
+```
+
+
+
+```{r pressure, echo=FALSE}
+x=250:1
+  
+wykres_otw=plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie", xlab="Dni robocze od 16.03.2018", ylab="Wartość w mln zł")
+plot(x,dgpw$Zamkniecie, type ="l",   main="Zamkniecie", xlab="Dni robocze od 16.03.2018", ylab="Wartość w mln zł", col="blue")
+```
+
+
+Dla ułatwienia porównania zobaczmy dane na jednym wykresie:
+
+```{r}
+plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie i zamknięcie", xlab="Dni robocze od 16.03.2018", ylab="Wartość w mln zł")
+lines(x,dgpw$Zamkniecie, type ="l",  col="blue")
+```
+
+```{r}
+i=1
+otw=dgpw$Otwarcie
+zam=dgpw$Zamkniecie
+zmiana=rep(0,250)
+for(i in 1:250){
+  zmiana[i]=otw[i]-zam[i]
+}
+plot(x,zmiana, type="l", main="Zmiana wartosci pomiedzy otwarciem i zamknieciem", xlab="Dni robocze od 16.03.2018", ylab="Wartość", col="purple")
+```
+
+
+
+
+
+
+Teraz przyjrzymy się maksymalnym i minimalnym wartościom w kolejnych dniach roboczych.
+```{r}
+plot(x,dgpw$Max, type ="l", main="Maksimum i minimum ", xlab="Dni robocze od 16.03.2018", ylab="Wartość w mln zł", col="green")
+lines(x,dgpw$Min, type ="l",  col="red")
+```
+
+
+Sprawdźmy częstotliwość osiągania wartości z określonych przedziałów dla maksimum i minimum.
+
+
+
+
+```{r}
+hist(dgpw$Max, main="Histogram maksimum", xlab="Wartość", ylab="Częstotliwość", col="green", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
+hist(dgpw$Min, main="Histogram minimum", xlab="Wartość", ylab="Częstotliwość", col="red", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
+```
+
+
+
+Policzmy różnice pomiedzy największą a najmniejszą wartością w poszczególne dni.
+
+
+```{r}
+i=1
+Maxi=dgpw$Max
+Mini=dgpw$Min
+roznica=rep(0,250)
+for(i in 1:250){
+  roznica[i]=Maxi[i]-Mini[i]
+}
+plot(x,roznica, type="l", main="Różnica pomiędzy największą a najmniejszą wartością", xlab="Dni robocze od 16.03.2018", ylab="Wartość")
+```
+
+
+Na koniec zobaczmy zestawienie wszystkich badanych wartości w postaci wykresu pudełkowego.
+
+```{r}
+boxplot(dgpw$Otwarcie,dgpw$Zamkniecie,dgpw$Max,dgpw$Min, names=c("Otwarcie","Zamkniecie","Maksimum","Minimum"), col=rainbow(5))
+```
+
