@@ -4,15 +4,8 @@
 ## przekazanym przez parametr
 
 zamiana_liter = function(slowo){
-  wektor <- strsplit(slowo,"")
-  wektor2 <- unlist(wektor)
-  ilosc_elementow <- length(wektor2)
-  wektor3 <- wektor2
-  for (i in 1:ilosc_elementow){
-    if (wektor2[i]=="[zxcvbnmasdfghjklqwertyuiop]"){
-      wektor3[i] =toupper(wektor2[i])}
-    else if (wektor2[i]=="[ZXCVBNMASDFGHJKLQWERTYUIOP]"){
-      wektor3[i]=tolower(wektor2[i])}
-    }
-  return(wektor3)
+  wektor_liter <- strsplit(slowo,"")[[1]]
+  paste(toupper(substring(wektor_liter, 1, 1)), substring(wektor_liter, 2),
+        sep = "", collapse = "")
+
 }
