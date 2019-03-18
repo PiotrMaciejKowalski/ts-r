@@ -2,16 +2,13 @@
 ## Napisz funkcje wyznaczajaca liczbe cyfr podanych w tekscie
 
 ilosc_cyfr = function(x){
-  n<-nchar(x)
   ile<-0
-  i<-0
-  while (i<=n) {
-    r<- substr(x,i,i)
-    if (r=="0" |r=="1"| r=="2"| r=="3"| r=="4" |r=="5" | r=="6"|
-        r=="7" | r=="8" | r=="9"){
-      ile=ile+1
+  for (i in 0:9) {
+    for(j in 1:length(x)){
+      if(is.element(x[j],i)==TRUE){
+        ile=ile+1
+      }
     }
-    i=i+1
   }
   return(ile)
 }
