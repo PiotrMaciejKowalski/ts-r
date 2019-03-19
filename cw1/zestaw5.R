@@ -5,5 +5,10 @@
 ## pewni istnienia elementu odwrotnego w mnożeniu
 
 odwrotny = function(argument, p){
-  
+    for (i in 0:(p-1)){
+      if ( (i*argument) %% p == 1 ){
+        return (i);
+      }
+    }
+  return(NA)
 }
