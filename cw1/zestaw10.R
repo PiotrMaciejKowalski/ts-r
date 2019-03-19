@@ -17,7 +17,7 @@ sprawdzacz_nawiasow = function(wyrazenie){
     }
   }
   if (licznik!=0){
-    nawiasy = "Ÿle zadane nawiasy"
+    nawiasy = "Åºle zadane nawiasy"
   }
   otwarcie_nawiasu <- grep("[(]", wyrazenie1)
   zamkniecie_nawiasu <- grep("[)]", wyrazenie1)
@@ -25,7 +25,7 @@ sprawdzacz_nawiasow = function(wyrazenie){
   roznica <- otwarcie_nawiasu-zamkniecie_nawiasu
   for (j in 1:n) {
     if (roznica[j]>0){
-      nawiasy = "Ÿle zadane nawiasy"
+      nawiasy = "Åºle zadane nawiasy"
     }
   }
   return(nawiasy)
