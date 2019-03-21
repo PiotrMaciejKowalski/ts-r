@@ -1,0 +1,7 @@
+Proszę do tego katalogu pobrać zbiory danych umieszczone na wikampie:
+
+heights.rda
+apartments.rda
+daneMieszkania.csv
+
+Umieszczenie ich na github naruszałoby prawa autorskie, poprzez zamieszczenie ich na platformie - umożliwiam sobie powołanie się na dozwolony użytek publiczny
