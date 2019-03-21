@@ -106,3 +106,21 @@ summary(lm(cena~pokoi,data=mieszkania ));
 Z powyższego wynika, że wartość mieszkanai jest silnie zależna od ilości pokoi, jest silnie zależna od powierzchnii mieszkania - lecz gdy badamy tę zależności jedncześnie nagle zależność od pokoju całkowicie zanika? Wiążę się to z silnym skorelowaniem tych zmiennych. W końcu im więcej pokoi tym większa powierzchnia, i czym większa powierzchnia tym więcej pokoi. Algorytm pracujący pod spodem dostrzegł jednak, że zmienność naszej zmiennej objaśnianej wyczerpuje zmienność zmiennej objaśniającej powierzchnia. W efekcie do pozostałej zmienności zmienna pokoje nie umiała już objaśniach i stąd sugestia by ją wyrzucić z modelu.
 
 Z powyższego eksperymentu wynika wprost, że należy usuwać zmienne skorelowane jako zależne jedna od drugich. Czemu skoro i tak w modelu R obliczy, że powinna zostać jedna? Ponieważ R wybierze, która z nich ma zostać w sposób randomizowany - a to z reguły nie jest tym co nas zadowala.
+
+## Wykresy diagnostyczne
+
+R posiada również możliwość wytworzenie specjalnych zmiennych, które pomagają w diagnostyce problemów objawiających się w danych
+
+```{r}
+par(mfrow=c(2,2))
+plot(reg)
+```
+
+W przypadku dobrze dobranego modelu powinniśmy obserwować następujące cechy
+
+1. Na wykresie Residuals vs Fitted powniśmy obserwować stałe wahania scentrowane wokół średniej wartości.
+1. Na wykresie Q-Q powiniśmy oglądać pokrycie linii przerywanej. Najczęściej jednak wartości skrajnie niedopasowywują się linii. Oznacza to, że model dobrze opanował modelowanie danych pośrednich, ale gorzej radzi sobie z danymi skrajnymi.
+1. Scale-location powiniśmy obserwować równomierne wahania w przekroju próby losowej.
+1. na Residuals vs Leverage - powiśmy obserwować pojedyncze skupisko próby. Wartości odstają i małe rozłączne grupy sugerują wartości odstające w próbie, które silnie przekładają się na modyfikowanie parametrów modelu.
+
+
