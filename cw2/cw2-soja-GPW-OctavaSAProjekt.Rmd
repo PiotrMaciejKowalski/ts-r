@@ -51,10 +51,11 @@ ramka<- data.frame(Data2,Otwarcie,Najwyzszy,Najnizszy,Zamkniecie)
 
 
 ```{r}
-plot(Data2,Otwarcie,type = "l", col='red' ,main = "Otwarcie")
+plot(Data2,Otwarcie,type = "l", col='red' ,xlab = "Data",ylab = "Wysokość kursu")
 lines(Data2,Najwyzszy,type = "l", col='green', main = "Najwyzszy")
 lines(Data2,Najnizszy,type = "l", col = 'blue', main = "Najnizszy")
 lines(Data2,Zamkniecie,type = "l",main = "Zamkniecie")
+legend("topright",c("Otwarcie","Najwyzszy","Najnizszy","Zamkniecie"),col = c("red","green","blue","black"),pch = "-")
 ```
 
 
@@ -79,11 +80,12 @@ zamkniecia<-ramka[Zamkniecie>sredniazamk,c(1,5)]
 
 
 
+
 ```{r}
-plot(otwarcia,col="red")
-plot(najwyzsze,col="green")
-plot(najnizsze,col="blue")
-plot(zamkniecia)
+plot(otwarcia,col="red",main ="Otwarcie",xlab="Data",ylab="Kurs")
+plot(najwyzsze,col="green",main="Najwyzszy",xlab="Data",ylab="Kurs")
+plot(najnizsze,col="blue",main="Najnizszy",xlab="Data",ylab="Kurs")
+plot(zamkniecia,main="Zamkniecie",xlab="Data",ylab="Kurs")
 ```
 
 
