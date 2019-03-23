@@ -1,0 +1,107 @@
+---
+title: "GPW_Octava_SA"
+author: "Maria Soja"
+date: "20 03 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wczytywanie danych
+
+Do realizacji zadania oraz analizy danych pobieramy dane notowań spółki "Octava SA" ze strony https://stooq.pl/q/d/?s=08n&c=0&d1=20190101&d2=20190319 z okresu 02.01.2019-18.03.2019.
+
+
+```{r wczytywanie}
+setwd('~/Desktop/ts-r/cw2')
+df <- read.csv("08n_d.csv")
+   head(df)
+```
+
+
+```{r}
+Data<-df$Data
+Otwarcie<-df$Otwarcie
+Najwyzszy<-df$Najwyzszy
+Najnizszy<-df$Najnizszy
+Zamkniecie<-df$Zamkniecie
+Wolumen<-df$Wolumen
+```
+
+
+
+
+## Charakterystyka zmiennych
+Przedstawimy najważniejsze informcje dotyczące naszych danych
+```{r}
+summary(df)
+```
+## Wykresy
+
+Na początek przedstawimy podstawowe wykresy naszych danych
+```{r}
+Data2 <- as.Date(Data, "%Y-%m-%d")
+```
+
+```{r}
+ramka<- data.frame(Data2,Otwarcie,Najwyzszy,Najnizszy,Zamkniecie)
+```
+
+
+```{r}
+plot(Data2,Otwarcie,type = "l", col='red' ,main = "Otwarcie")
+lines(Data2,Najwyzszy,type = "l", col='green', main = "Najwyzszy")
+lines(Data2,Najnizszy,type = "l", col = 'blue', main = "Najnizszy")
+lines(Data2,Zamkniecie,type = "l",main = "Zamkniecie")
+```
+
+
+
+Teraz pokażemy wartości które sa większe od średniej. Zacznijmy od policzenia średnich.
+
+
+```{r}
+sredniaotw=mean(Otwarcie)
+srednianajw=mean(Najwyzszy)
+srednianajn=mean(Najnizszy)
+sredniazamk=mean(Zamkniecie)
+```
+
+
+```{r}
+otwarcia<-ramka[Otwarcie>sredniaotw,c(1,2)]
+najwyzsze<-ramka[Najwyzszy>srednianajw,c(1,3)]
+najnizsze<-ramka[Najnizszy>srednianajn,c(1,4)]
+zamkniecia<-ramka[Zamkniecie>sredniazamk,c(1,5)]
+```
+
+
+
+```{r}
+plot(otwarcia,col="red")
+plot(najwyzsze,col="green")
+plot(najnizsze,col="blue")
+plot(zamkniecia)
+```
+
+
+Teraz policzmy ile jest wartości wiekszych od srednich.
+
+```{r}
+length(otwarcia$Otwarcie)
+length(najwyzsze$Najwyzszy)
+length(najnizsze$Najnizszy)
+length(zamkniecia$Zamkniecie)
+```
+
+Wynik przedstawmy na wykresie
+
+```{r}
+w<-c(length(otwarcia$Otwarcie),length(najwyzsze$Najwyzszy), length(najnizsze$Najnizszy), length(zamkniecia$Zamkniecie))
+
+colors=c("red","green","blue","black")
+
+barplot(w,names = c("Otwarcie","Najwyzszy","Najnizszy","Zamkniecie"),main="Liczba wartości wiekszych od srednich",col = colors)
+```
