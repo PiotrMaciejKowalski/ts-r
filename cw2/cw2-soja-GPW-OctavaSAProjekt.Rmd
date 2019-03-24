@@ -26,6 +26,7 @@ Najnizszy<-df$Najnizszy
 Zamkniecie<-df$Zamkniecie
 Wolumen<-df$Wolumen
 ```
+
 ```{r}
 Data2 <- as.Date(Data, "%Y-%m-%d")
 df<-cbind(df,Data2)
