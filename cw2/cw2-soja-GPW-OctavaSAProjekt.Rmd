@@ -17,12 +17,14 @@ Do realizacji zadania oraz analizy danych pobieramy dane notowań spółki "Octa
 ```{r wczytywanie}
 setwd('~/Desktop/ts-r/cw2')
 df <- read.csv("08n_d.csv")
-   head(df)
+Data2 <- as.Date(df$Data, "%Y-%m-%d")
+df<-cbind(df,Data2)
+head(df)
 ```
 
 
 ```{r}
-Data<-df$Data
+Data<-df$Data2
 Otwarcie<-df$Otwarcie
 Najwyzszy<-df$Najwyzszy
 Najnizszy<-df$Najnizszy
@@ -30,24 +32,13 @@ Zamkniecie<-df$Zamkniecie
 Wolumen<-df$Wolumen
 ```
 
-
-
-
 ## Charakterystyka zmiennych
 Przedstawimy najważniejsze informcje dotyczące naszych danych
 ```{r}
 summary(df)
 ```
 ## Wykresy
-
 Na początek przedstawimy podstawowe wykresy naszych danych
-```{r}
-Data2 <- as.Date(Data, "%Y-%m-%d")
-```
-
-```{r}
-ramka<- data.frame(Data2,Otwarcie,Najwyzszy,Najnizszy,Zamkniecie)
-```
 
 
 ```{r}
@@ -72,10 +63,10 @@ sredniazamk=mean(Zamkniecie)
 
 
 ```{r}
-otwarcia<-ramka[Otwarcie>sredniaotw,c(1,2)]
-najwyzsze<-ramka[Najwyzszy>srednianajw,c(1,3)]
-najnizsze<-ramka[Najnizszy>srednianajn,c(1,4)]
-zamkniecia<-ramka[Zamkniecie>sredniazamk,c(1,5)]
+otwarcia<-df[Otwarcie>sredniaotw,c(7,2)]
+najwyzsze<-df[Najwyzszy>srednianajw,c(7,3)]
+najnizsze<-df[Najnizszy>srednianajn,c(7,4)]
+zamkniecia<-df[Zamkniecie>sredniazamk,c(7,5)]
 ```
 
 
