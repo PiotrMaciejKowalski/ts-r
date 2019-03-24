@@ -10,7 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Wczytywanie danych
-
 Do realizacji zadania oraz analizy danych pobieramy dane notowań spółki "Octava SA" ze strony https://stooq.pl/q/d/?s=08n&c=0&d1=20190101&d2=20190319 z okresu 02.01.2019-18.03.2019.
 
 ```{r wczytywanie}
@@ -69,7 +68,6 @@ plot(zamkniecia,main="Zamkniecie",xlab="Data",ylab="Kurs")
 ```
 
 Teraz policzmy ile jest wartości wiekszych od srednich.
-
 ```{r}
 length(otwarcia$Otwarcie)
 length(najwyzsze$Najwyzszy)
@@ -78,7 +76,6 @@ length(zamkniecia$Zamkniecie)
 ```
 
 Wynik przedstawmy na wykresie
-
 ```{r}
 w<-c(length(otwarcia$Otwarcie),length(najwyzsze$Najwyzszy), length(najnizsze$Najnizszy), length(zamkniecia$Zamkniecie))
 colors=c("red","green","blue","black")
