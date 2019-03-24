@@ -15,18 +15,20 @@ Do realizacji zadania oraz analizy danych pobieramy dane notowań spółki "Octa
 ```{r wczytywanie}
 setwd('~/Desktop/ts-r/cw2')
 df <- read.csv("08n_d.csv")
-Data2 <- as.Date(Data, "%Y-%m-%d")
-df<-cbind(df,Data2)
 head(df)
 ```
 
 ```{r}
-Data<-df$Data2
+Data<-df$Data
 Otwarcie<-df$Otwarcie
 Najwyzszy<-df$Najwyzszy
 Najnizszy<-df$Najnizszy
 Zamkniecie<-df$Zamkniecie
 Wolumen<-df$Wolumen
+```
+```{r}
+Data2 <- as.Date(Data, "%Y-%m-%d")
+df<-cbind(df,Data2)
 ```
 
 ## Charakterystyka zmiennych
@@ -79,6 +81,5 @@ Wynik przedstawmy na wykresie
 ```{r}
 w<-c(length(otwarcia$Otwarcie),length(najwyzsze$Najwyzszy), length(najnizsze$Najnizszy), length(zamkniecia$Zamkniecie))
 colors=c("red","green","blue","black")
-
 barplot(w,names = c("Otwarcie","Najwyzszy","Najnizszy","Zamkniecie"),main="Liczba wartości wiekszych od srednich",col = colors)
 ```
