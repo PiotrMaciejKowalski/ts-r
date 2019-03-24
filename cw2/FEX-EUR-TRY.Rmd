@@ -1,0 +1,77 @@
+---
+title: "Analiza kursu euro do liry tureckiej"
+author: "Anna Stańczyk"
+date: "15 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Niniejsza analiza kursu euro (EUR) do liry tureckiej (TRY) w bieżącym roku została przeprowadzona na podstawie danych ze strony Histdata.com. 
+
+## Wczytanie danych
+```{r wczytanie_danych}
+library(readxl)
+wczytywanie_styczen = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 1)
+wczytywanie_luty = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 2)
+wczytywanie_marzec = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 3)
+wszystkie_dane <- rbind(wczytywanie_styczen, wczytywanie_luty, wczytywanie_marzec)[1:5]
+wszystkie_dane <- cbind(godzina = substr(wszystkie_dane$czas,12,19), wszystkie_dane)
+head(wszystkie_dane)
+
+```
+
+W analizie będziemy brać pod uwagę notowania kursów jedynie z godzin: 8:00, 12:00, 16:00, 20:00. W tym celu zawężamy zakres naszych danych.
+
+## Zawężenie danych
+```{r zawężenie_danych}
+library(dplyr)
+wybrane_dane = wszystkie_dane[wszystkie_dane$godzina == "08:00:00"| wszystkie_dane$godzina == "12:00:00"| wszystkie_dane$godzina == "16:00:00"| wszystkie_dane$godzina == "20:00:00", ]
+head(wybrane_dane)
+```
+## Graficzne przedstawienie danych
+Skoro nasze dane są już dobrze posegregowane, to przejdźmy do analizy na podstawie zaprezentowanych poniżej wykresów. Najpierw przyjżyjmy się wykresom przedstawiającym wartości kursów szczytu i dołka w zależności od daty i pogrupowanych na cztery możliwe godziny dziennych pomiarów wartości. 
+```{r Wykresy_szczyt_dołek_od_czasu}
+library(ggplot2)
+ggplot(wybrane_dane,aes(x = czas,y = szczyt, col = godzina)) + 
+    geom_line()
+
+ggplot(wybrane_dane,aes(x = czas,y = dołek, col = godzina)) + 
+    geom_line()
+
+```
+Zauważmy, że wykresy te wydają się być niemal identyczne. Zbadajmy więc, jak wygląda wykres różnicy wartości kursów szczytu i dołka od czasu, pogrupowanych na godziny dziennych pomiarów.
+```{r wykres_różnica_szczyt_dołek_od_czasu}
+library(ggplot2)
+ggplot(wybrane_dane,aes(x = czas,y = szczyt-dołek, col = godzina)) + 
+    geom_line()
+
+```
+W dalszej części analizy chciałabym rozważyć średnie wartości kursów: otwarcia, szczytu, dołka i zamknięcia w zależności od czterech wariantów godzin pomiarów wartości. W tym celu tworzymy nową ramkę danych, zawierającą interesujące nas wartości średnie.
+
+```{r ramka_wartości_średnie}
+srednie_dane <- data.frame("godzina"=c("8:00", '12:00', '16:00', '20:00'), "średni kurs otwarcia"=1:4, "średni szczyt"=1:4, "średni dołek"=1:4, "średni kurs zamknięcia"=1:4)
+#srednie_dane$godzina=c(8, 12, 16, 20)
+i <- 3
+for(i in 3:6){
+srednie_dane[1,i-1] <- mean(wybrane_dane[,i][wybrane_dane$godzina == "08:00:00"])
+srednie_dane[2,i-1] <- mean(wybrane_dane[,i][wybrane_dane$godzina == "12:00:00"])
+srednie_dane[3,i-1] <- mean(wybrane_dane[,i][wybrane_dane$godzina == "16:00:00"])
+srednie_dane[4,i-1] <- mean(wybrane_dane[,i][wybrane_dane$godzina == "20:00:00"])
+i <- i+1
+}
+head(srednie_dane)
+```
+
+```{r wykres_średnie_wartości}
+library(reshape2)
+dfm <- melt(srednie_dane[c("godzina","średni.kurs.otwarcia","średni.szczyt", "średni.dołek", "średni.kurs.zamknięcia")],id.vars = 1)
+library(ggplot2)
+ggplot(dfm,aes(x = godzina,y = value)) + 
+    geom_bar(aes(fill = variable),stat = "identity",position = "dodge") +coord_cartesian(ylim = c(6.06, 6.08), expand = FALSE) +ylab("Średnie kursy") + xlab("Godzina")+scale_fill_discrete(name = "") +scale_x_discrete(limits=c("8:00","12:00","16:00", "20:00"))
+
+```
+
+
+
