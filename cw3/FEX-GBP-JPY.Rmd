@@ -1,0 +1,133 @@
+---
+title: "Analiza kursu funta brytyjskiego (GBP) do jena (JPY)"
+author: "Sandra Sobór"
+date: "13 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wczytywanie danych
+
+Przedmiotem analizy będą dane ze strony Forex.pl dotyczące kursu funta brytyjskiego do jena. Interesuje nas analiza kursów z ostatniego roku (dokładny okres 28.02.2018 - 28.02.2019) z godziny 8:00, 12:00, 16:00 i 20:00. Na potrzeby przedstawienia graficznego pobrane dane muszą zostać odpowiednio wybrane z obszernego pliku. Dla ustalenia uwagi będzie nas interesował wyłącznie kurs zamknięcia, zatem naszą tabelę możemy trochę ograniczyć. Dodatkowo dane nie zawierają informacji o notowaniach w weekendy w konsekwencji mamy jedynie 261 obserwacji. Przykładowo wypisane zostały kursy z godziny 8:00 z początku analizowanego okresu.
+
+```{r}
+data_all <- read.csv2(file = 'GBP-JPYg.csv', header = TRUE)
+data_8 <- data_all[data_all$godzina == 80000, ]
+data_12 <- data_all[data_all$godzina == 120000, ]
+data_16 <- data_all[data_all$godzina == 160000, ]
+data_20 <- data_all[data_all$godzina == 200000, ]
+
+head(data_8)
+
+```
+##Graficzne przedstawienie danych
+Skoro dane mają już przyjazny dla nas format możemy zająć się tworzeniem wykresów. Na początek przedstawione zostaną wykresy pokazujące cenę w danej godzinie w ciągu całego analizowanego okresu. 
+
+```{r echo = FALSE}
+par(mfrow = c(2, 2))
+plot(1:length(data_8$data), data_8$zamkniecie, type = "l", main = "Kursy z godziny 8:00", xlab = "Dni", ylab = "Cena")
+plot(1:length(data_12$data), data_12$zamkniecie, type = "l", main = "Kursy z godziny 12:00", xlab = "Dni", ylab = "Cena")
+plot(1:length(data_16$data), data_16$zamkniecie, type = "l", main = "Kursy z godziny 16:00", xlab = "Dni", ylab = "Cena")
+plot(1:length(data_20$data), data_20$zamkniecie, type = "l", main = "Kursy z godziny 20:00", xlab = "Dni", ylab = "Cena")
+par(mfrow = c(1, 1))
+```
+
+Na pierwszy rzut oka wykresy wydają się takie same, zobaczmy zatem łączny wykres, który pokaże nam różnice w cenach. 
+
+```{r echo=FALSE}
+curve(data_8$zamkniecie[x], from = 1, to = length(data_8$data), type = "l", xlab = "Dzień", ylab = "Cena", col = "blue")
+curve(data_12$zamkniecie[x], from = 1, to = length(data_12$data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Cena", col = "red")
+curve(data_16$zamkniecie[x], from = 1, to = length(data_16$data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Cena", col = "green")
+curve(data_20$zamkniecie[x], from = 1, to = length(data_20$data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Cena")
+legend("bottomleft", legend = c("Godzina 8:00", "Godzina 12:00", "Godzina 16:00", "Godzina 20:00"), col = c("blue", "red", "green", "black"), lwd = 2)
+```
+
+##Predykcja danych
+Poniżej zajmiemy się stworzeniem dwóch modeli predykcji danych. Będziemy modelować kurs zamknięcia z godziny 16 (261 obserwacji) poprzez stworzenie modeli regresji. Dodatkowo do ramki danych zostanie dodana kolumna z czasem (t). Jako, że mamy też podać błąd średniokwadratowy oraz staystykę Theil'a, zdefiniujmy fukncję, któe policzą nam te wartości:
+
+```{r}
+data_16$t <- 1:length(data_16$zamkniecie)
+
+mse <- function(dane, predykcja) 
+    {
+      return(mean((dane - predykcja) ^ 2))  
+    }
+
+theil <- function(dane, predykcja) 
+    {
+    return(sum((dane - predykcja) ^ 2) / sum(dane ^ 2))
+    }
+```
+
+
+##Model 1 
+W pierwszym modelu predykcja na ostatnie 10 dni analizowanego okresu zostanie stworzona na podstawie zbioru uczącego składającego się ze wszystkich poprzednich danych (tj. 251  obserwacji). Jako x oznaczymy wektor wartości, które będziemy predyktować i ostatecznie porównywać z naszymi wynikami
+
+```{r}
+n <- 10
+N <- length(data_16$zamkniecie)
+data1 <- data_16[1:(N - n), ]
+x1 <- data_16[(N - n + 1):N, ]
+```
+
+Rozważmy następujący model i zobaczmy jak wygląda wykres dla danych i predykcji na zbiorze uczącym. 
+```{r}
+model1 <- lm(zamkniecie ~ t + sin(2 * pi / 50 * t), data = data1)
+summary(model1)
+plot(data1$t, data1$zamkniecie, main = "Predykcja na zbiorze uczącym", xlab = "Dzień okresu", ylab = "Zamknięcie")
+lines(data1$t, predict(model1), col = "red")
+```
+
+Widać zatem trend malejący. Teraz stworzony zostanie wykres rzeczywistych i predyktowanych wartości na ostatnie 10 dni okresu (zbiór testowy).
+
+```{r}
+pred1 <- predict(model1, newdata = x1)
+granice <- c(min(min(pred1), min(x1$zamkniecie)) - 2, max(max(pred1), x1$zamkniecie) + 2)
+plot(x1$t, x1$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dzień okresu", ylab = "Zamknięcie", ylim = granice)
+lines(x1$t, pred1, col = "red")
+
+```
+
+Czas zatem na wyliczenie błędu średniokwadratowego i współczynnika Theil'a: 
+```{r echo = FALSE}
+m1 <- c("Błąd śrendiokwadratowy" = mse(x1$zamkniecie, pred1), "Statystyka Theil'a" = theil(x1$zamkniecie, pred1)) 
+m1
+```
+
+
+
+## Model 2
+W drugim modelu predykcja na ostatnie 10 dni analizowanego okresu zostanie stworzona na podstawie zbioru uczącego składającego się z danych z 30 poprzedzających dni (tj. 222-251). Analogicznie jak poprzednio wektor wartości, które będziemy predyktować oznaczymy przez x2. Zastosujemy tutaj model regresji liniowej, gdyż jak zobaczymy poniżej w podsumowaniu i na wykresie całkiem dobrze przybliża on nam dane ze zbioru uczącego:
+```{r}
+o <- 30
+data2 <- data_16[(N - n - o + 1):(N - n), ]
+x2 <- data_16[(N - n + 1):N, ]
+
+model2 <- lm(zamkniecie ~ t, data = data2)
+summary(model2)
+
+plot(data2$t, data2$zamkniecie, main = "Predykcja na zbiorze uczącym", xlab = "Dni okresu", ylab = "Zamknięcie")
+lines(data2$t, predict(model2), col = "red")
+
+```
+
+Przy zbiorze uczącym składającym się z 30 poprzedzających obserwacji widzimy, że trend jest rosnący. Sporządzimy teraz wykres wartości rzeczywistych i predyktowanych dla ostatnich 10 dni okresu.
+
+```{r}
+pred2 <- predict(model2, newdata = x2)
+plot(x2$t, x2$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dni okresu", ylab = "Zamknięcie")
+lines(x2$t, pred2, col = "red")
+```
+
+I na koniec statystki dla modelu 2: 
+
+```{r echo = FALSE}
+m2 <- c("Błąd śrendiokwadratowy" = mse(x2$zamkniecie, pred2), "Statystyka Theil'a" = theil(x2$zamkniecie, pred2)) 
+m2
+```
+##Podsumowanie
+
+Na podstawie wartości błędów średnikwadratowych i statystyk Theil'a dla modelu 1 i modelu 2 możemy wnioskować, że model 2 lepiej predyktuje wartości kursu zamknięcia. Może to byś spowodowane faktem, że nie korzysta z przestarzałych danych.
