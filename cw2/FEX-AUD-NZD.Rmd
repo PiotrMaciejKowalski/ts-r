@@ -1,9 +1,13 @@
 ---
-title: "Anzaliza kursu dolara australijskiego (AUD) do dolara nowozelandzkiego (NZD)"
+title: "Analiza kursu dolara australijskiego (AUD) do dolara nowozelandzkiego (NZD)"
 author: "Małgorzata Woźna"
 date: "26 marca 2019"
 output: html_document
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
