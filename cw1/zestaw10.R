@@ -17,7 +17,7 @@ sprawdzacz_nawiasow = function(wyrazenie){
     }
   }
   if (licznik!=0){
-     nawiasy = FALSE
+  nawiasy = FALSE
   }
   else{
   otwarcie_nawiasu <- grep("[(]", wyrazenie1)
@@ -26,7 +26,7 @@ sprawdzacz_nawiasow = function(wyrazenie){
   roznica <- otwarcie_nawiasu-zamkniecie_nawiasu
   for (j in 1:n) {
     if (roznica[j]>0){
-      nawiasy = FALSE
+  nawiasy = FALSE
 
     }
   }
