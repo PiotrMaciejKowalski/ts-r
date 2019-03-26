@@ -20,7 +20,7 @@ wykresów. Wszystkie dane użyte do stworzenia poniższych wykresów pobrane zos
 Wczytamy notowania.
 
 ```{r wczytywanie}
-dane <- read.csv("GPW-MBANK.csv")
+dane <- read.csv("../cw2/GPW-MBANK.csv")
 head(dane)
 ```
 
@@ -103,7 +103,7 @@ Spróbujemy dokonać prognozy notowań jednego, wybranego kursu. Za przykład ob
 kurs **Otwarcia**. Wczytamy dane.
 
 ```{r wczytywanie2}
-dane2 <- read.csv("GPW-MBANK.csv")
+dane2 <- read.csv("../cw2/GPW-MBANK.csv")
 dane2$t <- as.integer(dane2$Data)
 prog_start <- "2019-02-28"
 ```
@@ -124,17 +124,12 @@ Do oceny jakości naszej prognozy wykorzystamy dwa narzędzia - błąd średniok
 statystykę Theila (`theil`).
 
 ```{r funkcje}
-mse <- function(real, predicted = NULL) {
-    if (!is.numeric(real) || (!is.null(predicted) && !is.numeric(predicted))) {
+mse <- function(real, predicted = 0) {
+    if (!is.numeric(real) || !is.numeric(predicted)) {
         stop("Parametry real oraz predicted muszą być numeryczne.")
     }
     
-    if (!is.null(predicted)) {
-        value <- real - predicted
-    } else {
-        value <- real
-    }
-
+    value <- real - predicted
     result <- mean(value * value, na.rm = TRUE)
     return(result)
 }
