@@ -18,7 +18,7 @@ Pomijam kolumn? "wolumen" poniewa? nie b?dzie ona odgrywa?a roli w wykresach.
 
 ```{r}
 library(readxl)
-dane<- read_excel("~/dane_awm.xlsx", range="A1:E59")
+dane<- read_excel("dane_awm.xlsx", range="A1:E59")
 ```
   
 Wyświetlam 6 pierwszych wierszy danych (do szybkiego wglądu)
