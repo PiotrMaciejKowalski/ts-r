@@ -7,7 +7,7 @@ sprawdzacz_nawiasow = function(wyrazenie){
   wyrazenie1 <-unlist(strsplit(wyrazenie,""))
   licznik <- 0
   dlugosc_wyrazenia <- length(wyrazenie1)
-  nawiasy <- "nawiasy poprawne"
+  nawiasy <- "True"
   for(i in 1:dlugosc_wyrazenia){
     if (wyrazenie1[i]=="("){
       licznik = licznik+1
@@ -17,17 +17,19 @@ sprawdzacz_nawiasow = function(wyrazenie){
     }
   }
   if (licznik!=0){
-    nawiasy = "źle zadane nawiasy"
+    nawiasy = "False"
   }
+  else{
   otwarcie_nawiasu <- grep("[(]", wyrazenie1)
   zamkniecie_nawiasu <- grep("[)]", wyrazenie1)
   n <- length(otwarcie_nawiasu)
   roznica <- otwarcie_nawiasu-zamkniecie_nawiasu
   for (j in 1:n) {
     if (roznica[j]>0){
-      nawiasy = "źle zadane nawiasy"
+      nawiasy = "False"
 
     }
+  }
   }
   return(nawiasy)
 }
