@@ -3,7 +3,6 @@ title: "Analiza kursu EUR-GBP"
 author: "Agnieszka Jadczak"
 date: "17 marca 2019"
 output:
-  pdf_document: default
   html_document: default
 ---
 
@@ -17,6 +16,12 @@ Dane pochodzą ze strony histdata.com.
   
 Okres z którego pochodzą dane: 01.01.2019-08.01.2019r.
   
+Raport dotyczy analizy ceny kursu sprzedaży euro do funta brytyjskiego.\newline
+Dane pochodzą ze strony histdata.com. \newline
+\newline
+Okres z którego pochodzą dane: 01.01.2019-08.01.2019r.
+\newline
+
 
 ```{r}
 options(max.print = 99999999) 
@@ -39,6 +44,7 @@ summary(d$zamkniecie)
 Poniższe wykresy zostały sporządzone w oparciu o kurs zamknięcia.\newline
 \newline
 Średni kurs dla wszystkich danych wynosi 0,8768, natomiast mediana dla wszystkich danych wynosi 0,8760.
+
 ## Wykresy
 
 
@@ -87,7 +93,6 @@ abline(h=mean(d20$zamkniecie),lty=2, col="deepskyblue")
 abline(h=median(d$zamkniecie),lty=1, col="deeppink2")
 abline(h=median(d20$zamkniecie),lty=2, col="lightpink")
 legend("topright", legend=c("Mediana", "Średni kurs","Mediana dla 20:00","Sredni kurs dla 20:00"),col=c("deeppink2","blue","lightpink","deepskyblue"), lty=c(1,1,2,2), cex=0.8,bg='lightgrey')
-
 ```
 
 
