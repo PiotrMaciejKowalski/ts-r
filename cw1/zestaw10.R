@@ -17,7 +17,7 @@ sprawdzacz_nawiasow = function(wyrazenie){
     }
   }
   if (licznik!=0){
-    nawiasy = FALSE
+     nawiasy = FALSE
   }
   else{
   otwarcie_nawiasu <- grep("[(]", wyrazenie1)
