@@ -26,6 +26,7 @@ sprawdzacz_nawiasow = function(wyrazenie){
   for (j in 1:n) {
     if (roznica[j]>0){
       nawiasy = "źle zadane nawiasy"
+
     }
   }
   return(nawiasy)
