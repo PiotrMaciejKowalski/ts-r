@@ -9,13 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## Wczytywanie danych 
+## Analizowane dane 
 
 Analizowane będą dane ze strony HistData.com (https://www.histdata.com/) dotyczące kursu dolara australijskiego do dolara nowozelandzkiego. Dokładniej analiza kursów z bieżacego roku (dokładny okres 01.01.2019 - 25.03.2019) z godzin 8:00, 12:00, 16:00 i 20:00. Na potrzeby przedstawienia danych w formie wykresów pobrane przezemnie dane musiały zostać odpowiednio wybrane z obszernego pliku. Pokazany jest wyłącznie kurs zamknięci. Dodatkowo dane nie zawierają informacji o notowaniach w weekendy.
+
 ## Wczytywanie danych
 Dane zostały wcześniej obrobione w programie Excel
 ```{r wczytywanie}
@@ -59,5 +56,4 @@ legend("bottomleft", legend = c("Godzina 8:00", "Godzina 12:00", "Godzina 16:00"
 ```
 
 Możemy zauważyć podobieństwo wykresów z godziny 8:00, 12:00 oraz 16:00. Różni się jedynie wykres z godziny 20:00. Róznica ta nie wynika z dużego wzrostu czy spadku wartości kursu lecz ilość pobranych danych. Danych o godzinie 20:00 jest najwięcej. Dzięki obserwacji wykresu widzimy, że kurs walut jest najwyższy w połowie miesiąca póżniej spada.
-
 
