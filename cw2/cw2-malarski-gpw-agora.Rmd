@@ -38,4 +38,5 @@ Wykres daty od zamknięcia.
 ```{r}
 hist(Wolumen)
 hist (Otwarcie)
+hist (Zamkniecie)
 ```
