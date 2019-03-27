@@ -147,8 +147,8 @@ theil <- function(real, predicted) {
     rlag <- lead(real)
     plag <- lead(predicted)
 
-    num <- (plag - rlag) / real
-    denom <- (real - rlag) / real
+    num <- plag - rlag
+    denom <- real - rlag
     
     result <- sqrt(mse(num) / mse(denom))
     return(result)
