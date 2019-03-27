@@ -20,7 +20,7 @@ wykresów. Wszystkie dane użyte do stworzenia poniższych wykresów pobrane zos
 Wczytamy notowania.
 
 ```{r wczytywanie}
-dane <- read.csv("../cw2/GPW-MBANK.csv")
+dane <- read.csv("GPW-MBANK.csv")
 head(dane)
 ```
 
@@ -103,7 +103,7 @@ Spróbujemy dokonać prognozy notowań jednego, wybranego kursu. Za przykład ob
 kurs **Otwarcia**. Wczytamy dane.
 
 ```{r wczytywanie2}
-dane2 <- read.csv("../cw2/GPW-MBANK.csv")
+dane2 <- read.csv("GPW-MBANK.csv")
 dane2$t <- as.integer(dane2$Data)
 prog_start <- "2019-02-28"
 ```
@@ -138,8 +138,19 @@ theil <- function(real, predicted) {
     if (!is.numeric(real) | !is.numeric(predicted)) {
         stop("Parametry real oraz predicted muszą być numeryczne.")
     }
+    if (length(real) != length(predicted)) {
+        stop("Długości obu wektorów muszą być identyczne.")
+    }
     
-    result <- mse(real, predicted) / mse(real)
+    library(dplyr)
+    
+    rlag <- lead(real)
+    plag <- lead(predicted)
+
+    num <- (plag - rlag) / real
+    denom <- (real - rlag) / real
+    
+    result <- sqrt(mse(num) / mse(denom))
     return(result)
 }
 ```
@@ -161,7 +172,7 @@ abline(model1, col = "red")
 ```
 
 Stworzymy drugi model, który będzie korzystał z operatora opóźnienia i kursu zamknięcia.
-```{r model2}
+```{r model2, message = FALSE}
 library(dplyr)
 k <- 3
 dane2$ZamkniecieLag <- lag(dane2$Zamkniecie, k)
@@ -179,7 +190,7 @@ od zera. Pominiemy go.
 model3 <- lm(Otwarcie ~ ZamkniecieLag, data = learn_set)
 summary(model3)
 ```
-```{r model3_wykres}
+```{r model3_wykres, echo=FALSE}
 ind <- 1:k
 plot(learn_set[-ind, c("t", "Otwarcie")],
      xlab = "Czas", ylab = "Notowanie")
@@ -187,7 +198,7 @@ lines(learn_set[-ind ,"t"], predict(model3), col = "darkblue")
 ```
 
 Porównamy istotne statystyki dla obu modeli.
-```{r porownanie}
+```{r porownanie, echo = FALSE}
 real <- learn_set[-ind, "Otwarcie"]
 
 comparison_learn <- data.frame(r2 = c(summary(model1)$r.squared,
@@ -205,7 +216,7 @@ comparison_learn
 ```
 
 Sprawdzimy jakość prognozy dla zbioru testowego.
-```{r test_miary}
+```{r test_miary, echo = FALSE}
 real <- test_set$Otwarcie
 comparison_test <- data.frame(mse = mse(real, predict(model3, test_set)),
   theil = theil(real, predict(model3, test_set)))
@@ -216,7 +227,7 @@ Jak widać, model radzi sobie nie gorzej na danych testowych niż treningowych.
 
 Na koniec wykres łączny obu modeli.
 
-```{r wykres_modele}
+```{r wykres_modele, echo = FALSE}
 colors <- c("darkblue", "green", "darkred")
 plot(dane2[-ind, c("t", "Otwarcie")],
      xlab = "Czas", ylab = "Notowanie",
