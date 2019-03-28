@@ -71,5 +71,5 @@ cat("Błąd średniokwadrtowy wynosi ", mse, "natomiast statystyka Theil'a ", th
 }
 ##przykładowo:
 
-return(na_dana_chwile(150,70))
+return(na_dana_chwile(150,80))
 ```
