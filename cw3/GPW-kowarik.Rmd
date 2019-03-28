@@ -1,0 +1,75 @@
+---
+title: "GPW_notowania"
+author: "OKowarik"
+date: "24 marca 2019"
+output: html_document
+---
+Korzystając z pakietu
+```{r}
+library(XLConnect)
+```
+wczytujemy dane notowań spółki Amica z ostatniego roku pobrane ze strony 'https://www.money.pl/gielda/spolki-gpw/PLAMICA00010,archiwum.html' .
+```{r}
+dane = readWorksheetFromFile('Amica_GPW_Kowarik.xlsx', sheet = 1)
+```
+Następnie "okrajamy" te dane do interesującego nas zakresu.
+```{r}
+dane_okrojone<- dane[2:5]
+head(dane_okrojone)
+```
+Na koniec za pomocą funkcji chartSeries z pakietu quantmod tworzymy wykres giełdowy 
+```{r}
+library(quantmod)
+dane_do_wykresu <- xts(dane_okrojone, order.by = as.Date(dane[, 1]))
+chartSeries(dane_do_wykresu, TA = NULL)
+```
+
+Do pracy z ćwiczeniem 3 wybieram jedną zmienną - cenę zamknięcia. Przygotowujemy dane do analizy.
+```{r}
+library(HistData)
+czas <- 1:250
+cena <- dane[5]
+cena_zamkniecia <- data.frame(czas,cena)
+plot(cena_zamkniecia, type ="p", main="Zamknięcie", xlab="Dni robocze od 15.03.2018", ylab="Wartość w mln zł")
+```
+
+Rozważmy teraz model liniowy dla wszystkich danych.
+```{r}
+regresja <- lm(cena_zamkniecia$Zamknięcie ~ cena_zamkniecia$czas)
+summary(regresja)
+```
+
+Sprawdźmy jak wygląda nasze dopasowanie modelu
+```{r}
+plot(cena_zamkniecia$czas, cena_zamkniecia$Zamknięcie,"p",pch = 20, cex = 1.5)
+abline(regresja, col = "red", lwd = 2)
+text(mean(cena_zamkniecia$czas), mean(cena_zamkniecia$Zamknięcie), round(summary(regresja)$r.squared, 3), pos = 4)
+```
+
+Widać, że dopasowanie modelu w przypadku tak dużej ilości dość znacząco różniących się danych jest lekko mówiąc słaby o czym świadczy minimalna wartość 'r.squared'.
+Rozważmy teraz model liniowy korzystający zawsze ze stałej liczby bezpośrednio poprzedzających próbek. Model zapisuję w postaci funkcji w celu ułatwienia obserwacji jego działania. Funkcja prognozy jest wyznaczona przez współczynniki regresji.
+
+```{r}
+na_dana_chwile <- function(chwila,stala){
+n <- stala
+m <- chwila
+uczacy <- cena_zamkniecia[(m-n):(m-1),]
+regresja2 <- lm(uczacy$Zamknięcie ~ (uczacy$czas))
+plot(uczacy$czas, uczacy$Zamknięcie,"p", main = "Regresja w okresie z dowolnie wybranymi wartościami m,n")
+abline(regresja2, col = "red", lwd = 2)
+text(mean(uczacy$czas), mean(uczacy$Zamknięcie), round(summary(regresja2)$r.squared, 3), pos = 4)
+wsp <- coef(regresja2)
+summary(regresja2)
+tczas <- m:250
+testowy <- cena_zamkniecia[m:250,]
+prognoza <- wsp[2]*testowy$czas+wsp[1]
+plot(testowy$czas, testowy$Zamknięcie, ylim=c(min(prognoza),max(testowy$Zamknięcie)), "p", col = "blue", main = "Prognoza")
+lines(testowy$czas, prognoza)
+mse <- mean(((prognoza-testowy$Zamknięcie)^2))
+theil <- sum(((prognoza-testowy$Zamknięcie)^2))/sum((testowy$Zamknięcie^2))
+cat("Błąd średniokwadrtowy wynosi ", mse, "natomiast statystyka Theil'a ", theil)
+}
+##przykładowo:
+
+return(na_dana_chwile(150,70))
+```
