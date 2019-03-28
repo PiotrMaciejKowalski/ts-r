@@ -46,9 +46,11 @@ legend("bottomleft", legend = c("Godzina 8:00", "Godzina 12:00", "Godzina 16:00"
 ```
 
 ##Predykcja danych
-Poniżej zajmiemy się stworzeniem dwóch modeli predykcji danych. Będziemy modelować kurs zamknięcia z godziny 16 (261 obserwacji) poprzez stworzenie modeli regresji. Dodatkowo do ramki danych zostanie dodana kolumna z czasem (t). Jako, że mamy też podać błąd średniokwadratowy oraz staystykę Theil'a, zdefiniujmy fukncję, któe policzą nam te wartości:
+Poniżej zajmiemy się stworzeniem dwóch modeli predykcji danych. Będziemy modelować kurs zamknięcia z godziny 16 (261 obserwacji) poprzez stworzenie modeli regresji. Dodatkowo do ramki danych zostanie dodana kolumna z czasem (t). Jako, że mamy też podać błąd średniokwadratowy oraz staystykę Theil'a, zdefiniujmy fukncję, któe policzą nam te wartości oraz załądujmy odpowiednią bibliotekę:
 
 ```{r}
+library(dplyr)
+
 data_16$t <- 1:length(data_16$zamkniecie)
 
 mse <- function(dane, predykcja) 
@@ -58,7 +60,9 @@ mse <- function(dane, predykcja)
 
 theil <- function(dane, predykcja) 
     {
-    return(sum((dane - predykcja) ^ 2) / sum(dane ^ 2))
+    l <- dane - predykcja
+    m <- lag(dane) - dane
+    return(sqrt(mean(l ^ 2) / mean(m ^ 2, na.rm = TRUE)))
     }
 ```
 
@@ -75,7 +79,7 @@ x1 <- data_16[(N - n + 1):N, ]
 
 Rozważmy następujący model i zobaczmy jak wygląda wykres dla danych i predykcji na zbiorze uczącym. 
 ```{r}
-model1 <- lm(zamkniecie ~ t + sin(2 * pi / 50 * t), data = data1)
+model1 <- lm(zamkniecie ~ t , data = data1)
 summary(model1)
 plot(data1$t, data1$zamkniecie, main = "Predykcja na zbiorze uczącym", xlab = "Dzień okresu", ylab = "Zamknięcie")
 lines(data1$t, predict(model1), col = "red")
@@ -97,6 +101,7 @@ m1 <- c("Błąd śrendiokwadratowy" = mse(x1$zamkniecie, pred1), "Statystyka The
 m1
 ```
 
+Widzimy zatem, że model nie za dobrze predyktuje dane.
 
 
 ## Model 2
