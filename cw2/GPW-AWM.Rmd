@@ -12,9 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # Naglowki
 
 Airway Medix SA (AWM)
-Pobieram notowania akcji sp??ki Airway Medix SA (AWM) ze strony stooq.pl w formacie csv 
-z okresu 02.01.2019-22.03.2019. Notowania zawieraj? ceny: otwarcia,zamkni?cia, najwy?sz? oraz najni?sz?. 
-Pomijam kolumn? "wolumen" poniewa? nie b?dzie ona odgrywa?a roli w wykresach.
+Pobieram notowania akcji spółki Airway Medix SA (AWM) ze strony stooq.pl w formacie csv 
+z okresu 02.01.2019-22.03.2019. Notowania zawierają ceny: otwarcia,zamknięcia, najwyższe oraz najniższe. 
+Pomijam kolumnę "wolumen" ponieważ nie będzie ona odgrywała roli w wykresach.
 
 ```{r}
 library(readxl)
@@ -44,36 +44,37 @@ AWM",col=c("yellowgreen","skyblue3","plum3","orange"),names=c("Otwarcie","Zamkni
 Rysuję wykresy liniowe dla każdego z atrybutów 
 
 ```{r}
-par(mfrow = c(2, 4),pty="m",las = 2)
+par(mfrow = c(2, 2),pty="m",las = 2)
 matplot(otwarcie,type='l',col="blue",xlab = "Data",xaxt = "n")
-title(main = list("Wykres liniowy Otwarcie" , font = 7, cex = 1.5))
+title(main = list("Wykres liniowy dla cen Otwarcia" , font = 7, cex = 1.5))
 axis(1, at = data, labels = levels(data),cex.axis = 0.6)
 grid(NULL, NULL, col = "grey")
 
 matplot(zamkniecie,type="l",col="red",xlab="Data",xaxt = "n",ylab="Cena AWM")
-title(main = list("Wykres liniowy dla cen Zamkni?cia" , font = 7, cex = 1.5))
+title(main = list("Wykres liniowy dla cen Zamknięcia" , font = 7, cex = 1.5))
 axis(1, at = data, labels = levels(data),cex.axis = 0.6)
 grid(NULL, NULL, col = "grey")
 
 matplot(najnizszy,type='l',col="violet", xlab = "Data", xaxt = "n",ylab="Cena AWM")
-title(main = list("Wykres liniowy dla cen Najni?szych" , font = 7, cex = 1.5))
+title(main = list("Wykres liniowy dla cen Najniższych" , font = 7, cex = 1.5))
 axis(1, at = data, labels = levels(data),cex.axis = 0.6)
 grid(NULL, NULL, col = "grey")
 
 matplot(najwyzszy,type='l',col="green",xlab = "Data",xaxt = "n",main="Wykres liniowy dla cen Najwyzszych",ylab="Cena AWM")
-title(main="Wykres liniowy dla cen Najwyzszych", font=7, cex=1.5)
+title(main="Wykres liniowy dla cen Najwyższych", font=7, cex=1.5)
 axis(1, at = data, labels = levels(data),cex.axis = 0.6)
 grid(NULL, NULL, col = "grey")
 ```
 w celu ułatwienia porównania wszytskich czterech wykresów liniowych można stworzyć wykres zbiorczy
 ```{r}
-matplot(otwarcie,type="l",col="yellowgreen", ylim=c(0.62  , 0.809),xlab="data", ylab="Ceny AWM")
+par(pty="m",las = 2)
+matplot(otwarcie,type="l",col="yellowgreen", ylim=c(0.62  , 0.835),xlab="data", ylab="Ceny AWM",xaxt = "n")
 title(main = list("wykres zbiorczy" , font = 7, cex = 1.5))
 axis(1, at = data, labels = levels(data),cex.axis = 0.6)
 lines(zamkniecie,col="skyblue3")
 lines(najnizszy,col="orange")
 lines(najwyzszy,col="plum3")
-legend("topleft", legend=c("Otwarcie", "Zamknięcie ","Najniższe","Najwyższe
+legend("topright", legend=c("Otwarcie", "Zamknięcie ","Najniższe","Najwyższe
                            "),
        col=c("yellowgreen", "skyblue3","orange","plum3"), lwd=1)
 grid(NULL, NULL, col = "grey")
