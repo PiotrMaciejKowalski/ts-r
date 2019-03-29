@@ -46,30 +46,34 @@ abline(regresja, col = "red", lwd = 2)
 text(mean(cena_zamkniecia$czas), mean(cena_zamkniecia$Zamknięcie), round(summary(regresja)$r.squared, 3), pos = 4)
 ```
 
-Widać, że dopasowanie modelu w przypadku tak dużej ilości dość znacząco różniących się danych jest lekko mówiąc słaby o czym świadczy minimalna wartość 'r.squared'.
-Rozważmy teraz model liniowy korzystający zawsze ze stałej liczby bezpośrednio poprzedzających próbek. Model zapisuję w postaci funkcji w celu ułatwienia obserwacji jego działania. Funkcja prognozy jest wyznaczona przez współczynniki regresji.
+Widać, że dopasowanie modelu w przypadku tak dużej ilości dość znacząco różniących się danych jest słaby o czym świadczy minimalna wartość 'r.squared'.
 
+Rozważmy teraz model liniowy korzystający zawsze ze stałej liczby bezpośrednio poprzedzających próbek ('stala').
 ```{r}
-na_dana_chwile <- function(chwila,stala){
-n <- stala
-m <- chwila
-uczacy <- cena_zamkniecia[(m-n):(m-1),]
+chwila <- 150
+stala <-  130
+```
+Funkcja prognozy jest wyznaczona przez współczynniki regresji.
+```{r}
+uczacy <- cena_zamkniecia[(chwila-stala):(chwila-1),]
 regresja2 <- lm(uczacy$Zamknięcie ~ (uczacy$czas))
-plot(uczacy$czas, uczacy$Zamknięcie,"p", main = "Regresja w okresie z dowolnie wybranymi wartościami m,n")
+##summary(regresja2)
+plot(uczacy$czas, uczacy$Zamknięcie,"p", main = "Regresja w okresie z dowolnie wybranymi wartościami")
 abline(regresja2, col = "red", lwd = 2)
 text(mean(uczacy$czas), mean(uczacy$Zamknięcie), round(summary(regresja2)$r.squared, 3), pos = 4)
 wsp <- coef(regresja2)
-summary(regresja2)
-tczas <- m:250
-testowy <- cena_zamkniecia[m:250,]
+```
+```{r}
+tczas <- chwila:250
+testowy <- cena_zamkniecia[chwila:250,]
 prognoza <- wsp[2]*testowy$czas+wsp[1]
 plot(testowy$czas, testowy$Zamknięcie, ylim=c(min(prognoza),max(testowy$Zamknięcie)), "p", col = "blue", main = "Prognoza")
 lines(testowy$czas, prognoza)
-mse <- mean(((prognoza-testowy$Zamknięcie)^2))
+```
+```{r}
 theil <- sum(((prognoza-testowy$Zamknięcie)^2))/sum((testowy$Zamknięcie^2))
-cat("Błąd średniokwadrtowy wynosi ", mse, "natomiast statystyka Theil'a ", theil)
-}
-##przykładowo:
+theil
 
-return(na_dana_chwile(150,80))
+mse<- mean(((prognoza-testowy$Zamknięcie)^2))
+mse
 ```
