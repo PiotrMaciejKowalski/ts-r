@@ -1,0 +1,43 @@
+---
+title: "cw2-malarski-GPW-Agora"
+author: "Adam Malarski"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wczytywanie danych   
+ 
+ Wczytałem dane dotyczące notowań akcji spółki Agora na GPW. adres:https://stooq.pl/q/d/?s=ago&c=0&d1=20190101&d2=20190326
+
+```{r wczytywanie}
+agora.gpw <- read.csv("C:/Users/Adam/Desktop/Cwiczenie 1/ts-r/cw2/agora-gpw.txt")
+head(agora.gpw)
+```
+# Tworzenie wykresu
+```{r}
+
+Data <- agora.gpw $Data
+Date <- as.Date(Data, "%Y-%m-%d")
+Wolumen <- agora.gpw $Wolumen
+Otwarcie <- agora.gpw $Otwarcie
+Zamkniecie <- agora.gpw $Zamkniecie
+plot(Date, Wolumen)
+```
+
+Przedstawiam na wykresie zależność daty od wolumenu.
+```{r}
+plot(Date, Zamkniecie,type="l")
+```
+Wykres daty od zamknięcia.
+
+
+```{r}
+hist(Wolumen)
+
+```
+
+
