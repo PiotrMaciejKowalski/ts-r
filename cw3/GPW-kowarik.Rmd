@@ -38,7 +38,6 @@ Rozważmy teraz model liniowy dla wszystkich danych.
 regresja <- lm(cena_zamkniecia$Zamknięcie ~ cena_zamkniecia$czas)
 summary(regresja)
 ```
-
 Sprawdźmy jak wygląda nasze dopasowanie modelu
 ```{r}
 plot(cena_zamkniecia$czas, cena_zamkniecia$Zamknięcie,"p",pch = 20, cex = 1.5)
@@ -52,28 +51,36 @@ Rozważmy teraz model liniowy korzystający zawsze ze stałej liczby bezpośredn
 ```{r}
 chwila <- 150
 stala <-  130
+uczacy <- cena_zamkniecia[(chwila-stala):(chwila-1),]
+testowy <- cena_zamkniecia[chwila:250,]
 ```
 Funkcja prognozy jest wyznaczona przez współczynniki regresji.
 ```{r}
-uczacy <- cena_zamkniecia[(chwila-stala):(chwila-1),]
 regresja2 <- lm(uczacy$Zamknięcie ~ (uczacy$czas))
 ##summary(regresja2)
+wsp <- coef(regresja2)
+prognoza <- wsp[2]*testowy$czas+wsp[1]
+```
+Przedstawiamy wykres regresji na tle danych rzeczywistych wraz z wartością 'r.squared'.
+```{r}
 plot(uczacy$czas, uczacy$Zamknięcie,"p", main = "Regresja w okresie z dowolnie wybranymi wartościami")
 abline(regresja2, col = "red", lwd = 2)
 text(mean(uczacy$czas), mean(uczacy$Zamknięcie), round(summary(regresja2)$r.squared, 3), pos = 4)
-wsp <- coef(regresja2)
 ```
+
+Rysujemy wykres prognozy dla zbioru testowego.
 ```{r}
-tczas <- chwila:250
-testowy <- cena_zamkniecia[chwila:250,]
-prognoza <- wsp[2]*testowy$czas+wsp[1]
 plot(testowy$czas, testowy$Zamknięcie, ylim=c(min(prognoza),max(testowy$Zamknięcie)), "p", col = "blue", main = "Prognoza")
 lines(testowy$czas, prognoza)
 ```
+
+Wyliczamy błąd średniokwadratowy i statystykę Theil'a.
 ```{r}
 theil <- sum(((prognoza-testowy$Zamknięcie)^2))/sum((testowy$Zamknięcie^2))
-theil
-
 mse<- mean(((prognoza-testowy$Zamknięcie)^2))
+```
+```{r}
+theil
 mse
 ```
+
