@@ -1,0 +1,108 @@
+---
+title: "GPW-4FUNMEDIA"
+author: "Anita Księżak"
+date: "30.03.2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Cel i zakres pracy.
+
+Przeanalizujmy ponownie dane pobrane ze strony ze strony money.pl (https://www.money.pl/gielda/spolki-gpw/PL4FNMD00013,archiwum.html). Dodajmy dni tygodnia dla urozmaicenia analizy. Niniejszy skrypt pokazuje czytelnikowi zastosowanie filtrowania potokowego w analizie danych. 
+
+```{r dane}
+dane <- read.csv2("GPW-4FM-csv.csv")[,1:5]
+dniTygodnia <- c("Środa","Czwartek","Piątek","Poniedziałek","Wtorek")
+for(i in 1:nrow(dane)){
+  dane[i,6]<-dniTygodnia[(i-1)%%(length(dniTygodnia))+1]
+}
+colnames(dane)[6]  <- "DzienTygodnia"
+head(dane)
+```
+
+Dotyczą one notowań spółki akcyjnej 4fun Media na Giełdzie Papierów Wartościowych w Warszawie (2019-01-02 --- 2019-03-15). Przeprowadzę 3 procesy filtrowania potokowego a ich wyniki zaprezentuję na wykresach. Użyję kolejno funkcji:
+
+- 3 x filter,
+
+- 2 x mutate,
+
+- 1 x grupowanie,
+
+- 1 x podsumowanie.
+
+Wykorzystam operator przetwarzania potoków z R.
+
+Zacznijmy od instalacji potrzebnego pakietu "dplyr".
+
+```{r biblioteka}
+library(dplyr)
+```
+
+## Proces nr 1:
+
+Przeanalizujmy dane dla których cenaOtwarcia∈ [11,12], a cenaZamkniecie∈ [11,+oo].
+
+```{r proces1}
+dane %>%
+ filter(Otwarcie >= 11, Otwarcie <= 12, dane$Zamkniecie >= 11) %>%
+ mutate(RoznicaOtwZamk = abs(Otwarcie-Zamkniecie), RoznicaMaksMin = abs(Maks-Min) ) %>%
+ group_by(DzienTygodnia) %>%
+ summarise(medianaOtw = median(Otwarcie, na.rm=TRUE), medianaZamk = median(Zamkniecie, na.rm=TRUE))-> result1
+head(result1)
+```
+
+```{r wykres1}
+x <- seq(1:5)
+plot(x ,result1$medianaOtw, type = "b", main = "Mediana otwarcie i zamknięcie na każdy z dni tygodnia", col = "red", xlab = "Dzień tygodnia (alfabetycznie)", ylab = "Mediana", xaxt="n")
+lines(x, result1$medianaZamk, type = "b",lwd = "2", col="blue")
+axis(1, at = x, labels = c(result1$DzienTygodnia))
+legend("topright", c("Otwarcie", "Zamknięcie"), lwd ="2", col=c("red", "blue"))
+```
+
+## Proces nr 2:
+
+Przeanalizujmy dane dla których cenaOtwarcia>=12 cenaZamkniecie>=11, a cenaMaks>12.
+
+```{r proces2}
+dane %>%
+ filter(Otwarcie >= 12, Zamkniecie >= 11, Maks > 12) %>%
+ mutate(RoznicaOtwZamk = abs(Otwarcie-Zamkniecie), RoznicaMaksMin = abs(Maks-Min) ) %>%
+ group_by(DzienTygodnia) %>%
+ summarise(VarOtw = var(Otwarcie, na.rm=TRUE), VarZamk = var(Zamkniecie, na.rm=TRUE))-> result2
+head(result2)
+```
+
+```{r wykres2}
+x <- seq(1:5)
+plot(x ,result2$VarOtw,ylim=c(0, 0.5) ,type = "b", main = "Wariancja otwarcie i zamknięcie na każdy z dni tygodnia", col = "red", xlab = "Dzień tygodnia (alfabetycznie)", ylab = "Wariancja", xaxt="n", lty="dashed")
+lines(x, result2$VarZamk, type = "b",lwd = "2", col="blue", lty="dashed")
+axis(1, at = x, labels = c(result2$DzienTygodnia))
+legend("topright", c("Otwarcie", "Zamknięcie"), lwd ="2", col=c("red", "blue"))
+```
+
+## Proces nr 3:
+
+Przeanalizujmy dane dla których cenaMin>=11, cenaMin<=12.50 i cenaMaks<12.
+
+```{r proces3}
+dane %>%
+ filter( Min >= 11 , Min <=12.5, Maks<12 ) %>%
+ mutate(MinKwadrat = (Min^2), MaksKwadrat = (Maks^2) ) %>%
+ group_by(DzienTygodnia) %>%
+ summarise(OdchylenieMin = sd(Min, na.rm=TRUE), OdchylenieMaks = sd(Maks, na.rm=TRUE)) -> result3
+head(result3)
+```
+
+```{r wykres3}
+x <- seq(1:5)
+plot(x ,result3$OdchylenieMin, ylim=c(0, 0.5), type = "h", main = "Ochylenie stand. Maks i Min na każdy z dni tygodnia", col = "red", xlab = "Dzień tygodnia (alfabetycznie)", ylab = "Odchylenie standardowe", xaxt="n", lwd="10")
+lines(x, result3$OdchylenieMaks, type = "h",lwd = "10", col="blue")
+axis(1, at = x, labels = c(result3$DzienTygodnia))
+legend("topright", c("Minimum", "Maksimum"), lwd ="2", col=c("red", "blue"))
+#Poprawienie widoczności czerwone<niebieskie 
+lines(x=1, result3$OdchylenieMin[1], type = "h",lwd = "10", col="red")
+lines(x=4, result3$OdchylenieMin[4], type = "h",lwd = "10", col="red")
+```
