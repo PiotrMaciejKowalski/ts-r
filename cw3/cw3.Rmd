@@ -1,0 +1,211 @@
+---
+title: "Predykcja kursu euro do funta brytyjskiego"
+author: "Agnieszka Jadczak"
+date: "27 marca 2019"
+output: html_document
+---
+
+## Informacje ogĂłlne
+Raport dotyczy analizy ceny kursu sprzedaĹĽy euro do funta brytyjskiego.  
+Dane pochodzÄ… ze strony histdata.com.  
+  
+Okres z ktĂłrego pochodzÄ… dane: 01.01.2019-08.01.2019r.
+  
+
+```{r}
+options(max.print = 99999999) 
+d<-read.csv2(file="EURGBP.csv", header = TRUE, sep = ";", dec = ".")
+d8<-d[d$godzina==80000,]
+d12<-d[d$godzina==120000,]
+d16<-d[d$godzina==160000,]
+d20<-d[d$godzina==200000,]
+```
+Charakterystyka kursu otwarcia
+```{r}
+summary(d$otwarcie)
+
+```
+Charakterystyka kursu zamkniÄ™cia
+```{r}
+summary(d$zamkniecie)
+```
+
+PoniĹĽsze wykresy zostaĹ‚y sporzÄ…dzone w oparciu o kurs zamkniÄ™cia.\newline
+\newline
+Ĺšredni kurs dla wszystkich danych wynosi 0,8768, natomiast mediana dla wszystkich danych wynosi 0,8760.
+
+## Wykresy
+
+
+```{r pressure, echo=FALSE}
+plot(1:nrow(d),d$zamkniecie,type = "l",xlab = "Pomiary",ylab = "Kurs",main = "Kursy dla wszystkich pomiarĂłw",col="black")
+abline(h=mean(d$zamkniecie),lty=1, col="blue")
+abline(h=median(d$zamkniecie),lty=1, col="deeppink2")
+legend("topright", legend=c("Mediana", "Ĺšredni kurs"),
+       col=c("deeppink2","blue"), lty=1, cex=0.8,bg='lightblue')
+```
+
+```{r  echo=FALSE}
+
+hist(d$zamkniecie, 
+     main="Histogram dla danych opisujÄ…cych kurs zamkniÄ™cia", 
+     xlab="Kursy", 
+     border="blue", 
+     col="green")
+```
+
+```{r echo=FALSE}
+plot(1:nrow(d8),d8$zamkniecie,type = "l",xlab = "Dni",ylab = "Kurs",main = "Kursy z godziny 8:00",col="black")
+abline(h=mean(d$zamkniecie),lty=1, col="blue")
+abline(h=mean(d8$zamkniecie),lty=2, col="deepskyblue")
+abline(h=median(d$zamkniecie),lty=1, col="deeppink2")
+abline(h=median(d8$zamkniecie),lty=2, col="lightpink")
+legend("topright", legend=c("Mediana", "Ĺšredni kurs","Mediana dla 8:00","Sredni kurs dla 8:00"),col=c("deeppink2","blue","lightpink","deepskyblue"), lty=c(1,1,2,2), cex=0.8,bg='lightgrey')
+```
+
+```{r echo=FALSE}
+plot(1:nrow(d12),d12$zamkniecie,type = "l",xlab = "Dni",ylab = "Kurs",main = "Kursy z godziny 12:00",col="black")
+abline(h=mean(d$zamkniecie),lty=1, col="blue")
+abline(h=mean(d12$zamkniecie),lty=2, col="deepskyblue")
+abline(h=median(d$zamkniecie),lty=1, col="deeppink2")
+abline(h=median(d12$zamkniecie),lty=2, col="lightpink")
+legend("topright", legend=c("Mediana", "Ĺšredni kurs","Mediana dla 12:00","Sredni kurs dla 12:00"),col=c("deeppink2","blue","lightpink","deepskyblue"), lty=c(1,1,2,2), cex=0.8,bg='lightgrey')
+```
+
+```{r echo=FALSE}
+plot(1:nrow(d16),d16$zamkniecie,type = "l",xlab = "Dni",ylab = "Kurs",main = "Kursy z godziny 16:00",col="black")
+abline(h=mean(d$zamkniecie),lty=1, col="blue")
+abline(h=mean(d16$zamkniecie),lty=2, col="deepskyblue")
+abline(h=median(d$zamkniecie),lty=1, col="deeppink2")
+abline(h=median(d16$zamkniecie),lty=2, col="lightpink")
+legend("topright", legend=c("Mediana", "Ĺšredni kurs","Mediana dla 16:00","Sredni kurs dla 16:00"),col=c("deeppink2","blue","lightpink","deepskyblue"), lty=c(1,1,2,2), cex=0.8,bg='lightgrey')
+```
+
+```{r echo=FALSE}
+plot(1:nrow(d20),d20$zamkniecie,type = "l",xlab = "Dni",ylab = "Kurs",main = "Kursy z godziny 20:00",col="black")
+abline(h=mean(d$zamkniecie),lty=1, col="blue")
+abline(h=mean(d20$zamkniecie),lty=2, col="deepskyblue")
+abline(h=median(d$zamkniecie),lty=1, col="deeppink2")
+abline(h=median(d20$zamkniecie),lty=2, col="lightpink")
+legend("topright", legend=c("Mediana", "Ĺšredni kurs","Mediana dla 20:00","Sredni kurs dla 20:00"),col=c("deeppink2","blue","lightpink","deepskyblue"), lty=c(1,1,2,2), cex=0.8,bg='lightgrey')
+
+```
+
+
+
+##PROGNOZY
+
+## MODEL1
+
+Prognoza modelem regresji liniowej wykonana na podstawie wszystkich pobranych pomiarów kursu.  
+Dane podzielimy w nastepujący sposób: zbiór uczący oraz zbiór na którym będziemy starać się przewidzieć wartości kursu.  
+W tym modelu będziemy przewidywali 8 ostatnich pomiarów, tzn. kursy dla dwóch dni, na podstawie reszty dostępnych pomiarów.
+
+```{r}
+N<-length(d$zamkniecie)
+t<-8 
+alldata <- data.frame(seq(1:N),d$zamkniecie)
+names(alldata)<-c("nr","zamkniecie")
+uczacy <- alldata[1:(N-t),]
+przew<-alldata[N-t+1:t,]
+
+```
+
+Do predykcji danych zastosujemy regresję liniową, gdzie zmienną objaśnianą jest kurs, a objaśniająca numer pomiaru. 
+
+```{r echo=FALSE}
+plot(uczacy,main="Model 1",xlab="Pomiary",ylab="Kursy")
+reg<-lm(zamkniecie~nr,data=uczacy)
+abline(reg, col="red")
+```
+
+Podsumujmy 
+```{r}
+summary(reg)
+```
+
+Teraz zajmiemy się przewidywaniem pozostałych wartości, według powyższego modelu.
+
+```{r}
+b<-coef(reg)[1]
+a<-coef(reg)[2]
+plot(przew, main="Predykcja dla Modelu 1",xlab="Pomiary",ylab="Kursy")
+lines(przew$nr,a*przew$nr+b,col="red")
+```
+
+Widać, że dopasowanie modelu nie jest trafne. Błąd może wynikać z tego, że bierzemy pod uwagę zbyt dużą ilość poprzedzających pomiarów.
+
+```{r}
+m<-mean( (przew$zamkniecie - a*przew$nr+b)^2, na.rm = TRUE)
+U<-sum((a*przew$nr+b-przew$zamkniecie)^2)/sum((przew$zamkniecie)^2)
+```
+
+Błąd średniokwadatowy dla tak zaproponowanej prognozy wynosi `r m`.  
+Statystyka Theil'a wynosi `r U`.
+
+Wartość tej statystyki jest mnijesza niz 1, zatem widać, ża nasza prognoza jest skuteczniejsza niż prognoza naiwna. 
+
+##MODEL 2
+
+W tym modelu będziemy prognozować na podstawie konkretnej ilości wcześniejszych pomiarów, zmniejszymy więc zbiór uczący.
+Sprawdzimy na kilku przykładach w jaki sposób wybrać zbiór uczący, aby prognoza była najdokładniejsza.
+
+```{r echo=FALSE}
+W1<-10
+W2<-20
+W3<-30
+uczacy1<-alldata[(N-t-W1+1):(N-t),]
+uczacy2<-alldata[(N-t-W2+1):(N-t),]
+uczacy3<-alldata[(N-t-W3+1):(N-t),]
+reg1<-lm(uczacy1$zamkniecie~uczacy1$nr)
+reg2<-lm(uczacy2$zamkniecie~uczacy2$nr)
+reg3<-lm(uczacy3$zamkniecie~uczacy3$nr)
+plot(uczacy3,main="Model 2",xlab="Pomiary",ylab="Kursy")
+abline(reg1,col="red" )
+abline(reg2,col="blue")
+abline(reg3,col="pink")
+legend("topleft", legend=c("10 pomiarów", "20 pomiarów","30 pomiarów"),col=c("red","blue","pink"), lty=c(1,1,1), cex=0.8,bg='lightgrey')
+b1<-coef(reg1)[1]
+a1<-coef(reg1)[2]
+b2<-coef(reg2)[1]
+a2<-coef(reg2)[2]
+b3<-coef(reg3)[1]
+a3<-coef(reg3)[2]
+```
+
+Teraz zajmiemy się przewidywaniem pozostałych wartości, według powyższych modeli.
+
+```{r echo=FALSE}
+plot(przew,main="Predykcja dla Modelu 2",xlab="Pomiary",ylab="Kursy")
+lines(przew$nr,a1*przew$nr+b1,col="red")
+lines(przew$nr,a2*przew$nr+b2,col="blue")
+lines(przew$nr,a3*przew$nr+b3,col="pink")
+lines(przew$nr,a*przew$nr+b,col="black")
+abline(reg3,col="pink")
+legend("topleft", legend=c("10 pomiarów", "20 pomiarów","30 pomiarów","wszystkie pomiary"),col=c("red","blue","pink","black"), lty=c(1,1,1,1), cex=0.8,bg='lightgrey')
+
+```
+
+Na podstawie wykresu możemy domyślać się, że najtrafniejsza prognoza została zaproponowana dla zbioru uczącego zawierającego 20 ostatnich pomiarów, aby sprawdzic dokładniej wyznaczmy błędy średniokwadratowe: 
+
+```{r}
+m1<-mean( (przew$zamkniecie - a1*przew$nr+b1)^2, na.rm = TRUE)
+m2<-mean( (przew$zamkniecie - a2*przew$nr+b2)^2, na.rm = TRUE)
+m3<-mean( (przew$zamkniecie - a3*przew$nr+b3)^2, na.rm = TRUE)
+
+```
+
+Błędy średniokwadratowe dla predykcji odpowiednio dla zbioru uczącego składającego się z `r W1`, `r W2`, `r W3` pomiarów wynoszą `r m1`, `r m2`, `r m3`.
+
+
+```{r}
+U1<-sum((a1*przew$nr+b1-przew$zamkniecie)^2)/sum((przew$zamkniecie)^2)
+U2<-sum((a2*przew$nr+b2-przew$zamkniecie)^2)/sum((przew$zamkniecie)^2)
+U3<-sum((a3*przew$nr+b3-przew$zamkniecie)^2)/sum((przew$zamkniecie)^2)
+```
+
+Statystyki Theil'a dla predykcji odpowiednio dla zbioru uczącego składającego się z `r W1`, `r W2`, `r W3` pomiarów wynoszą `r U1`, `r U2`, `r U3`.
+
+Widać, że wartości statystyk Theil'a są mniejsze niż 1, zatem prognozy te są dokładniejsze niż prognoza naiwna.  
+
+Błąd średniokwadratowy, zgodnie z poprzednim stwierdzeniem, jest najmnijeszy dla zbioru uczącego składającego się z 20 pomiarów. Należy zatem wybrać do naszej prognozy właśnie ten model. 
