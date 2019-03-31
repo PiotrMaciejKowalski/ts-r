@@ -118,17 +118,12 @@ lines(Prognoza1)
 ```
 
 
-Wyznaczmy teraz błąd średniokwadratowy dla tego modelu. 
+Wyznaczmy teraz błąd średniokwadratowy oraz wartość statystyki Theil'a dla tego modelu. 
 ```{r}
 blad1=mean(((Prognoza1-Testowy$Otwarcie)^2))
-cat(c('Błąd średniokwadratowy wynosi',blad1))
-```
-Oraz wartość statystyki Theil'a
-```{r}
 theil1=sum(((Prognoza1-Testowy$Otwarcie)^2))/sum((Testowy$Otwarcie^2))
-cat(c('Wartość statystyki Theil\'a w tym modelu wynosi',theil1))
 ```
-Zatem nasz model jest skuteczniejszy niż prognoza naiwna.
+Błąd średniokwadratowy wynosi `r blad1`. Wartość statystyki Theil'a w tym modelu wynosi `r theil1`, zatem nasz model jest skuteczniejszy niż prognoza naiwna.
 
 Spróbujmy teraz rozważyć model z z trendem liniowym, korzystający zawsze ze stałej liczby bezpośrednio poprzedzających próbek N. Niech np. N=19
 ```{r}
@@ -162,14 +157,9 @@ lines(Prognoza2)
 Podobnie jak w poprzednim modelu wyznaczmy błąd średniokwadratowy oraz wartość statystyki Theil'a
 ```{r}
 blad2=mean(((Prognoza2-Testowy$Otwarcie)^2))
-cat(c('Błąd średniokwadratowy wynosi',blad2))
-```
-```{r}
 theil2=sum(((Prognoza2-Testowy$Otwarcie)^2))/sum((Testowy$Otwarcie^2))
-cat(c('Wartość statystyki Theil\'a w tym modelu wynosi',theil2))
 ```
-Porównując błąd średniokwadratowy w obu modelach możemy stwierdzić że model drugi jest dokładniejszy.
-```{r}
-cat(c("Błąd średniokwadratowy w pierwszym modelu wyniósł ",blad1,", a w modelu drugim ",blad2))
-```
+Błąd średniokwadratowy na jedną chwilę czasu w przód wynosi `r blad2`. Wartość statystyki Theil'a w tym modelu wynosi `r theil2`.
+Porównując błąd średniokwadratowy w obu modelach możemy stwierdzić że model drugi jest dokładniejszy. Błąd średniokwadratowy w pierwszym modelu wyniósł  `r blad1` , a w modelu drugim  `r blad2`.
+
 
