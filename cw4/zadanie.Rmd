@@ -18,3 +18,10 @@ Proszę o wybranie ponownie tego samego pliku danych. Następnie proszę przepro
 1. 1 podsumowanie
 
 Wykorzystać operator przetwarzania potoków z R.
+
+## Uwaga
+
+Proszę zmienić nazwy swoich plików tak aby były poprzedzone nazwą autora np.
+pkowalski-FEX-GBP-PLN.Rmd
+oraz
+pkowalski-data.csv
