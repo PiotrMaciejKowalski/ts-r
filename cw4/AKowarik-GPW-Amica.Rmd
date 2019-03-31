@@ -4,7 +4,6 @@ author: "OKowarik"
 date: "1 kwietnia 2019"
 output: html_document
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -59,7 +58,7 @@ do_wykresu2 %>%
 x <- seq(1:nrow(data2))
 matplot(x, data2[,2:3], "l",xlab="Data(rok-miesiac)", ylab="średnie wartości")
 axis(3, at = x, labels = c(data2$rok_mies))
-legend("topleft", c("Maks", "Min"), col = 1:2, lty = 1:2)
+legend("topleft", c("Maks", "Min"), col = 1:2, lty = 1:2) 
 ```
 
 
