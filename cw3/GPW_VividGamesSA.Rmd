@@ -150,7 +150,7 @@ plot(predict(model),main="predykcja w oparciu o dane z ostatniego roku", xlab="d
 ```
 
 
-B??d ?redniokwadratowy dla modelu:
+Błąd średniokwadratowy dla modelu:
 ```{r}
 blad_sredniokwad(dgpw$Otwarcie,model)
 ```
@@ -168,7 +168,7 @@ model90=lm(otwarcie2~x2)
 plot(predict(model90),main="predykcja w oparciu o dane z ostatnich 90 dni", xlab="dni", ylab="cena otwarcia")
 ```
 
-B??d ?redniokwadratowy dla modelu:
+Błąd średniokwadratowy dla modelu:
 ```{r}
 blad_sredniokwad(dgpw$Otwarcie,model90)
 ```
@@ -186,7 +186,7 @@ plot(predict(model14),main="predykcja w oparciu o dane z ostatnich 14 dni", xlab
 ```
 
 
-B??d ?redniokwadratowy dla modelu:
+Błąd średniokwadratowy dla modelu:
 ```{r}
 blad_sredniokwad(dgpw$Otwarcie,model14)
 ```
