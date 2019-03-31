@@ -32,14 +32,12 @@ summary(dgpw)
 ```
 
 
-
 ```{r pressure, echo=FALSE}
 x=250:1
   
 wykres_otw=plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie", xlab="Dni robocze od 16.03.2018", ylab="Warto艣膰 w mln z艂")
 plot(x,dgpw$Zamkniecie, type ="l",   main="Zamkniecie", xlab="Dni robocze od 16.03.2018", ylab="Warto艣膰 w mln z艂", col="blue")
 ```
-
 
 Dla u艂atwienia por贸wnania zobaczmy dane na jednym wykresie:
 
@@ -59,11 +57,6 @@ for(i in 1:250){
 plot(x,zmiana, type="l", main="Zmiana wartosci pomiedzy otwarciem i zamknieciem", xlab="Dni robocze od 16.03.2018", ylab="Warto艣膰", col="purple")
 ```
 
-
-
-
-
-
 Teraz przyjrzymy si臋 maksymalnym i minimalnym warto艣ciom w kolejnych dniach roboczych.
 ```{r}
 plot(x,dgpw$Max, type ="l", main="Maksimum i minimum ", xlab="Dni robocze od 16.03.2018", ylab="Warto艣膰 w mln z艂", col="green")
@@ -73,19 +66,13 @@ lines(x,dgpw$Min, type ="l",  col="red")
 
 Sprawd藕my cz臋stotliwo艣膰 osi膮gania warto艣ci z okre艣lonych przedzia艂贸w dla maksimum i minimum.
 
-
-
-
 ```{r}
 hist(dgpw$Max, main="Histogram maksimum", xlab="Warto艣膰", ylab="Cz臋stotliwo艣膰", col="green", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
 hist(dgpw$Min, main="Histogram minimum", xlab="Warto艣膰", ylab="Cz臋stotliwo艣膰", col="red", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
 ```
 
 
-
 Policzmy r贸偶nice pomiedzy najwi臋ksz膮 a najmniejsz膮 warto艣ci膮 w poszczeg贸lne dni.
-
-
 ```{r}
 i=1
 Maxi=dgpw$Max
@@ -99,18 +86,11 @@ plot(x,roznica, type="l", main="R贸偶nica pomi臋dzy najwi臋ksz膮 a najmniejsz膮 
 
 
 Na koniec zobaczmy zestawienie wszystkich badanych warto艣ci w postaci wykresu pude艂kowego.
-
 ```{r}
 boxplot(dgpw$Otwarcie,dgpw$Zamkniecie,dgpw$Max,dgpw$Min, names=c("Otwarcie","Zamkniecie","Maksimum","Minimum"), col=rainbow(5))
 ```
 
-
-
-
-
-
-PREDYKCJA
-
+#Predykcja
 
 ```{r}
 dgpw2 <- read.csv("GPW-VividGamesSA-dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
@@ -160,8 +140,6 @@ Statystyka_theila <- function(zbior, pred)
 ```
 
 
-
-
 ```{r}
 dl=length(dgpw2$Otwarcie)
 n0=1:dl
@@ -172,20 +150,15 @@ plot(predict(model),main="predykcja w oparciu o dane z ostatniego roku", xlab="d
 ```
 
 
-
-
-B彻d 渞edniokwadratowy dla modelu:
+B??d ?redniokwadratowy dla modelu:
 ```{r}
 blad_sredniokwad(dgpw$Otwarcie,model)
 ```
-
 
 Statystyka Theil'a:
 ```{r}
 Statystyka_theila(dgpw$Otwarcie,model)
 ```
-
-
 
 ```{r}
 n=90
@@ -195,21 +168,15 @@ model90=lm(otwarcie2~x2)
 plot(predict(model90),main="predykcja w oparciu o dane z ostatnich 90 dni", xlab="dni", ylab="cena otwarcia")
 ```
 
-
-
-
-B彻d 渞edniokwadratowy dla modelu:
+B??d ?redniokwadratowy dla modelu:
 ```{r}
 blad_sredniokwad(dgpw$Otwarcie,model90)
 ```
-
 
 Statystyka Theil'a:
 ```{r}
 Statystyka_theila(dgpw$Otwarcie,model90)
 ```
-
-
 ```{r}
 n2=14
 otwarcie3=dgpw2$Otwarcie[n2:1]
@@ -219,15 +186,12 @@ plot(predict(model14),main="predykcja w oparciu o dane z ostatnich 14 dni", xlab
 ```
 
 
-
-B彻d 渞edniokwadratowy dla modelu:
+B??d ?redniokwadratowy dla modelu:
 ```{r}
 blad_sredniokwad(dgpw$Otwarcie,model14)
 ```
-
 
 Statystyka Theil'a:
 ```{r}
 Statystyka_theila(dgpw$Otwarcie,model14)
 ```
-
