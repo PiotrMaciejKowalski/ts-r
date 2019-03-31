@@ -1,0 +1,165 @@
+---
+title: "Notowania akcji spółki  Atlanta Poland S.A. (ATP) w 2019 roku"
+author: "Izabela Stobiecka"
+date: "13 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Poniższy plik przedstawia graficznie notowania akcji spółki Atlanta Poland S.A. (ATP) w 2019 roku z uwzględnieniem ceny otwarcia, zamknięcia, maksymalnej i minimalnej. 
+
+Atlanta Poland S.A. istnieje od 1990 roku i jest jedną z największych  firm w Polsce importującą oraz sprzedającą bakalie wykorzystywane do produkcji wyrobów czekoladowych, słodyczy, ciastek oraz pieczywa. W 2005 roku firma stała się spółką giełdową, notowaną na Warszawskiej Giełdzie Papierów Wartościowych.
+
+## Pobranie i wczytanie danych
+Dane o notowaniach ATP pobrałam z portalu <https://stooq.pl> w postaci pliku w formacie .csv. Zimportujmy te dane do R. Pomijam ostatnią kolumnę (wolumen)- nie będzie nas interesować.
+```{r}
+dane=read.csv('atp_d.csv')[,1:5]
+head(dane)
+
+```
+
+##Interpretacja graficzna
+Załączę bibliotekę, która pozwoli mi na dostęp do dodatkowych palet kolorów.
+```{r}
+library("RColorBrewer")
+```
+
+Rozpocznę rysowanie wykresów od wykresu pudełkowego dla każdego z atrybutów. 
+```{r}
+boxplot(dane$Otwarcie,dane$Najwyzszy,dane$Najnizszy,dane$Zamkniecie, main="Wykres pudełkowy dla ceny ATP",names=names(dane)[2:5], col=brewer.pal(n = 4, name = "PRGn"))
+```
+
+
+Możemy łatwo zauważyć, że nie mamy żadnych wartości odstających (uff). Z wykresu możemy odczytać najwyższe i najniższe wartości każdego z atrybutów, medianę oraz kwantyle, jednak nie daje nam on informacji o tym kiedy interesujące nas wartości zostały osiągnięte. Aby uzyskać odpowiedź na to pytanie narysujmy wykresy liniowe wartości każdego z atrybutów w zależności od daty.
+```{r}
+par(mfrow = c(2, 2), pty = "m")
+plot(dane$Otwarcie, type="l", main="Otwarcie",col=brewer.pal(n = 4, name = "PRGn")[1], xlab = "Data", ylab="Cena ATP", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+plot(dane$Najwyzszy, type="l", main="Najwyższy",col=brewer.pal(n = 4, name = "PRGn")[2], xlab = "Data", ylab="Cena ATP",xaxt="n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+plot(dane$Najnizszy, type="l", main="Najniższy",col=brewer.pal(n = 4, name = "PRGn")[3], xlab = "Data", ylab="Cena ATP",xaxt="n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+plot(dane$Zamkniecie, type="l", main="Zamknięcie",col=brewer.pal(n = 4, name = "PRGn")[4], xlab = "Data", ylab="Cena ATP",xaxt="n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+
+
+Widzimy więc, jak ceny ATP zmieniały się w czasie. W tej formie trudniej nam jest jednak zobaczyć różnice między poszczególnymi atrybutami. Nanieśmy więc wszystkie krzywe na jeden wykres.
+```{r}
+plot(dane$Otwarcie, type="l", main="Wykres liniowy dla ceny ATP",col=brewer.pal(n = 4, name = "PRGn")[1], xlab = "Data", ylab="Cena ATP",xaxt="n")
+lines(dane$Najwyzszy, type="l", col=brewer.pal(n = 4, name = "PRGn")[2])
+lines(dane$Najnizszy, type="l", col=brewer.pal(n = 4, name = "PRGn")[3])
+lines(dane$Zamkniecie, type="l", col=brewer.pal(n = 4, name = "PRGn")[4])
+legend("topright",names(dane)[2:5],col=brewer.pal(n = 4, name = "PRGn"),lwd=2)
+axis(1, at = dane$Data, labels = levels(dane$Data))
+
+```
+
+
+Dzięki temu wykresowi możemy stwierdzić na przykład, że cena akcji była największa na początku roku i wynosiła powyżej 5,20 zł jak i stwierdzić, że osiągnęła swoje minimum pod koniec lutego na poziomie niższym niż 4 zł. Oczywiście możemy łatwo sprawdzić czy nasza obserwacja jest poprawna.
+
+```{r}
+max=max(dane$Najwyzszy)
+pozycja=match(max,dane$Najwyzszy)
+data=levels(dane$Data)[pozycja]
+cat(c('W dniu',data,'cena akcji osiągnęła najwyższą wartość wynoszącą',max))
+```
+
+```{r}
+min=min(dane$Najnizszy)
+pozycja=match(min,dane$Najnizszy)
+data=levels(dane$Data)[pozycja]
+cat(c('W dniu',data,'cena akcji osiągnęła najniższą wartość wynoszącą',min))
+```
+##Modele z trendem liniowym
+Rozważymy teraz dwa modele korzystające z regresjii liniowej. Weźmiemy pod uwagę tylko jedną zmienną- cenę otwarcia. Spróbujemy przybliżyć jej zmienność w czasie. Przygotujmy najpierw odpowiednią ramkę danych.
+```{r}
+Otwarcie=dane$Otwarcie
+Dni=as.numeric(row.names(dane))
+dane2=data.frame(cbind(Dni,Otwarcie))
+head(dane2)
+
+```
+Rozdzielmy nasze dane na dwa zbiory- jeden uczący model, drugi sprawdzający jego skuteczność.
+```{r}
+p=35
+Uczacy=data.frame(cbind(Dni=Dni[1:(p-1)],Otwarcie=Otwarcie[1:(p-1)]))
+Testowy=data.frame(cbind(Dni=Dni[p:length(Dni)],Otwarcie=Otwarcie[p:length(Otwarcie)]))
+```
+
+Rozważmy na początek model z trendem liniowym dla całych przeszłych danych
+```{r}
+model1=lm(Otwarcie~Dni,data=Uczacy)
+summary(model1)
+```
+Przedstawmy ten trend liniowy na wykresie
+```{r}
+plot(dane2$Otwarcie, type="l", main="Otwarcie", sub="Model z trendem liniowych dla wszystkich przeszłych danych",col=brewer.pal(n = 4, name = "PRGn")[1], xlab = "Data", ylab="Cena ATP", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+abline(model1)
+abline(v=p,lty=2,col='red')
+```
+
+
+Nasz model prognozuje  że w ciągu kolejnych 10 dni cena otwarcia akcji będzie miała wartości określone następującym wektorem:
+```{r}
+Prognoza1=predict(model1,newdata=Testowy)
+Prognoza1
+```
+
+Obejrzyjmy wykres samej prognozy
+```{r}
+plot(Testowy$Otwarcie, ylim=c(min(Prognoza1),max(Testowy$Otwarcie)),type="l", main="Prognoza ceny otwarcia", sub="Model z trendem liniowych dla wszystkich przeszłych danych",col=brewer.pal(n = 4, name = "PRGn")[1], xlab = "Data", ylab="Cena ATP", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+lines(Prognoza1)
+
+```
+
+
+Wyznaczmy teraz błąd średniokwadratowy oraz wartość statystyki Theil'a dla tego modelu. 
+```{r}
+blad1=mean(((Prognoza1-Testowy$Otwarcie)^2))
+theil1=sum(((Prognoza1-Testowy$Otwarcie)^2))/sum((Testowy$Otwarcie^2))
+```
+Błąd średniokwadratowy wynosi `r blad1`. Wartość statystyki Theil'a w tym modelu wynosi `r theil1`, zatem nasz model jest skuteczniejszy niż prognoza naiwna.
+
+Spróbujmy teraz rozważyć model z z trendem liniowym, korzystający zawsze ze stałej liczby bezpośrednio poprzedzających próbek N. Niech np. N=19
+```{r}
+N=19
+U=length(Uczacy$Dni)
+model2=lm(Otwarcie~Dni,data=Uczacy[(U-N+1):U,])
+summary(model2)
+```
+Testując różne wartości N, możemy zauważyć, że dla małego N regresja liniowa jest mało dokładną aproksymacją zbioru uczącego. Dla N=19 nasz model okazuje się być nienajgorszym przybliżeniem.
+```{r}
+plot(dane2$Otwarcie, type="l", main="Otwarcie", sub="Model z trendem liniowych korzystający z N poprzedzających próbek",col=brewer.pal(n = 4, name = "PRGn")[1], xlab = "Data", ylab="Cena ATP", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+abline(model2)
+abline(v=p,lty=2,col='red')
+```
+
+
+Nasz model prognozuje  że w ciągu kolejnych 10 dni cena otwarcia akcji będzie miała wartości określone następującym wektorem:
+```{r}
+Prognoza2=predict(model2,newdata=Testowy)
+Prognoza2
+```
+Obejrzyjmy wykres samej prognozy
+```{r}
+plot(Testowy$Otwarcie, ylim=c(min(Testowy$Otwarcie),max(Prognoza2)),type="l", main="Prognoza ceny otwarcia", sub="Model z trendem liniowych korzystający z N poprzedzających próbek",col=brewer.pal(n = 4, name = "PRGn")[1], xlab = "Data", ylab="Cena ATP", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+lines(Prognoza2)
+```
+
+
+Podobnie jak w poprzednim modelu wyznaczmy błąd średniokwadratowy oraz wartość statystyki Theil'a
+```{r}
+blad2=mean(((Prognoza2-Testowy$Otwarcie)^2))
+theil2=sum(((Prognoza2-Testowy$Otwarcie)^2))/sum((Testowy$Otwarcie^2))
+```
+Błąd średniokwadratowy na jedną chwilę czasu w przód wynosi `r blad2`. Wartość statystyki Theil'a w tym modelu wynosi `r theil2`.
+Porównując błąd średniokwadratowy w obu modelach możemy stwierdzić że model drugi jest dokładniejszy. Błąd średniokwadratowy w pierwszym modelu wyniósł  `r blad1` , a w modelu drugim  `r blad2`.
+
+
