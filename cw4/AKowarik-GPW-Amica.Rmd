@@ -1,0 +1,79 @@
+---
+title: "Filtrowanie potokowe"
+author: "OKowarik"
+date: "1 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Ładujemy bibliotekę dplyr i wczytujemy dane z poprzedniego ćwiczenia.
+```{r}
+library(XLConnect)
+library(dplyr)
+library(tidyr)
+library(quantmod)
+dane <- readWorksheetFromFile('Akowarik-Amica-GPW.xlsx', sheet = 1)
+head(dane)
+```
+
+##Pierwszy proces filtrowania potokowego
+```{r}
+dane %>%
+  filter(Zmiana >0) %>%
+  filter(Obrót..mln..zł. < 1) %>%
+  mutate(srednia.maks.min = (Maks. + Min.)/2) %>%
+  mutate(srednia.otw.zamk. = (Otwarcie + Zamknięcie)/2) %>%
+  filter(srednia.otw.zamk. - srednia.maks.min == 0) %>%
+  arrange(Zmiana) %>%
+  group_by(Zmiana) %>%
+  summarise(srednia.otw = mean(Otwarcie,na.rm=TRUE), srednia.zam = mean(Zamknięcie,na.rm=TRUE)) -> do_wykresu
+  do_wykresu
+```
+
+##Wykres
+```{r}
+matplot(do_wykresu$Zmiana, do_wykresu[,2:3], "l",xlab="Zmiana", ylab="średnie wartości")
+legend("topleft", c("Otwarcie", "Zamknięcie"), col = 1:2, lty = 1:2)
+```
+
+##Drugi proces filtrowania potokowego
+```{r}
+nowe <- separate(dane, col = Data, into = c("rok", "miesiac", "dzien"), sep = "-")
+nowe %>%
+  mutate(srednia.obr = mean(Obrót..mln..zł.,na.rm=TRUE)) %>%
+  filter(Zmiana  <0,Obrót..mln..zł. > srednia.obr ) %>%
+  mutate(srednia.zam = mean(Zamknięcie,na.rm=TRUE)) %>%
+  filter(Zamknięcie > srednia.zam) %>%
+  group_by(rok,miesiac) %>%
+  summarise(srednia.maks = mean(Maks.,na.rm=TRUE), srednia.min = mean(Min.,na.rm=TRUE)) -> do_wykresu2
+do_wykresu2 %>%
+  unite(rok_mies, rok, miesiac, sep="-") -> data2
+  data2
+```
+
+##Wykres
+```{r}
+x <- seq(1:nrow(data2))
+matplot(x, data2[,2:3], "l",xlab="Data(rok-miesiac)", ylab="średnie wartości")
+axis(3, at = x, labels = c(data2$rok_mies))
+legend("topleft", c("Maks", "Min"), col = 1:2, lty = 1:2)
+```
+
+
+##Trzeci proces filtrowania potokowego
+```{r}
+nowe %>%
+  filter(rok == 2019, Zmiana !=0, Obrót..mln..zł. <1) -> do_wykresu3
+do_wykresu3 %>%
+  unite(rok_mies_dz, rok, miesiac,dzien, sep="-") -> data3 
+  head(data3)
+```
+
+##Wykres
+```{r}
+wykres3 <- xts(data3[, -1], order.by = as.Date(data3[, 1]))
+chartSeries(wykres3, TA=NULL, theme = chartTheme(6), up.col = "red")
+```
