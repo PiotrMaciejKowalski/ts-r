@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Wczytanie danych
 Używam tych samych danych co poprzednio- notowania akcji spółki Atlanta Poland S.A. (ATP) w 2019 roku z uwzględnieniem ceny otwarcia, zamknięcia, maksymalnej i minimalnej. 
 ```{r}
-dane=read.csv("atp_d.csv")[,1:5]
+dane=read.csv("stobiecka-data.csv")[,1:5]
 head(dane)
 ```
 Potrzebny będzie nam również pakiet dplyr.
