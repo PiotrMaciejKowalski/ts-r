@@ -75,11 +75,15 @@ w<-c(length(otwarcia$Otwarcie),length(najwyzsze$Najwyzszy), length(najnizsze$Naj
 colors=c("red","green","blue","black")
 barplot(w,names = c("Otwarcie","Najwyzszy","Najnizszy","Zamkniecie"),main="Liczba wartości wiekszych od srednich",col = colors)
 ```
-## Regresja
+
+## Predykcja
+
+Wykonamy prognozę modelem regresji liniowej dla wszystkich danych.
+ Nasze dane podzieliłam na dwa zbióry, jeden dla 11 ostatnich wartości a drugi dla reszty
 
 ```{r}
 ramka<-data.frame(Data2,Zamkniecie)
-ramka
+head(ramka)
 plot(ramka,'p',col="red");
 reg <- lm(ramka$Zamkniecie~ramka$Data2);
 plot(reg);
@@ -97,7 +101,7 @@ summary(reg1)
 ```
 ```{r}
 ramka2<-data.frame(Data2[41:51],Zamkniecie[41:51])
-ramka2
+head(ramka2)
 plot(ramka2,'p',col="red");
 reg2 <- lm(ramka2$Zamkniecie~ramka2$Data2);
 plot(reg2);
@@ -105,17 +109,20 @@ abline(reg2)
 summary(reg2)
 ```
 ```{r}
-prog<- predict(reg2)
+prog2<- predict(reg2)
+prog1<- predict(reg1)
+plot(ramka1$Data2,prog1)
+plot(prog2)
 plot(ramka2,col="blue", ylab="Kurs zamkniecia", xlab="Data")
-lines(ramka2$Data2, prog, type = "l", col="red")
+lines(ramka2$Data2, prog2, type = "l", col="red")
 ```
 
 Wyznaczmy błąd średniokwadratowy
 ```{r}
-mean((prog-ramka2$Zamkniecie)^2)
+mean((prog2-ramka2$Zamkniecie)^2)
 ```
 oraz wartość statystki Theil'a
 
 ```{r}
-sum((prog-ramka2$Zamkniecie)^2)/sum(ramka2$Zamkniecie^2)
+sum((prog2-ramka2$Zamkniecie)^2)/sum(ramka2$Zamkniecie^2)
 ```
