@@ -1,0 +1,75 @@
+---
+title: "GPW OctavaSA"
+author: "Maria Soja"
+date: "31 03 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r wczytywanie}
+setwd('~/Desktop/ts-r/cw4')
+df <- read.csv("08n_d.csv")
+head(df)
+```
+```{r}
+Data<-df$Data
+Otwarcie<-df$Otwarcie
+Najwyzszy<-df$Najwyzszy
+Najnizszy<-df$Najnizszy
+Zamkniecie<-df$Zamkniecie
+Wolumen<-df$Wolumen
+```
+```{r}
+Data2 <- as.Date(Data, "%Y-%m-%d")
+df<-cbind(df,Data2)
+```
+# Pierwszy proces
+```{r}
+df %>%
+  filter(Otwarcie > 0.85 ) %>%
+  mutate(srednia = (Otwarcie+Zamkniecie)/2) %>%
+  select(Data2, Otwarcie, Zamkniecie, srednia) -> result
+head(result)
+```
+```{r}
+plot(result$Data2, result$srednia, xlab="Data", ylab = "Srednia kursu", main = "Srednia kursu otwarcia i zamkniecia", type="l", col="pink")
+```
+  mutate(month = format(as.Date(Data, "%d/%m/%Y"), "%m")) %>%
+  group_by(month) %>%
+# Drugi proces
+```{r}
+df %>%
+  filter(Otwarcie==Zamkniecie ) %>%
+  mutate(staly_kurs= Otwarcie) %>%
+  mutate(month = format(Data2, "%m")) %>%
+  group_by(month) %>%
+  select(month,Data2,staly_kurs) -> result1
+result1
+```
+Poniższy wykres przedstawia ilość dni takich gdzie kurs otwarcia jest równy kursowi zamkniecia
+```{r}
+a=lengths(result1[result1$month=="01",1],use.names = FALSE)
+b=lengths(result1[result1$month=="02",1],use.names = FALSE)
+c=lengths(result1[result1$month=="03",1],use.names = FALSE)
+wykres=c(a,b,c)
+barplot(wykres, names=c("Styczen","Luty","Marzec"), col = c("red","green","orange"))
+```
+## Trzeci proces
+
+```{r}
+df %>%
+  filter(Zamkniecie>Otwarcie) %>%
+  mutate(roznica = Zamkniecie-Otwarcie) %>%
+  summarise(roznicasrednia = mean(roznica)) 
+```
+```{r}
+x <- df[Zamkniecie>Otwarcie, c(7,5)]
+plot(x, xlab="Data", ylab="Kurs", col="maroon", main="Zamkniecie wieksze od otwarcia")
+```
