@@ -1,0 +1,88 @@
+---
+title: "Wykorzystanie operatora potoków"
+author: "Jakub Bujnowicz"
+date: "2 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wstęp
+
+Na początek wczytamy dane i wszystkie potrzebne pakiety.
+
+```{r pakiety, message = FALSE}
+dane <- read.csv("jbujnowicz-data.csv",
+                 stringsAsFactors = FALSE)
+
+library(dplyr)
+library(ggplot2)
+```
+
+### Pierwszy proces
+
+Rozszerzymy dane o kilka niezbędnych w dalszej pracy kolumn.
+
+```{r}
+dane_ext <- dane %>%
+    mutate(
+        Data = as.Date(Data),
+        Miesiac = months(Data, abbreviate = FALSE),
+        Roznica = Zamkniecie - Otwarcie)
+```
+
+Przygotujemy zestawienie odsetka dni, w których nastąpił wzrost wartości notowań, z podziałem
+na miesiące.
+
+```{r}
+dane_ext %>% 
+    group_by(Miesiac) %>%
+    summarise(
+        ProcentDni = round(sum(Roznica > 0) / n() * 100, 2)) %>%
+    arrange(desc(ProcentDni)) %>%
+    mutate(
+        Miesiac = factor(Miesiac, levels = Miesiac)) %>%
+    ggplot(aes(x = Miesiac, y = ProcentDni)) + 
+        geom_col(aes(fill = Miesiac), col = "black") +
+        geom_text(aes(label = paste0(ProcentDni, "%"), 
+                      y = ProcentDni / 2))
+```
+
+### Drugi proces
+
+Następnie zaprezentujemy różnice w kursie otwarcia i zamknięcia dla poszczególnych dni
+stycznia.
+
+```{r}
+dane_ext %>%
+    filter(Miesiac == "styczeń") %>%
+    mutate(
+        Dzien = substring(Data, 9, 10),
+        Wzrost = Roznica > 0) %>%
+    ggplot(aes(x = Dzien, y = Roznica)) + 
+        geom_col(aes(fill = Wzrost), col = "black") + 
+        geom_text(aes(label = round(Roznica, 1),
+                  y = Roznica + sign(Roznica)))
+```
+
+
+### Trzeci proces
+
+Na ostatnim wykresie zaobserwujemy zmiany w kursie otwarcia dla każdego z miesięcy,
+wraz z (przerywanymi) liniami regresji.
+
+```{r}
+dane_ext %>%
+    group_by(Miesiac) %>%
+    mutate(
+        Dzien = row_number()) %>%
+    ungroup() %>%
+    mutate(
+        Miesiac = factor(Miesiac, levels = unique(Miesiac))) %>%
+    ggplot(aes(x = Dzien, y = Otwarcie, col = Miesiac)) +
+    geom_line(size = 1) +
+    geom_smooth(method = "lm", se = FALSE, size = 0.75, lty = 2)
+```
+
