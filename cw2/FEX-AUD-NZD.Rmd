@@ -15,6 +15,7 @@ Analizowane będą dane ze strony HistData.com (https://www.histdata.com/) dotyc
 
 ## Wczytywanie danych
 Dane zostały wcześniej obrobione w programie Excel
+
 ```{r wczytywanie}
 dane <- read.csv2(file = 'DaneN.csv', header = TRUE)
 godz_8 <- dane[dane$godzina == 80000, ]
