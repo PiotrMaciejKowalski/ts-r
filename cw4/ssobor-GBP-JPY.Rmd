@@ -9,7 +9,7 @@ Na początek standardowo zajmiemy się wczytaniem odpowiednich pakietów i danyc
 ```{r message = FALSE, warning = FALSE}
 library(dplyr)
 library(ggplot2)
-data_all <- read.csv2("ssobor-GBP-JPY.csv")
+data_all <- read.csv2("ssobor-data.csv")
 ```
 
 Dla ułatwienia pracy zmienimy format w kolumnie data:
