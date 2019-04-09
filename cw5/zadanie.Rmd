@@ -1,0 +1,30 @@
+---
+title: "Zadanie"
+author: "Piotr Kowalski"
+date: "3 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Zadanie
+
+Proszę o wybranie ponownie tego samego pliku danych. Następnie proszę wygenerować wykresy ACF PACF oraz dokonać porównanie z użyciem 3 różnych modeli ARIMA - najlepiej
+
+* jeden model MA
+* jeden model AR
+* jeden model ARMA/ARIMA
+
+Polecam wykorzystać również różnicowanie szeregu.
+
+W końcu dla wybranych dwóch modeli przeprowadzić predykcję na zbiorze testowym oraz porównać uzyskane błędy średniokwadratowe prognozy.
+
+## Uwaga
+
+Proszę zmienić nazwy swoich plików tak aby były poprzedzone nazwą autora np.
+pkowalski-FEX-GBP-PLN.Rmd
+oraz
+pkowalski-data.csv
