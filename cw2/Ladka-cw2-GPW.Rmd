@@ -1,0 +1,36 @@
+---
+title: "zadanie2"
+author: "KŁądka"
+date: "1 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(XLConnect)
+library("quantmod")
+```
+
+Wczytujemy dane notowania CCC z excela.
+```{r}
+dane = readWorksheetFromFile('Ladka-GPW-CCC.xlsx', sheet = 1)
+head(dane)
+```
+
+Przygotowujemy dane do wykresów.
+```{r}
+dane2 = dane[2:5]
+ccc <- xts(dane2, order.by = as.Date(dane[, 1]))
+head(ccc)
+```
+
+Tworzymy wykresy.
+```{r}
+chartSeries(ccc, bar.type = "hlc", TA=NULL, type = "bars", theme = chartTheme(1))
+matplot(1:nrow(dane), ccc[,1:4], "l",xlab="Data", ylab="Wartości w mln")
+legend("topleft", c("Otwarcie", "Zamknięcie", "Maks", "Min"), col = 1:4, lty = 1:4)
+```
+
