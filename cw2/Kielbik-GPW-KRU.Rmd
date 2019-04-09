@@ -16,7 +16,7 @@ Rozpoczynam od pobrania potrzebnych bibliotek oraz przygotowania omawianaych dan
 ```{r}
 library(quantmod)
 library(xts)
-kruk.raw = read.csv("kru_d.csv", header = TRUE, sep = ",")
+kruk.raw = read.csv("Kielbik-kru_d.csv", header = TRUE, sep = ",")
 kruk = xts(kruk.raw[, -1], order.by = as.Date(kruk.raw[, 1])) #zamiana danych w szereg czasowych
 KRU <- kruk
 names(KRU) = c("KRU.Open", "KRU.High", "KRU.Low", "KRU.Close", "KRU,Volume")
