@@ -1,0 +1,60 @@
+---
+title: "Notowania akcji spółki Kruk S.A."
+author: "Natalia Kiełbik"
+date: "8 kwietnia 2019"
+output: html_document
+---
+#O spółce
+Kruk S.A. to firma windykacyjna z siedzibą we Wrocławiu. 
+Grupa KRUK koncentruje swą działalność na rynku bankowym w oparciu o długoterminowe relacje z kluczowymi klientami. Zarządza m.in. wierzytelnościami banków, pośredników kredytowych, firm ubezpieczeniowych oraz firm leasingowych. Na Giełdzie Papierów Wartościowych notowana jest od 10 maja 2011 roku. 
+
+#Pobranie i wczytywanie danych
+Poniższy plik przedstawia notowania akcji spółki Kruk w dniach 2019-01-02 - 2019-03-18 z uwzględnieniem ceny otwarcia, zamknięcia, maksymalnej i minimalnej. 
+Dane pobrałam ze strony: https://stooq.pl/q/?s=kru&d=20190327.
+
+Rozpoczynam od pobrania potrzebnych bibliotek oraz przygotowania omawianaych danych.
+```{r}
+library(quantmod)
+library(xts)
+kruk.raw = read.csv("kru_d.csv", header = TRUE, sep = ",")
+kruk = xts(kruk.raw[, -1], order.by = as.Date(kruk.raw[, 1])) #zamiana danych w szereg czasowych
+KRU <- kruk
+names(KRU) = c("KRU.Open", "KRU.High", "KRU.Low", "KRU.Close", "KRU,Volume")
+```
+
+Następnie korzystam z funkcji *chartseries* w celu narysowania wykresów giełdowych dla omawianych notowań akcji spółki.
+
+Narysuję najpierw podstawowy wykres dla "obrotów-otwarcia-maks-min-zamknięcia" dla danych notowań.
+Na wykresie zostały wyszczególnione zieloną czcionką wartości zamknięcia oraz wolumenu w ostatnim omawianym dniu (czyli 2019-03-18). Dodatkowo dzięki parametrowi *theme* zastosowałam tutaj inny motyw kolorystyczny.
+```{r}
+chartSeries(KRU, theme = chartTheme(1))
+```
+
+Następny wykres przedstawia wartości maksymalne i minimalne z każdego dnia obserwacji, z uwzględnieniem ceny otwarcia.
+Typ wykresu, to wykres świecowy o zwężonych słupkach pomiedzy otwarciem i zamknięciem. 
+```{r}
+chartSeries(KRU, bar.type = "ohlc", TA = NULL, type = "matchsticks")
+```
+
+Na kolejnym wykresie przedstawiono maksimum oraz minimum z każdego dnia obserwacji, które są połączone odcinkiem, na którym oznaczona jest wartość zamknięcia sesji giełdowej. 
+Na tym wykresie nie jest przedstawiona cena otwarcia, a każda ze świec przyjmuje inny kolor, dzięki paramertrowi *muti.col*.
+```{r}
+chartSeries(KRU, multi.col = TRUE, bar.type = "hlc", TA = NULL, type = "bars")
+```
+
+Kolejny wykres przedstawia "otwarcie - maks - min - zamknięcie". Zastosowałam tutaj inny motyw kolorystyczny (czarno - biały).
+```{r}
+chartSeries(KRU,theme = chartTheme(2), TA = NULL)
+```
+
+Ostatni wykres przedstawia wolumen sprzedaży, a same wartości wolumenu są przedstawione na dodatkowym wykresie poniżej głównego.
+```{r}
+chartSeries(KRU, bar.type = "hlc", type = "bars")
+```
+
+Na ostatnim wykresie chciałam zaprezentować jak można zmieniać kolory poszczególnych elementów wykresu. Parametry, które podlegają zmianie, to: 
+*up.col* - kolor słupków dla których Close>Open, 
+*dn.col* - kolor w przeciwnej sytuacji
+```{r}
+chartSeries(KRU, theme = chartTheme(5), up.col = "darkolivegreen1", dn.col = "red")
+```
