@@ -1,0 +1,157 @@
+---
+title: "Analiza kursu euro do liry tureckiej"
+author: "Anna Stańczyk"
+date: "15 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Niniejsza analiza kursu euro (EUR) do liry tureckiej (TRY) w bieżącym roku została przeprowadzona na podstawie danych ze strony Histdata.com. 
+
+## Wczytanie danych
+```{r wczytanie_danych}
+library(readxl)
+wczytywanie_styczen = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 1)
+wczytywanie_luty = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 2)
+wczytywanie_marzec = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 3)
+wszystkie_dane <- rbind(wczytywanie_styczen, wczytywanie_luty, wczytywanie_marzec)[1:5]
+wszystkie_dane <- cbind(godzina = substr(wszystkie_dane$czas,12,19), wszystkie_dane)
+head(wszystkie_dane)
+
+```
+
+W analizie będziemy brać pod uwagę notowania kursów jedynie z godzin: 8:00, 12:00, 16:00, 20:00. W tym celu zawężamy zakres naszych danych.
+
+## Zawężenie danych
+```{r zawężenie_danych}
+
+wybrane_dane = wszystkie_dane[wszystkie_dane$godzina == "08:00:00"| wszystkie_dane$godzina == "12:00:00"| wszystkie_dane$godzina == "16:00:00"| wszystkie_dane$godzina == "20:00:00", ]
+head(wybrane_dane)
+```
+## Graficzne przedstawienie danych
+Skoro nasze dane są już dobrze posegregowane, to przejdźmy do analizy na podstawie zaprezentowanych poniżej wykresów. Najpierw przyjżyjmy się wykresom przedstawiającym wartości kursów szczytu i dołka w zależności od daty i pogrupowanych na cztery możliwe godziny dziennych pomiarów wartości. 
+```{r Wykresy_szczyt_dołek_od_czasu}
+library(ggplot2)
+ggplot(wybrane_dane,aes(x = czas,y = szczyt, col = godzina)) + 
+    geom_line()
+
+ggplot(wybrane_dane,aes(x = czas,y = dołek, col = godzina)) + 
+    geom_line()
+
+```
+Zauważmy, że wykresy te wydają się być niemal identyczne. Zbadajmy więc, jak wygląda wykres różnicy wartości kursów szczytu i dołka od czasu, pogrupowanych na godziny dziennych pomiarów.
+```{r wykres_różnica_szczyt_dołek_od_czasu}
+
+ggplot(wybrane_dane,aes(x = czas,y = szczyt-dołek, col = godzina)) + 
+    geom_line()
+
+```
+W dalszej części analizy chciałabym rozważyć średnie wartości kursów: otwarcia, szczytu, dołka i zamknięcia w zależności od czterech wariantów godzin pomiarów wartości. W tym celu tworzymy nową ramkę danych, zawierającą interesujące nas wartości średnie.
+
+```{r ramka_wartości_średnie}
+srednie_dane <- data.frame("godzina"=c("8:00", '12:00', '16:00', '20:00'), "średni kurs otwarcia"=1:4, "średni szczyt"=1:4, "średni dołek"=1:4, "średni kurs zamknięcia"=1:4)
+#srednie_dane$godzina=c(8, 12, 16, 20)
+i <- 3
+for(i in 3:6){
+srednie_dane[1,i-1] <- mean(wybrane_dane[,i][wybrane_dane$godzina == "08:00:00"])
+srednie_dane[2,i-1] <- mean(wybrane_dane[,i][wybrane_dane$godzina == "12:00:00"])
+srednie_dane[3,i-1] <- mean(wybrane_dane[,i][wybrane_dane$godzina == "16:00:00"])
+srednie_dane[4,i-1] <- mean(wybrane_dane[,i][wybrane_dane$godzina == "20:00:00"])
+i <- i+1
+}
+head(srednie_dane)
+```
+
+```{r wykres_średnie_wartości}
+library(reshape2)
+dfm <- melt(srednie_dane[c("godzina","średni.kurs.otwarcia","średni.szczyt", "średni.dołek", "średni.kurs.zamknięcia")],id.vars = 1)
+ggplot(dfm,aes(x = godzina,y = value)) + 
+    geom_bar(aes(fill = variable),stat = "identity",position = "dodge") +coord_cartesian(ylim = c(6.06, 6.08), expand = FALSE) +ylab("Średnie kursy") + xlab("Godzina")+scale_fill_discrete(name = "") +scale_x_discrete(limits=c("8:00","12:00","16:00", "20:00"))
+
+```
+
+## Predykcja
+Poniżej stworzę dwa modele z trendami liniowymi w celu predykcji wartości kursu szczytu z godziny 8:00:00 na 8 ostatnich dni z naszego archiwum (zbiór testowy). Modele te będą różnić się zbiorem uczącym się (będą stworzone na podstawie innych zbiorów danych, ze względu na liczbę tych danych).
+Na początku, stworzę ramkę danych, na której będą opierać się modele. Ramka ta będzie przechowywała pomiary wartości kursów wyłącznie z godziny 8:00:00 oraz będzie miała dodaną kolumnę z numerami dni z archiwum.
+
+```{r ramka_do_modelu_z_trendem}
+dnie_do_prognozy <- 8
+ramka_do_modelu <- wybrane_dane[wybrane_dane$godzina == "08:00:00", ]
+ramka_do_modelu <- cbind("numer dnia" = 1:length(ramka_do_modelu$czas), ramka_do_modelu)
+ilosc_dni <- length(ramka_do_modelu$czas)
+head(ramka_do_modelu)
+
+```
+
+Stwórzmy pierwszy model. Będzie on korzystać z całej wcześniejszej historii danych z naszego archiwum. Przy okazji od razu zwizualizujmy, jak wygląda nasz model na tle zbioru uczącego.
+```{r model_na_podstawie_całej_historii}
+zbior_uczacy <- ramka_do_modelu[1:(ilosc_dni - dnie_do_prognozy), ]
+reg <- lm(szczyt ~ `numer dnia`, zbior_uczacy)
+summary(reg)
+plot(zbior_uczacy$`numer dnia`, zbior_uczacy$szczyt, xlab = "Numer dnia z archiwum", ylab = "Wartość kursu szczytu")
+abline(reg, col = "red")
+```
+
+Wydaje się wyglądać nie najgorzej - wprawdzie niektóre wartości błędów wyglądają na znaczące, to ogólna tendencja jest zachowana. Sprawdźmy jak wygląda sytuacja, na zbiorze testowym. Zróbmy prognozę na ostatnie 8 dni.  
+```{r predykcja_model_1}
+zbior_testowy <- ramka_do_modelu[(ilosc_dni - dnie_do_prognozy):ilosc_dni, ]
+a <- reg$coeff[2]
+b <- reg$coeff[1]
+plot(zbior_testowy$`numer dnia`,zbior_testowy$szczy, ylim = c(5.7, 6.2), xlab = "Numer dnia z archiwum", ylab = "Wartość kursu szczytu")
+lines(zbior_testowy$`numer dnia`, a*zbior_testowy$`numer dnia`+b, col = "red")
+```
+
+Możemy zaobserwować, że nasz model kompletnie nie sprawdził się w tej sytuacji. Sprawdźmy jak wyglądają kolejno: średni błąd kwadratowy oraz statystyka Theil'a (porównanie z prognozą naiwną). W tym celu tworzymy pomocnicze funkcje:
+
+```{r funkcje_pomocnicze}
+sredni_blad_kwadratowy <-function(coeff1, coeff2)
+    {
+        return(mean((zbior_testowy$szczyt- coeff1*zbior_testowy$`numer dnia`-coeff2)^2))
+    }
+statystyka_Theila <- function(coeff1, coeff2)
+    {
+        return(sum((ramka_do_modelu$szczyt[(ilosc_dni - dnie_do_prognozy-1):(ilosc_dni-1)]- coeff1*zbior_testowy$`numer dnia`-coeff2)^2)/sum((ramka_do_modelu$szczyt[(ilosc_dni - dnie_do_prognozy-1):(ilosc_dni-1)])^2))
+    }
+```
+
+```{r sredni_blad_statystyka_theila_1}
+sredni_blad_kwadratowy(a,b)
+statystyka_Theila(a,b)
+```
+Widzimy, że wartości te są dość duże.
+Przejdźmy do drugiego modelu, który będzie korzystać tylko z n wcześniej poprzedzających danych (przyjmijmy n=10). To znaczy, że nasz zbiór uczący składa się teraz z 10 wartości. Przeprowadźmy analogiczną analizę.
+
+```{r model_na_podstawie_n_danych}
+n <- 10
+zbior_uczacy_n <- ramka_do_modelu[(ilosc_dni- n - dnie_do_prognozy+1):(ilosc_dni - dnie_do_prognozy), ]
+reg_n <- lm(szczyt ~ `numer dnia`, zbior_uczacy_n)
+summary(reg_n)
+plot(zbior_uczacy_n$`numer dnia`, zbior_uczacy_n$szczyt, xlab = "Numer dnia z archiwum", ylab = "Wartość kursu szczytu")
+abline(reg_n, col = "red")
+```
+
+Możemy zauważyć, że ten model lepiej wpasował się do naszych danych (co oprócz odzwierciedlenia grafcznego, możemy zobaczyć też po wyższej wartości R-squared). Przejdźmy do predykcji i zobaczmy, czy ona również wypadnie lepiej. 
+
+```{r predykcja_model_2}
+zbior_testowy_n <- ramka_do_modelu[(ilosc_dni - dnie_do_prognozy):ilosc_dni, ]
+c <- reg_n$coeff[2]
+d <- reg_n$coeff[1]
+plot(zbior_testowy_n$`numer dnia`, zbior_testowy_n$szczyt, xlab = "Numer dnia z archiwum", ylab = "Wartość kursu szczytu")
+lines(zbior_testowy_n$`numer dnia`, c*zbior_testowy_n$`numer dnia`+d, col = "red")
+```
+
+Jak widać pomimo, wydawałoby się mniej dopasowanego modelu niż poprzednio, otrzymaliśmy całkiem przyzwoitą predykcję na ostatnie 8 dni, a na pewno dużo lepszą niż poprzednia. Gdy przyjrzymy się dłużej poprzednim wykresom, możemy dojść do wniosku, że jest to skutkiem "przestarzałych" danych, z których korzystał wcześniejszy model. Łatwo zauważyć, że ogólna tendencja od początku stycznia do marca jest malejąca, jednak gdy przyjrzymy się kursom szczytu pod koniec lutego, to widać, że wartości rosną. Sprawdźmy jak wyglądają kolejno: średni błąd kwadratowy oraz statystyka Theil'a (porównanie z prognozą naiwną).
+
+
+```{r sredni_blad_statystyka_theila_2}
+sredni_blad_kwadratowy(c,d)
+statystyka_Theila(c,d)
+```
+
+Widzimy, że wartości te są znacznie mniejsze od odpowiadających im wartościom z wcześniejszego modelu.
+
+Podsumowując, kurs szczytu na pierwsze dni marca lepiej predykuje model korzystający jedynie ze "świeżych" danych, niż ten, który korzysta z całego dostępnego archiwum. Jest to związane ze zmianą tendencji zmiany wartości kursu szczytu: z malejącej na rosnącą, co w przypadku modelów liniowych postaci y=ax+b (które są monotoniczne), kompletnie dezaktualizuje pierwszy model.
+
+
