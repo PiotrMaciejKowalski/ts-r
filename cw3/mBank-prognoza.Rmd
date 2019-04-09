@@ -1,0 +1,263 @@
+---
+title: "Wykresy notowań mBanku"
+author: "Jakub Bujnowicz"
+date: "23 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Wykresy
+### Przygotowanie danych
+
+Ten skrypt stworzony został w celu przedstawienia danych o notowaniach mBanku w formie 
+wykresów. Wszystkie dane użyte do stworzenia poniższych wykresów pobrane zostały 
+[stąd.](https://stooq.pl/q/?s=mbk) 
+
+Wczytamy notowania.
+
+```{r wczytywanie}
+dane <- read.csv("GPW-MBANK.csv")
+head(dane)
+```
+
+Przygotujemy dane do pracy, przekształcając je do innej formy z pomocą pakietu *tidyr*.
+
+```{r obrobka}
+library(tidyr)
+
+year2019 <- grepl("2019", dane$Data)
+dane <- dane[year2019, names(dane) != "Wolumen"]
+dane <- gather(dane, "Kurs", "Notowanie", -Data)
+
+head(dane)
+```
+
+Ponieważ wszystkie dane pochodzą z bieżącego roku, usuniemy tę informację z wektora dla
+przejrzystości dalszych wykresów.
+
+```{r usuniecie_roku}
+levels(dane$Data) <- gsub("2019-", "", levels(dane$Data))
+head(dane)
+```
+
+
+### Rysowanie wykresów
+
+Do tworzenia wykresów użyty zostanie pakiet *ggplot2*. W większości wykresów zastosowany
+zostanie podział na kursy otwarcia, zamknięcia, minimalne i maksymalne. 
+
+Podstawowych informacji o notowaniach dostarczy wykres wartości od czasu.
+
+```{r wykresy_ciagle}
+library(ggplot2)
+p <- ggplot(dane, 
+            aes(x = Data, 
+                y = Notowanie, 
+                group = Kurs,
+                col = Kurs)) + 
+    theme(axis.text.x = element_text(angle = 90, 
+                                     hjust = 1))
+p_nox_axis <- p + theme(axis.text.x = element_blank(),
+                        axis.ticks.x = element_blank())
+
+p_nox_axis + geom_line() + facet_wrap( ~ Kurs)
+```
+
+To samo na jednym wykresie.
+
+```{r wykres_ciagly}
+p + geom_line()
+```
+
+Na wykresie pudełkowym przedstawione zostały mediany każdego kursu, wraz z 95% 
+przedziałami ufności oznaczonymi przez wcięcie. Ramki pudełka wyznaczają granice rozstępu
+kwartylowego, nastomiast czarne kropki są obserwacjami odstającymi.
+
+```{r pudelkowy}
+p_nox_axis + geom_boxplot(aes(fill = Kurs), 
+                          col = "black",
+                          notch = TRUE) + labs(x = "Kurs")
+```
+
+Na koniec porównanie rozkładów kursów przez histogramy.
+
+```{r histogramy, message = FALSE}
+p_onlyx <- ggplot(dane, 
+                  aes(x = Notowanie,
+                      group = Kurs,
+                      fill = Kurs))
+p_onlyx + geom_histogram(col = "black") + 
+    facet_wrap( ~ Kurs) +
+    labs(y = "Liczba wystąpień")
+```
+
+## Prognozowanie
+
+### Wstęp do konstrukcji modeli
+
+Spróbujemy dokonać prognozy notowań jednego, wybranego kursu. Za przykład obierzemy
+kurs **Otwarcia**. Wczytamy dane.
+
+```{r wczytywanie2}
+dane2 <- read.csv("GPW-MBANK.csv")
+dane2$t <- as.integer(dane2$Data)
+prog_start <- "2019-02-28"
+```
+
+Zmienna `prog_start` wyznacza pierwszy dzień okresu, na który sporządzimy prognozę. Będziemy
+ten okres traktowali jako 'przyszłość'. Na tej podstawie podzielimy dane na zbiór uczący 
+i zbiór testowy.
+
+```{r zbiory}
+start <- which(dane2$Data == prog_start)
+n_obs <- nrow(dane2)
+
+learn_set <- dane2[1:(start - 1), ]
+test_set  <- dane2[start:n_obs, ]
+```
+
+Do oceny jakości naszej prognozy wykorzystamy dwa narzędzia - błąd średniokwadratowy (`mse`) oraz
+statystykę Theila (`theil`).
+
+```{r funkcje}
+mse <- function(real, predicted = 0) {
+    if (!is.numeric(real) || !is.numeric(predicted)) {
+        stop("Parametry real oraz predicted muszą być numeryczne.")
+    }
+    
+    value <- real - predicted
+    result <- mean(value * value, na.rm = TRUE)
+    return(result)
+}
+
+theil <- function(real, predicted) {
+    if (!is.numeric(real) | !is.numeric(predicted)) {
+        stop("Parametry real oraz predicted muszą być numeryczne.")
+    }
+    if (length(real) != length(predicted)) {
+        stop("Długości obu wektorów muszą być identyczne.")
+    }
+    
+    library(dplyr)
+    
+    rlag <- lead(real)
+    plag <- lead(predicted)
+
+    num <- plag - rlag
+    denom <- real - rlag
+    
+    result <- sqrt(mse(num) / mse(denom))
+    return(result)
+}
+```
+
+Spróbujmy stworzyć prosty model, objaśniający kurs otwarcia przez czas.
+
+```{r model1}
+model1 <- lm(Otwarcie ~ t, data = learn_set)
+summary(model1)
+```
+
+Niska wartość $R^2$ sugeruje, że wariancja kursu otwarcia została wyjaśniona
+w bardzo małym stopniu. Wykres potwierdza słabość modelu.
+
+```{r model1_wykres}
+plot(learn_set$t, learn_set$Otwarcie,
+     xlab = "Czas", ylab = "Notowanie")
+abline(model1, col = "red")
+```
+
+Stworzymy drugi model, który będzie korzystał z operatora opóźnienia i kursu zamknięcia.
+```{r model2, message = FALSE}
+library(dplyr)
+k <- 3
+dane2$ZamkniecieLag <- lag(dane2$Zamkniecie, k)
+learn_set <- dane2[1:(start - 1), ]
+test_set  <- dane2[start:n_obs, ]
+
+model2 <- lm(Otwarcie ~ t + ZamkniecieLag, data = learn_set)
+summary(model2)
+```
+
+Wysoka wartość *p-value* dla czasu oznacza, że jego współczynnik nie różni się istotnie
+od zera. Pominiemy go.
+
+```{r model3}
+model3 <- lm(Otwarcie ~ ZamkniecieLag, data = learn_set)
+summary(model3)
+```
+```{r model3_wykres, echo=FALSE}
+ind <- 1:k
+plot(learn_set[-ind, c("t", "Otwarcie")],
+     xlab = "Czas", ylab = "Notowanie")
+lines(learn_set[-ind ,"t"], predict(model3), col = "darkblue")
+```
+
+Porównamy istotne statystyki dla obu modeli.
+```{r porownanie, echo = FALSE}
+real <- learn_set[-ind, "Otwarcie"]
+
+comparison_learn <- data.frame(r2 = c(summary(model1)$r.squared,
+                                      summary(model3)$r.squared),
+                               mse = c(mse(learn_set$Otwarcie, 
+                                           predict(model1)),
+                                       mse(real, 
+                                           predict(model3))),
+                               theil = c(theil(learn_set$Otwarcie, 
+                                               predict(model1)),
+                                         theil(real, 
+                                               predict(model3))),
+           row.names = c("Model1", "Model3"))
+comparison_learn
+```
+
+Sprawdzimy jakość prognozy dla zbioru testowego.
+```{r test_miary, echo = FALSE}
+real <- test_set$Otwarcie
+comparison_test <- data.frame(mse = mse(real, predict(model3, test_set)),
+  theil = theil(real, predict(model3, test_set)))
+comparison_test
+```
+
+Jak widać, model radzi sobie nie gorzej na danych testowych niż treningowych.
+
+Na koniec wykres łączny obu modeli.
+
+```{r wykres_modele, echo = FALSE}
+colors <- c("darkblue", "green", "darkred")
+plot(dane2[-ind, c("t", "Otwarcie")],
+     xlab = "Czas", ylab = "Notowanie",
+     main = "Wykres łączny")
+lines(learn_set[-ind, "t"], predict(model3), col = colors[1])
+lines(test_set$t, predict(model3, test_set), col = colors[2])
+abline(model1, col = colors[3])
+legend("topright", 
+       legend = c("Model3 na zbiorze treningowym",
+                  "Model3 na zbiorze testowym",
+                  "Model1"),
+       lty = 1,
+       col = colors)
+```
+
+### Wykorzystanie tylko części danych
+
+Spróbujemy stworzyć analogiczny model, który wykorzystuje jedynie 20 najnowszych obserwacji
+przed okresem testowym.
+
+```{r zbiory2}
+latest_days <- 20
+learn_set <- dane2[(start - latest_days):(start - 1), ]
+test_set  <- dane2[start:n_obs, ]
+```
+
+```{r model4}
+model4 <- lm(Otwarcie ~ ZamkniecieLag, data = learn_set)
+summary(model4)
+```
+
+Jakość modelu znacznie się pogorszyła. Nie jest on istotny statystycznie. Pokazuje to,
+że do konstrukcji modelu niezbędna jest wystarczająca ilość danych.
