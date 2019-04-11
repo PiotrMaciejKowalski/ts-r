@@ -1,0 +1,60 @@
+---
+title: "Zadanie2"
+author: "Justyna Kapuciñska"
+date: "01 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Raport dotyczy analizy ceny WTI/USD w dniach 2019-01-02 - 2019-03-15 z uwzglêdnieniem ceny otwarcia, zamkniêcia, maksymalnej i minimalnej. 
+## Pobranie i wczytanie danych
+Dane pochodz¹ ze strony histdata.com. 
+
+```{r}
+dane=read.csv2("WTI_USD.csv")
+godz8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Otwarcie.[dane$Godzina.=="08:00"]),53,2)
+godz12=matrix(c(sort(dane$Data[dane$Godzina.=="12:00"]),dane$Otwarcie.[dane$Godzina.=="12:00"]),53,2)
+godz16=matrix(c(sort(dane$Data[dane$Godzina.=="16:00"]),dane$Otwarcie.[dane$Godzina.=="16:00"]),47,2)
+godz20=matrix(c(sort(dane$Data[dane$Godzina.=="20:00"]),dane$Otwarcie.[dane$Godzina.=="20:00"]),51,2)
+```
+
+
+## Wykres otwarcia 
+Poni¿sze wykresy zosta³y sporz¹dzone w oparciu o kurs otwarcia. 
+```{r}
+wyk8=plot(godz8,type="l",xlab="Dzieñ", ylab="Watroœæ",main="Otwarcie godziny")
+wyk12=lines(godz12,col="2", lty=2)
+wyk16=lines(godz16,col="3", lty=3)
+wyk20=lines(godz20,col="4", lty=4)
+legend("bottomright", c("godzina 8:00", "godzina 12:00", "godzina 16:00","godzina 20:00"), col = 1:4, lty=1:4)
+```
+
+
+## Wykres zamkniêcia
+Poni¿sze wykresy zosta³y sporz¹dzone w oparciu o kurs zamkniêcia.
+```{r}
+godz8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Zamkniêcie.[dane$Godzina.=="08:00"]),53,2)
+godz12=matrix(c(sort(dane$Data[dane$Godzina.=="12:00"]),dane$Zamkniêcie.[dane$Godzina.=="12:00"]),53,2)
+godz16=matrix(c(sort(dane$Data[dane$Godzina.=="16:00"]),dane$Zamkniêcie.[dane$Godzina.=="16:00"]),47,2)
+godz20=matrix(c(sort(dane$Data[dane$Godzina.=="20:00"]),dane$Zamkniêcie.[dane$Godzina.=="20:00"]),51,2)
+
+wyk8=plot(godz8,type="l",xlab="Dzieñ", ylab="Watroœæ",main="Zamkniêcie godziny")
+wyk12=lines(godz12,col="2", lty=2)
+wyk16=lines(godz16,col="3", lty=3)
+wyk20=lines(godz20,col="4", lty=4)
+legend("bottomright", c("godzina 8:00", "godzina 12:00", "godzina 16:00","godzina 20:00"), col = 1:4, lty=1:4)
+```
+
+
+## Wykres porównania 
+Poni¿szy wykres przedstawia porównanie otwarcia i zamkniêcia godziny.
+```{r}
+otw8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Otwarcie.[dane$Godzina.=="08:00"]),53,2)
+zam8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Zamkniêcie.[dane$Godzina.=="08:00"]),53,2)
+wyko8=plot(otw8,type="l",xlab="Dzieñ", ylab="Wartoœæ", main="Porównanie zamkniêcia i otwarcia godziny 8:00")
+wykz8=lines(zam8,col="2",lty=2)
+legend("bottomright",c("otwarcie","zamkniêcie"), col= 1:2, lty=1:2)
+```
+
