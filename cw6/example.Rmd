@@ -1,0 +1,242 @@
+---
+title: "Transformacja Boxa-Coxa"
+author: "Piotr Kowalski"
+date: "11 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+W niniejszym przykładzie zaprezentujemy jak z poziomu języka R przeprowadzić transformację Boxa-Coxa oraz cały proces predykcji uwzględniający wielopoziomową dekompozycję.
+
+# Transformacja Boxa-Coxa 
+
+Do zaprezentowania sposobu pracy z transformacją Boxa-Coxa użyjemy przykładowego zbioru danych o nazwie AirPassengers
+
+```{r}
+library(stats)
+data('AirPassengers')
+typeof(AirPassengers)
+class(AirPassengers)
+head(AirPassengers)
+is.ts(AirPassengers)
+```
+
+Obejrzymy podstawowe wykresy dla naszych danych 
+
+```{r}
+library(forecast)
+tsdisplay(AirPassengers)
+```
+
+Nie stanowią one zatem szeregu stacjonarnego - obejrzymy dokładnie zatem wykres zawartych tam wartości
+
+```{r}
+plot(AirPassengers)
+```
+
+Dostrzegamy na wykresie silny wpływ trendu jak i wyraźną sezonowość
+
+```{r}
+frequency(AirPassengers)
+```
+
+W tworzeniu tego obiektu wskazano okres rowny 12 (miesięcy?). Zobaczmy co na to dane
+
+```{r}
+library(zoo)
+srednia_kroczaca = rollmean(AirPassengers, 12)
+plot(srednia_kroczaca)
+```
+
+Otrzymaliśmy bardzo wyraźne potwierdzenie tego okresu. 
+
+Obejrzymy jak wygląda nasz szereg po różnicowaniu (usuniecie trendu liniowego)
+
+```{r}
+dAP = diff(AirPassengers)
+plot(dAP)
+```
+
+## Podział na zbiory treningowe i testowe
+
+Dokonajmy podziału na zbiór treningowy i testowy
+
+```{r}
+N = length(AirPassengers)
+N
+horyzont = 12
+ilosc_lat = N/12
+```
+
+```{r}
+X_train = window(AirPassengers,end = c(1959,12) )
+X_test = window(AirPassengers, start = c(1960,1))
+```
+
+```{r}
+ts.plot(X_train, X_test, col=1:2, lty=c(1,2))
+```
+
+
+## Propozycja modelu zjawiska 
+
+Dla tego zjawiska widzimy zatem
+
+* silny trend liniowy
+* chyba nawet jeszcze silniejsze składowe sezonowe o okresie 12.
+
+Sugeruje to rozważanie modelu multiplikatywnego do badań
+$$
+X_t = T_t \cdot S_t \cdot \varepsilon_t
+$$
+
+## Usunięcie trendu z danych
+
+Ponownie wyznaczmy postać naszego trendu $T_t$ i dokonajmy jego usunięcia ze zjawiska
+
+```{r}
+Trend = as.ts(rollmean(X_train, 12, fill = c(0,0,0), align = "right"))
+Y = as.ts(X_train / Trend)
+Y[which(!is.finite(Y))] = NA
+#Y_omitted = ts(na.omit(Y), frequency = 12, start = c(1949, 7))
+plot(Y)
+```
+
+## Usunięcie sezonowości
+
+Przeprowadźmy dalej usuwanie sezonowości z danych
+
+```{r}
+macierz = t(matrix(data = Y, nrow = 12))
+sezonowosc = colMeans(macierz, na.rm = TRUE)
+S = ts(rep(sezonowosc, 12), frequency = 12, start = c(1949, 12), end = c(1959,12) )
+S_pred = ts(rep(sezonowosc,1), frequency = 12, start = c(1960,1))
+plot(S)
+```
+
+Pozostaje znaleźć rezydua modelu
+
+```{r}
+frequency(Y)
+frequency(S)
+Y
+S
+rez = as.ts(Y / S)
+
+```
+```{r}
+plot(rez)
+```
+
+
+Pozostaje nam badać stacjonarność szeregu rezydualnego
+
+```{r}
+tsdisplay(rez)
+```
+
+Obserwujemy spore zaburzenia stacjonarności oraz zmieniającą się wariancję w przebiegu doświadczenia - spróbujmy dokonać poprawy transformacją Boxa-Coxa
+
+## Zastosowanie BC
+
+```{r}
+lambda = BoxCox.lambda(rez, lower = 0, upper = 2)
+lambda
+bc_rez = BoxCox(rez, lambda= 2) #bo lambda wyszła niemal równa 2
+plot(bc_rez)
+```
+
+```{r}
+tsdisplay(bc_rez)
+```
+
+W efekcie obserwujemy nieznaczne poprawienie jakości stacjonarności tak rozważonego szeregu
+
+```{r}
+model <- auto.arima(bc_rez)
+summary(model)
+```
+
+
+## Predykcja - odwrócone postępowanie
+
+Najpierw prognoza z szeregu czasowego
+
+
+```{r}
+bc_rez_fc = forecast(model, horyzont)
+plot(bc_rez_fc)
+```
+
+Dalej odwracamy transformacje BC
+
+
+```{r}
+rez_fc = bc_rez_fc
+rez_fc$x = rez
+#rez_fc$series = rez
+#rez_fc$fitted = rez
+rez_fc$mean=InvBoxCox(bc_rez_fc$mean, lambda = 0)
+rez_fc$lower=InvBoxCox(bc_rez_fc$lower, lambda = 0)
+rez_fc$upper=InvBoxCox(bc_rez_fc$upper, lambda = 0)
+plot(rez_fc)
+```
+
+Teraz dodajmy sezonowość
+
+```{r}
+rez_fc$mean
+S_pred
+```
+
+
+```{r}
+Y_fc = rez_fc
+Y_fc$x = Y
+Y_fc$mean=rez_fc$mean * S_pred
+Y_fc$lower=rez_fc$lower * S_pred
+Y_fc$upper=rez_fc$upper * S_pred
+plot(Y_fc)
+```
+
+Wreszcie dołączmy trend. Najpierw predykcja składowej trendu
+
+
+
+```{r}
+x <- 1:length(Trend)
+reg = lm(Trend ~ x)
+summary(reg)
+length(Trend)
+```
+
+```{r}
+x_pred = length(Trend)+(1:horyzont) 
+x_pred
+a = as.numeric(reg$coefficients[2])
+b = as.numeric(reg$coefficients[1])
+y_pred = a * x_pred + b
+y_pred
+Y_pred = ts(y_pred, frequency = 12, start=c(1960,1))
+```
+
+```{r}
+Y_fc$mean
+Y_pred
+Y_fc$mean * Y_pred
+```
+
+
+
+```{r}
+fc = Y_fc
+fc$x = X_train
+fc$mean=Y_fc$mean * Y_pred
+fc$lower=Y_fc$lower * Y_pred
+fc$upper=Y_fc$upper * Y_pred
+plot(fc)
+```
+
