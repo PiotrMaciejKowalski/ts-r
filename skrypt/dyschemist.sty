@@ -1,0 +1,248 @@
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+
+\ProvidesPackage{dyschemist}[2018/03/16 dyschemist commands]
+
+\RequirePackage{amsmath}
+\RequirePackage{amsfonts}
+\RequirePackage{amssymb}
+\RequirePackage{amsthm}
+
+
+\newtheorem{hidden}{This should not be displayed}
+
+\DeclareOption{chapter}{
+	\let\hidden\undefined
+	\let\c@hidden\undefined
+	\newtheorem{hidden}{This should not be displayed}[chapter]
+}
+
+\DeclareOption{section}{
+	\let\hidden\undefined
+	\let\c@hidden\undefined
+	\newtheorem{hidden}{This should not be displayed}[section]
+}
+
+\newtheoremstyle{break}% name
+  {}%         Space above, empty = `usual value'
+  {}%         Space below
+  {\itshape}% Body font
+  {}%         Indent amount (empty = no indent, \parindent = para indent)
+  {\bfseries}% Thm head font
+  {.}%        Punctuation after thm head
+  {\newline}% Space after thm head: \newline = linebreak
+  {}%         Thm head spec
+
+\theoremstyle{break}
+
+\DeclareOption{polish}{
+\newtheorem{theorem}[hidden]{Twierdzenie}
+\newtheorem{definition}[hidden]{Definicja}
+\newtheorem{proposition}[hidden]{Obserwacja}
+\newtheorem{lemma}[hidden]{Lemat}
+\newtheorem{corollary}[hidden]{Wniosek}
+\newtheorem{remark}[hidden]{Uwaga}
+\newtheorem{example}[hidden]{Przykład}
+\newtheorem{problem}[hidden]{Problem}
+\newtheorem{exercise}[hidden]{Ćwiczenie}
+\newtheorem*{problem*}{Problem}
+\newtheorem*{remark*}{Uwaga}
+\newtheorem*{exercise*}{Ćwiczenie}
+}
+
+\DeclareOption{english}{
+\newtheorem{theorem}[hidden]{Theorem}
+\newtheorem{definition}[hidden]{Definition}
+\newtheorem{proposition}[hidden]{Proposition}
+\newtheorem{lemma}[hidden]{Lemma}
+\newtheorem{corollary}[hidden]{Corollary}
+\newtheorem{remark}[hidden]{Remark}
+\newtheorem{example}[hidden]{Example}
+\newtheorem{problem}[hidden]{Problem}
+\newtheorem{exercise}[hidden]{Exercise}
+\newtheorem*{problem*}{Problem}
+\newtheorem*{remark*}{Remark}
+\newtheorem*{exercise*}{Exercise}
+}
+
+
+
+
+
+
+%% documentclass{exam}
+%%
+%% \begin{questions}
+%% \question[points]
+%%
+%% \begin{parts}
+%% \part 
+%%
+%% \begin{choices}
+%% \choice
+%%
+%% \begin{checkboxes}
+
+%% \newtheorem
+%% \newcounter
+\ProcessOptions\relax
+
+%% most common symbols
+
+\renewcommand{\epsilon}{\varepsilon}
+
+\newcommand{\setN}{\mathbb{N}}
+\newcommand{\setZ}{\mathbb{Z}}
+\newcommand{\setQ}{\mathbb{Q}}
+\newcommand{\setIQ}{\mathbb{IQ}}
+\newcommand{\setR}{\mathbb{R}}
+\newcommand{\setC}{\mathbb{C}}
+
+%% structures
+
+\newcommand{\set}[1]{ \left\lbrace {#1} \right\rbrace }
+\newcommand{\arrayList}[1]{\left\[ {#1} \right\]}
+\newcommand{\tuple}[1]{\left( {#1} \right)}
+
+\newcommand{\bracket}[1]{{\left( {#1} \right)}}
+\newcommand{\function}[2]{{{#1}\left( {#2} \right)}}
+
+\newcommand{\sequence}[3]{ \left( {#1} \right)_{#2}^{#3}}
+
+%% discrete math
+
+\newcommand{\congruence}[3][]{ {#2} \equiv {#3} \ifthenelse{\equal{#1}{}}{}{\quad \mod {#1}}}
+
+%% common sets
+
+\newcommand{\powerSet}[1]{\operatorname{2}^{#1}}
+
+%% real functions
+
+\newcommand{\abs}[1]{{\left| {#1} \right|}}
+\newcommand{\superposition}{\circ}
+\newcommand{\mean}[1]{\overline{#1}}
+%% generalized symbols
+
+\let\summ\sum
+\renewcommand{\sum}{\summ\limits}
+\let\prodd\prod
+\renewcommand{\prod}{\prodd\limits}
+
+%% set operations
+
+\newcommand{\intersection}{\bigcap\limits}
+\newcommand{\union}{\bigcup\limits}
+
+\let\supr\sup
+\renewcommand{\sup}{\supr\limits}
+\let\infimum\inf
+\renewcommand{\inf}{\infimum\limits}
+\newcommand{\essinf}{\operatornamewithlimits{essinf}\limits}
+
+%% common operators
+
+\let\limit\lim
+\renewcommand{\lim}{\limit\limits}
+\renewcommand{\limsup}{\operatornamewithlimits{limsup}\limits}
+\renewcommand{\liminf}{\operatornamewithlimits{liminf}\limits}
+
+
+
+\let\inttt\int
+\renewcommand{\int}{\inttt\limits }
+\newcommand{\dt}[1][t]{\textnormal{\,d} {#1}}
+\newcommand{\ddx}[2][]{\frac{\mathrm{d} {#1} }{\mathrm{d}{#2}}}
+
+%% logiczne
+
+%% prawdopodobieństwo
+
+\newcommand{\sigmaalgebra}[1]{\mathcal{#1}}
+\newcommand{\stochasticprocess}[2]{\set{{#1}, {#2}}}
+\newcommand{\Ex}[2][E]{\operatorname{#1} \left({#2} \right)}
+\newcommand{\Variance}[2][Var]{\operatorname{#1} \left( {#2} \right)}
+\newcommand{\Covariance}[3][Cov]{\operatorname{#1} \left( {#2};{#3} \right)}
+\newcommand{\median}[1]{\operatorname{med} \ifthenelse{\equal{#1}{}}{}{\left( {#1} \right)}}
+\newcommand{\ExConditional}[3][E]{\operatorname{#1} \left[ {#2} \middle| {#3} \right]}
+
+%% szeregi czasowe
+\newcommand{\predict}[3][]{\hat{{#2}}_{#3} \ifthenelse{ \equal{#1}{} }{}{\left( {#1} \right)}}
+\newcommand{\ts}[2]{\left({#1}\right)_{#2}}
+%% analiza
+\newcommand{\divergence}{\operatorname{div}}
+
+%% algebra liniowa
+
+\newcommand{\transpose}[1]{{#1}^T}
+
+%% teoria miary
+
+\newcommand{\measure}[2][\mu]{\operatorname{#1} \ifthenelse{\equal{#2}{}}{}{\left( {#2} \right)}}
+\newcommand{\almostEverywhere}[1][]{\operatornamewithlimits{\ifthenelse{\equal{#1}{}}{ }{{#1}-}a.e.}\limits}
+%% topologiczne
+
+\newcommand{\Int}[1]{\operatorname{Int} \left( {#1}\right)} 
+\newcommand{\cut}[2]{\left. {#1} \right|_{#2}} %obciecie
+\newcommand{\image}[2]{{#1}\left({#2} \right)} %obraz
+\newcommand{\counterImage}[2]{ {#1}^{-1} \left( {#2} \right)}%przeciwobraz
+\newcommand{\inverse}[1]{ {#1}^{-1}} %funkcja odwrotna
+\newcommand{\closure}[1]{\overline{#1}}
+\newcommand{\ball}[3][B]{\operatorname{#1} \left( \ifthenelse{ \equal{#2}{}}{}{{#2};} {#3} \right) }
+\newcommand{\closedBall}[3][B]{\overline{\operatorname{#1}} \left( \ifthenelse{ \equal{#2}{}}{}{{#2};} {#3} \right) }
+
+%% functional analysis symbols
+
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\distance}[3][d]{\operatorname{#1} \left({ #2}, {#3} \right)}
+\newcommand{\operator}[1]{\mathbf{#1}}
+\newcommand{\norm}[2][]{\left\| {#2} \right\|_{#1}}
+\newcommand{\dual}[3][]{ \left\langle {#2} ; {#3} \right \rangle_{#1}}
+\newcommand{\scalar}[3][]{\left( {#2} ; {#3} \right)_{#1} }
+
+\newcommand{\weakly}{\rightharpoonup}
+\newcommand{\weaklystar}{ \stackrel{*}{\rightharpoonup}}
+\newcommand{\embedding}{\rightarrow}
+\newcommand{\continuousembedding}{\hookrightarrow}
+\newcommand{\compactembedding}{\subset\subset}
+
+\newcommand{\identityOperator}{\mathit{I}}
+\newcommand{\boundary}{\partial}
+\newcommand{\laplacian}{\Delta}
+\newcommand{\plaplacian}[1][p]{\Delta_{#1}}
+
+%% przestrzenie funkcyjne skończenie wymiarowe
+
+\newcommand{\lp}[1]{\operatorname{l}_{#1}}
+
+%% przestrzenie funkcyjne
+
+\newcommand{\lpSpace}[1]{\operatorname{p}^{#1}}
+\newcommand{\linf}{\operatorname{l}_{\infty}}
+
+\newcommand{\Ck}[2]{\operatorname{C}^{#1} \ifthenelse{\equal{#2}{}}{}{\left( {#2} \right)}}
+\newcommand{\Ckz}[2]{\operatorname{C}_0^{#1} \ifthenelse{\equal{#2}{}}{}{\left( {#2} \right)}}
+\newcommand{\Lp}[2]{\operatorname{L}^{#1} \ifthenelse{\equal{#2}{}}{}{\left( {#2} \right)}}
+% lp space
+\newcommand{\Lploc}[2]{\operatorname{L}_{loc}^{#1} \ifthenelse{\equal{#2}{}}{}{\left( {#2} \right)}}
+\newcommand{\Hk}[2]{\operatorname{H}^{#1} \ifthenelse{\equal{#2}{}}{}{\left( {#2} \right)}}
+\newcommand{\Hkz}[2]{\operatorname{H}_0^{#1} \ifthenelse{\equal{#2}{}}{}{\left( {#2} \right)} }
+\newcommand{\Wpp}[3]{\operatorname{W}^{{#1},{#2}} \ifthenelse{\equal{#3}{}}{}{\left( {#3} \right)}}
+\newcommand{\Wppz}[3]{\operatorname{W}^{{#1},{#2}} \ifthenelse{\equal{#3}{}}{}{\left( {#3} \right)}}
+
+%% algorytmika
+
+\newcommand{\ordoO}[1]{\operatorname{O} \left( {#1} \right)}
+
+%% hard spelling names
+\newcommand{\Gateaux}[1][]{G\^ateaux{#1} }
+\newcommand{\Nemycki}[1][]{N\v{e}myckii{#1} }
+\newcommand{\Holder}[1][]{H\"older{#1} }
+\newcommand{\Caratheodory}[1][]{Carath\'eodory{#1} }
+\newcommand{\Frechet}[1][]{Fr\'{e}chet{#1} }
+\newcommand{\Painleve}[1][]{Painlev\'{e}{#1} }
+\newcommand{\Poincare}[1][]{Poincar\'e{#1} }
+\newcommand{\Smulyan}[1][]{\v{S}mulyan{#1} }
+\newcommand{\Gohde}[1][]{G\"ohde{#1} }
+\newcommand{\Krasnoselskii}[1][]{Krasnosel'skii{#1} }
+
+\endinput
