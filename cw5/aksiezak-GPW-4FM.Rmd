@@ -1,0 +1,179 @@
+---
+title: "GPW-4FUNMEDIA"
+author: "Anita Księżak"
+date: "13.04.2019"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(forecast)
+library(tseries)
+```
+
+#Cel i zakres pracy.
+
+Przeanalizujmy ponownie dane pobrane ze strony ze strony money.pl (https://www.money.pl/gielda/spolki-gpw/PL4FNMD00013,archiwum.html). Dodajmy dni tygodnia dla urozmaicenia analizy. Niniejszy skrypt pokazuje czytelnikowi zastosowanie wykresów ACF PACF. Skorzystamy również z modeli: MA, AR, ARMA/ARIMA w celu dalszej analizy danych
+
+```{r}
+dane <- read.csv2("aksiezak-data.csv")[,1:5]
+dniTygodnia <- c("Sroda","Czwartek","Piatek","Poniedzialek","Wtorek")
+for(i in 1:nrow(dane)){
+  dane[i,6]<-dniTygodnia[(i-1)%%(length(dniTygodnia))+1]
+}
+colnames(dane)[6]  <- "DzienTygodnia"
+head(dane)
+```
+
+Dane przechowywane są obecnie w postaci ramki. Zmieńmy typ danych na specjalnie przystowsowany do analizy szeregów czasowych. **W skrypcie skupimy się na analizie danych "Otwarcie"**.
+
+```{r}
+sc <- ts(dane$Otwarcie, frequency = 1)
+dates <- as.Date(dane$Data, format='%Y-%m-%d')
+```
+Szereg czasowy zmiennej otwarcie jest następującej postaci:
+```{r}
+plot(sc, main="Otwarcie 4FM",col="darkblue", xlab = "Dzień analizy", ylab="Cena otwarcia 4FM")
+```
+
+##Funkcja autokorelacji (ACF) i autokorelacji cząstkowej (PACF).
+
+**ACF** - Przy przesunięciu k jest to korelacja między wartościami szeregu oddalonymi o k przedziałów od siebie.
+
+**PACF** - Przy przesunięciu k jest to korelacja między wartościami szeregu oddalonymi o k przedziałów od siebie, z jednoczesną rejestracją wartości z przedziałów znajdujących się pomiędzy.
+
+```{r}
+par(mfrow = c( 1, 2), pty = "m")
+acf(sc, main="ACF", ylab="Wartość korelacji (między −1 a 1)", xlab=" ")
+pacf(sc, main="PACF", ylab="Wartość korelacji (między −1 a 1)", xlab= " ")
+mtext("Przesunięcie, dla jakiego obliczana jest autokorelacja", side = 1, line = -3, outer = TRUE)
+```
+
+Jakie informacje dają nam powyższe wykresy?
+
+*Korelacja dodatnia oznacza, że duże wartości bieżące odpowiadają dużym wartościom dla danego przesunięcia; ujemna korelacja oznacza, że duże wartości bieżące odpowiadają niewielkim wartościom dla danego przesunięcia.
+
+*Wartość bezwzględna korelacji stanowi miarę siły powiązania, przy czym większe wartości bezwzględne oznaczają silniejsze relacje.
+
+**Wyznaczenie ACF dla próby jest pierwszym z dobrze opisanych matematycznie sposobów na określenie, czy szereg ma cechy stacjonarnosci. Wartosci ACF powinny zbiegać do 0 w miarę wzrostu czasu, dla dowolnych szeregów czasowych - dla stacjonarnych szeregów czasowych zbiezność ta powinna być znacząco szybsza.
+
+Analizując wykres dochodzimy do wniosku, że możemy mieć podstawy do orzucenia hipotezy o słabej stacjonarności szeregu. Skorzystajmy z testu KPSS (od nazwisk Kwiatkowski–Phillips–Schmidt–Shin), który sprawdza hipotezę zerową o stacjonarności szeregu czasowego. Główną wadą testu KPSS jest to, że ma wysoki współczynnik błędów typu I (ma tendencję do zbyt częstego odrzucania hipotezy zerowej ) -  mimo tego zweryfikujmy hipotezę.
+
+
+```{r}
+kpss.test(sc)
+```
+
+Jak widać, obliczona wartość statystyki (KPSS Level = 0.80003) jest większa niż wartość krytyczna. Zatem hipotezę zerową o stacjonarności 4FM należy odrzucić. 
+
+## Zróżnicowanie szeregu.
+
+Aby analiza była dokładniejsza (szereg posiadał cechy słabej stacjonarności) zróżnicujmy eksplorowane dane.
+
+```{r}
+nsc <- diff(sc)
+head(nsc)
+```
+
+Narsyujmy wykresy przestawiające zróżnicowane dane.
+
+```{r}
+tsdisplay(nsc)
+```
+
+Sprawdźmy założenie dotyczące słabej stacjonarności - na wykresach wygląda nieźle.
+
+```{r}
+kpss.test(nsc)
+```
+
+Test KPPS również lepiej. Przejdźmy do dalszej analizy.
+
+## Modele AR, MA, ARMA/ARIMA.
+
+Modele **MA** są wyraźnie obserwowalne na wykresach ACF. Wykazują na nich szybą zbieżność do wartości
+nieistotnie różnych od 0. Wystepowanie q-pierwszych zmiennych na wykresie ACF jako istotnie róznych od zera
+sugeruje rozwazenie modelu MA(q), zatem na posdtawie wykresu ACF dla niezróżnicowanych danych wnioskujemy, że q=6.
+ 
+```{r}
+ma <- Arima(nsc, order=c(0,0,6))
+summary(ma)
+```
+ 
+W modelach **AR**(p) funkcja PACF przyjmuje wartości istotnie różne od 0 wyłącznie dla k≤p. Stąd to właśnie
+tę funkcję stosujemy przy badaniu zasadnosci modelu. 
+ 
+```{r}
+ar <- Arima(nsc, order=c(2,0,6))
+summary(ar)
+```
+
+W badaniu procesów **ARMA** wykresy ACF oraz PACF nie wnoszą istotnych informacji. Brak informacji płynącej
+z wykresów ACF i PACF przy jednoczesnym przekonaniu o stacjonarności jest sygnałem do rozważenia modelu
+ARMA. Zajmijmy się więc analizą modelu **ARIMA** (ang. Autoregressive integrated moving average - autoregresyjny(**AR**) (AR zintegrowany(**I**) model średniej ruchomej(**MA**)). W celu analizy danych skorzystamy z funkcji wbudowanej w R.
+
+```{r}
+arima <- auto.arima(nsc)
+summary(arima)
+```
+
+## Podział na zbiór treningowy i testowy.
+
+Zbiorem treningowym będą dane z miesięcy styczeń-luty, a zbiorem testowym dane z miesiąca marzec
+
+```{r}
+n <- length(nsc)
+```
+
+```{r}
+uczacy <- window(nsc,end = 42)
+uczacy
+testowy <- window(nsc,start = 43)
+testowy
+```
+
+Wspólny wykres
+
+```{r}
+ts.plot(uczacy, testowy, col=1:2, lty=c(1,2), xlab="Dni", main= "Podział na zbiór uczący i testowy - Otwarcie 4FM")
+```
+
+##Predkcja.
+Analizując średnie błędy ME, dochodzimy do wniosku, że model AR jest "najmniej wydajny", a więc dalsza analiza dotyczyć będzie modeli MA i ARIMA.
+
+**MA**
+
+```{r}
+maN <- Arima(uczacy, order=c(0,0,6))
+prognozaMA <- forecast(maN, h=length(testowy))
+plot(prognozaMA, xlab="Dni" , main= "Prognoza ARIMA(0,0,6)")
+lines(testowy, col='red' )
+```
+
+**ARIMA**
+
+```{r}
+arimaN <- auto.arima(uczacy)
+prognozaARIMA <- forecast(arimaN, h=length(testowy))
+plot(prognozaARIMA, xlab= "Dni", main= "Prognoza ARIMA(0,0,4)")
+lines(testowy, col='red')
+```
+
+##Porównanie uzyskanych błędów średniokwadratowych dla powyższych prognoz.
+
+```{r}
+b1=mean(((prognozaMA$mean-testowy)^2))
+b2=mean(((prognozaARIMA$mean-testowy)^2))
+
+if(b1==b2){
+  print("Nie możemy wskazać lepszego modelu.")
+} else if(b1<b2){
+  print("Model MA jest lepszy.")
+} else{
+  print("Model ARIMA jest lepszy.")
+}
+```
+
