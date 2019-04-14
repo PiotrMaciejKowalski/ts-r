@@ -179,9 +179,9 @@ rez_fc = bc_rez_fc
 rez_fc$x = rez
 #rez_fc$series = rez
 #rez_fc$fitted = rez
-rez_fc$mean=InvBoxCox(bc_rez_fc$mean, lambda = 0)
-rez_fc$lower=InvBoxCox(bc_rez_fc$lower, lambda = 0)
-rez_fc$upper=InvBoxCox(bc_rez_fc$upper, lambda = 0)
+rez_fc$mean=InvBoxCox(bc_rez_fc$mean, lambda = 2)
+rez_fc$lower=InvBoxCox(bc_rez_fc$lower, lambda = 2)
+rez_fc$upper=InvBoxCox(bc_rez_fc$upper, lambda = 2)
 plot(rez_fc)
 ```
 
@@ -240,3 +240,8 @@ fc$upper=Y_fc$upper * Y_pred
 plot(fc)
 ```
 
+# Metody wygładzania wykładniczego
+
+Do przeprowadzania wygładzania wykładniczego potrzebne jest zaimportowanie pakietu forecast. Odnajdziemy w nim funkcje
+
+* ses
