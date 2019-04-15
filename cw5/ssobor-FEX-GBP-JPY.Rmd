@@ -90,8 +90,8 @@ lines(x = (n - h + 1):n, y = r_values)
 Widzimy zatem, że model AR dokonał lepszej prognozy, ale żeby to potwierdzić policzymy błędy średniokwadratowe.
 
 ```{r}
-bl_ar <- sum((data_u_fc1[["mean"]] - r_values) ^ 2)
-bl_arima <- sum((data_u_fc2[["mean"]] - r_values) ^ 2)
+bl_ar <- mean((data_u_fc1[["mean"]] - r_values) ^ 2)
+bl_arima <- mean((data_u_fc2[["mean"]] - r_values) ^ 2)
 bledy <- c("Błąd dla AR" = bl_ar, "Błąd dla ARIMA" = bl_arima)
 bledy
 ```
