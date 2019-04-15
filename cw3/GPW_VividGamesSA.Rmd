@@ -146,7 +146,9 @@ n0=1:dl
 otwarcie=dgpw2$Otwarcie
 model=lm(otwarcie~n0)
 
-plot(predict(model),main="predykcja w oparciu o dane z ostatniego roku", xlab="dni", ylab="cena otwarcia")
+plot(n0,otwarcie,main="predykcja w oparciu o dane z ostatniego roku", xlab="dni", ylab="cena otwarcia")
+lines(predict(model), col="blue")
+
 ```
 
 
@@ -161,11 +163,13 @@ Statystyka_theila(dgpw$Otwarcie,model)
 ```
 
 ```{r}
-n=90
-otwarcie2=dgpw2$Otwarcie[1:n]
-x2=1:n
+n=100
+otwarcie2=dgpw2$Otwarcie[11:n]
+x2=1:90
 model90=lm(otwarcie2~x2)
-plot(predict(model90),main="predykcja w oparciu o dane z ostatnich 90 dni", xlab="dni", ylab="cena otwarcia")
+plot(x2, otwarcie2,main="predykcja w oparciu o dane z 90 dni", xlab="dni", ylab="cena otwarcia")
+predykcja90=predict(model90)
+lines(x2,predykcja90, col="blue")
 ```
 
 Błąd średniokwadratowy dla modelu:
@@ -178,11 +182,12 @@ Statystyka Theil'a:
 Statystyka_theila(dgpw$Otwarcie,model90)
 ```
 ```{r}
-n2=14
-otwarcie3=dgpw2$Otwarcie[n2:1]
-x2=1:n2
-model14=lm(otwarcie3~x2)
-plot(predict(model14),main="predykcja w oparciu o dane z ostatnich 14 dni", xlab="dni", ylab="cena otwarcia")
+n2=28
+otwarcie3=dgpw2$Otwarcie[14:n2]
+x3=1:15
+model14=lm(otwarcie3~x3)
+plot(x3,otwarcie3,main="predykcja w oparciu o dane z  14 dni", xlab="dni", ylab="cena otwarcia")
+lines(predict(model14), col="blue")
 ```
 
 
