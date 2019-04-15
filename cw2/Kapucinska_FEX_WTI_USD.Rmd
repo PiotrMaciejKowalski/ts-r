@@ -13,7 +13,7 @@ Raport dotyczy analizy ceny WTI/USD w dniach 2019-01-02 - 2019-03-15 z uwzglêdni
 Dane pochodz¹ ze strony histdata.com. 
 
 ```{r}
-dane=read.csv2("WTI_USD.csv")
+dane=read.csv2("Kapucinska_WTI_USD.csv")
 godz8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Otwarcie.[dane$Godzina.=="08:00"]),53,2)
 godz12=matrix(c(sort(dane$Data[dane$Godzina.=="12:00"]),dane$Otwarcie.[dane$Godzina.=="12:00"]),53,2)
 godz16=matrix(c(sort(dane$Data[dane$Godzina.=="16:00"]),dane$Otwarcie.[dane$Godzina.=="16:00"]),47,2)
