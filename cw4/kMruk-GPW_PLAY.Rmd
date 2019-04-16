@@ -1,0 +1,80 @@
+---
+title: "Filtrowanie potokowe"
+author: "Karolina Mruk"
+date: "10 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wczytywanie danych
+
+Wczytujemy ponownie notowania Play z pliku csv i "okrajamy " je do interesujących nas kolumn
+
+```{r}
+dane <- read.csv("kMruk-GPW_PLAY.csv")[,1:5]
+
+head(dane)
+```
+
+```{r}
+summary(dane)
+```
+Załączę pakiet dplyr.
+```{r}
+library(dplyr)
+```
+```{r}
+Maks<-dane$Maks
+Min<-dane$Min
+Data<-dane$Data
+Otwarcie<-dane$Otwarcie
+Zamkniecie<-dane$Zamkniecie
+```
+```{r}
+Data2 <- as.Date(Data, "%Y-%m-%d")
+dane<-cbind(dane,Data2)
+```
+## Pierwszy proces
+```{r}
+dane %>%
+ filter(Maks>=20 , Min<25) %>%
+  mutate(sredniac = (Maks + Min)/2) %>%
+  mutate(Month = format(as.POSIXct(Data2), "%m")) %>%
+  group_by(Month) %>%
+  select(Data2, Otwarcie, Zamkniecie, sredniac) -> tab1
+head(tab1)
+```
+```{r}
+plot(tab1$Data2, tab1$sredniac, xlab="Data", ylab = "Srednia cena", main = "Srednia wartość kursu Maksymalnej i Minimalnej ceny", type="l", col="pink")
+
+```
+
+##Drugi proces
+```{r}
+dane %>%
+  filter(Otwarcie<25) %>%
+   mutate(RoznicaOm=Otwarcie-Min) %>%
+   arrange(Otwarcie) %>%
+   group_by(Otwarcie) %>%
+ summarise(sredniaR = mean(RoznicaOm, na.rm=TRUE)) -> tab2
+head(tab2)
+```
+```{r}
+matplot(tab2$Otwarcie, tab2$sredniaR, xlab="Zmiana", ylab="średnie wartości", "l", col="blue")
+```
+
+###Trzeci proces
+```{r}
+dane%>%
+  filter(grepl("-01-", Data2)) %>%
+   mutate(srednia = mean(Otwarcie)) %>%
+   mutate(roznica=(Otwarcie-srednia)) %>%
+ select(Data2, Otwarcie, roznica)-> tab3
+head(tab3)
+```
+```{r}
+plot(tab3$Data2, tab3$roznica, xlab="Data", ylab = "Średnia", type="p")
+```
