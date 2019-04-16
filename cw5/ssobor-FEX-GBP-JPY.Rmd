@@ -11,6 +11,8 @@ Standardowo zaczniemy od wczytania naszych danych, zajmiemy się kursami z godzi
 ```{r warning = FALSE, message = FALSE}
 library(forecast)
 library(dplyr)
+library(tidyverse)
+library(tseries)
 data_all <- read.csv2("ssobor-data.csv")
 data_g <- data_all[data_all$godzina == 80000, ]
 new_data <- as.Date(as.character(data_g$data), format = "%Y%m%d")
@@ -24,36 +26,53 @@ Skoro nasze dane są już w przyjaznym formacie możemy stworzyć wykresy.
 tsdisplay(data)
 ```
 
+Wykresy sugerują, że szereg może nie być stacjonarny. Zastosujmy zatem test, który pomoże nam to określić.
+```{r}
+adf.test(data)
+```
+
+P-value jest na tyle wysokie, że nie możemy odrzucić hipotezy zerowej o niestacjonarności szeregu. Zastosujmy zatem zróżnicowanie szeregu i sprawdźmy jego stacjonarność.
+```{r}
+data_d <- diff(data)
+adf.test(data_d)
+```
+
+W tym przypadku otrzymujemy informacje, że możemy odrzucić hipotezę o niestacjonarności szeregu. Zatem zróżnicowany szereg jak najbardziej nadaje się do tworzenia na nim modeli. Stwórzmy zatem wykrecy ACF i PACF dla szeregu zróżnicowanego.
+
+```{r}
+tsdisplay(data_d)
+```
+
+Wykresy nie podpowiadają nam jakich parametrów użyć przy tworzeniu modeli AR i MA. Wykorzystamy zatem funkcję auto.arima do znalezienia odpowiednich parametrów dla modeli.
+
 ## Model AR
 
-Na podstawie pierwszego wykresu PACF możemy zauważyć, że odpowiedni dla danych będzie model AR(1), gdyż zaledwnie jeden słupek wystaje ponad nasz pas oznaczony niebieskimi przerywanymi liniami. 
-
 ```{r warning = FALSE}
-ar <- Arima(data, order = c(1, 0, 0))
+ar <- auto.arima(data, d = 1, max.q = 0)
 summary(ar)
 ```
 
 ## Model MA
 
-Wykres ACF pokazuje nam jedynie, że szereg nie jest stacjonarny. Nie sugeruje nam on parametru dla modelu średniej kroczącej. Wykorzystajmy zatem komputer do znalezienia odpowiedniego parametru.
-
 ```{r warning = FALSE}
-ma <- auto.arima(data, d = 0, max.p = 0)
+ma <- auto.arima(data, d = 1, max.p = 0)
 summary(ma)
 ```
+
+Dla modelu MA został zaproponowany parametr 0, to może sugerować, że tych danych nie da się modelować za pomocą MA. 
 
 ## Model ARIMA
 
 Jako ostatni trzeci model, wykorzystamy model ARIMA, który łączy oba powyższe podejścia. Wyniki powinny być lepsze.
 
 ```{r warning = FALSE}
-arima <- auto.arima(data)
+arima <- auto.arima(data, d = 1)
 summary(arima)
 ```
 
 ##Predykcja
 
-Analizując trzy powyższe modele widzimy, że najlepiej radzą sobie AR i ARIMA. Można było spodziewać się tego już na początku, gdyż wykres ACF zupełnie nie sugerował żadnych współczynników. Stąd do predykcji wykorzystamy model AR(1) i ARIMA(1,1,1). Zacznijmy od podziału danych na zbiór uczący i testowy. Stworzymy prognozę na ostatnie 30 dni.
+Analizując trzy powyższe modele widzimy, że najlepiej radzą sobie AR i ARIMA, do predykcji wykorzystamy model AR(1) i ARIMA(1,1,1) na szeregu zróżnicowanym. Zacznijmy od podziału danych na zbiór uczący i testowy. Stworzymy prognozę na ostatnie 30 dni.
 
 ```{r}
 n <- length(data_g$zamkniecie)
@@ -66,7 +85,7 @@ data_test <- ts(r_values, frequency = 1)
 Stwórzmy teraz prognozy dla dwóch wybranych modeli.
 
 ```{r}
-ar_u <- Arima(data_u, order = c(1, 0, 0))
+ar_u <- Arima(data_u, order = c(1, 1, 0))
 data_u_fc1 <- forecast(ar_u, h = h)
 
 arima_u <- Arima(data_u, order = c(1, 1, 1))
@@ -87,7 +106,7 @@ plot(data_u_fc2, main = "Prognoza poprzez model ARIMA(1,1,1)", xlab = "Dzień", 
 lines(x = (n - h + 1):n, y = r_values)
 ```
 
-Widzimy zatem, że model AR dokonał lepszej prognozy, ale żeby to potwierdzić policzymy błędy średniokwadratowe.
+Policzymy teraz błędy średniokwadratowe.
 
 ```{r}
 bl_ar <- mean((data_u_fc1[["mean"]] - r_values) ^ 2)
@@ -96,4 +115,4 @@ bledy <- c("Błąd dla AR" = bl_ar, "Błąd dla ARIMA" = bl_arima)
 bledy
 ```
 
-Nasze przypuszczenie na podstawie wykresu zostało potwierdzone poprzez błędy kwadratowe. W tym przypadku model AR okazał się zdecydowanie bardziej odpowiedni.
+Minimalnie lepszy wydaje się model AR, ale można stwierdzić, że powyższe dane są trudne do wymodelowania za pomocą modeli ARiMA.
