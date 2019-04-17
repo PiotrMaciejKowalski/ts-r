@@ -1,0 +1,119 @@
+---
+title: "Modele wygładzania wykładniczego"
+author: "Piotr Kowalski"
+date: "17 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wygładzanie danych modelem wykładniczym
+
+Tak jak to już podawaliśmy na wykładzie - w zastosowaniach predykcyjnych stosowane są również modele nie posiadające silnie matematycznie umotywowanego modelu. Przykładem takim są modele wykładniczego wygładzania. Przypopomnijmy, że mamy doczynienia z 4 głownymi modelami w tej rodzinie
+
+1. Prosty model wygładzania wykładniczego,
+1. Model Browna,
+1. Model Holta, oraz
+1. Model Holta-Wintersa.
+
+Zaprezentujemy jak można zastosować te modele za pomocą kodu języka R
+
+## Model SES
+
+Do pracy z modelem SES wykorzystamy funkcję tworzącą i uczącą model na danych.
+
+Dla danych wybierzemy jeden z edukacyjnych zbiorów danych dotyczących wieku śmierci kolejnych królów Angielskich.
+
+```{r}
+library(forecast)
+```
+
+Mając włączony pakiet forecast
+
+```{r}
+kings <- ts(scan("http://robjhyndman.com/tsdldata/misc/kings.dat",skip=3))
+kings
+```
+
+```{r}
+plot(kings)
+```
+
+Dokonajmy podziału zbioru na trening i test
+
+```{r}
+h = 5;
+kings.train = window(kings, end = length(kings)-h)
+kings.test = window(kings, start= length(kings)-h+1)
+ts.plot(kings.train, kings.test, col=1:2, lty=c(1,2))
+```
+
+Utwórzmy i nauczmy model SES
+
+```{r}
+kings.hat = ses(kings.train, h = length(kings.test))
+plot(kings.hat)
+points(kings.test)
+```
+
+## Model Holta
+
+R nie posiada bezpośrednio zaimplementowanego modelu Browna, ale od razu ogólniejszy model Holta. Dalej zaprezentujemy jak pracować w tym właśnie modelem.
+
+Za dane weźmiemy zbiór dydaktyczny zawierający ilość urodzeń w Nowym Yorku począwszy od stycznia 1946
+
+```{r}
+births <- ts(scan("http://robjhyndman.com/tsdldata/data/nybirths.dat"), frequency = 12, start = c(1949,1))
+plot(births)
+```
+
+Widzymi, że w danych jest wyraźny trend wzrostowy i niepewną sezonowość. Rozpocznijmy od utworzenia zbioru treningowego i testowego
+
+```{r}
+h = 12
+births.train = window(births, end = c(1961,12) )
+births.test = window(births, start = c(1962,1) )
+ts.plot(births.train, births.test, col=1:2, lty=c(1,2))
+```
+
+Dalej utwórzmy predykcję
+
+```{r}
+births.hat = holt(births.train, h = length(births.test))
+plot(births.hat)
+points(births.test)
+```
+
+## Model Holta-Wintersa
+
+W reszcie model uwzlędniający sezonowość. Tym razem weźmiemy dane pochodzące ze danych sprzedaży sklepu z pamiatkami
+
+```{r}
+souvenir <- ts(scan("http://robjhyndman.com/tsdldata/data/fancy.dat"), frequency = 12, start = c(1987,1))
+plot(souvenir)
+```
+
+Dane zachowują się niestabilnie w czasie. Spróbujmy zastosować transformacje logarytmiczną
+
+```{r}
+log_souvenir = log(souvenir)
+plot(log_souvenir)
+```
+
+Po transformacji obserwujemy silną sezonowość napędzaną dodatkowo trendem. Dokonajmy podziału na zbiór treningowy i testowy
+
+```{r}
+log_souvenir.train = window(log_souvenir, end = c(1992,12) )
+log_souvenir.test = window(log_souvenir, start = c(1993,1) )
+ts.plot(log_souvenir.train, log_souvenir.test, col=1:2, lty=c(1,2))
+```
+
+Wytwórzmy, predykcję z modelu HW
+
+```{r}
+log_souvenir.hat = hw(log_souvenir.train, h = length(log_souvenir.test))
+plot(log_souvenir.hat)
+points(log_souvenir.test)
+```

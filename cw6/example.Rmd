@@ -238,10 +238,67 @@ fc$mean=Y_fc$mean * Y_pred
 fc$lower=Y_fc$lower * Y_pred
 fc$upper=Y_fc$upper * Y_pred
 plot(fc)
+points(X_test, col='red')
 ```
 
-# Metody wygładzania wykładniczego
+# Automatyczna prognoza za pomocą auto.arima
 
-Do przeprowadzania wygładzania wykładniczego potrzebne jest zaimportowanie pakietu forecast. Odnajdziemy w nim funkcje
+Dostępna jest dla nas również bardziej zaatomatyzowana prognoza, która przeprowadza większość powyższych rachunków automatycznie za nas. Pokażmy nią uzyskać szybą automatyczną prognozę za pomocą funkcji auto arima.
 
-* ses
+Przypomnijmy, że początkowe kroki powyższego algorytmu są dość zrozumiałe. Wybieramy spośród dwóch modeli 
+
+* addytywnego, oraz
+* multiplikatywnego
+
+a następnie dokonujemy coraz głębszej dekompozycji, eliminując trend, sezonowość - a w reszcie dokonując modelowania Arimą. Tyle, że w pełnym modelu SARIMA możliwe jest za pomocą odpowiedniego różnicowania usuwanie zarówno trendu jak i sezonowości. Możemy więc osiągnąć podobny efekt stosując po prostu model ARIMA do pełni jego możliwości.  Nasze dane treningowe znajdują się dalej w X_train. Zobaczmy co się stanie kiedy wywołamy bezpośrednio od nich funkcję auto.arima
+
+```{r}
+model = auto.arima(X_train)
+summary(model)
+```
+
+Obejrzymy jak prezentuje się wytworzona prognoza
+
+```{r}
+X_hat = forecast(model, h=length(X_test), fan = TRUE)
+plot(X_hat)
+points(X_test, col='red')
+```
+
+Wszystko to wygląda bardzo obiecująco. Dokonajmy jeszcze porównania samych kawałków prognozy, bo obecnie dane historyczne zajmują nam trochę zbyt wiele obrazu
+
+```{r}
+plot(fc$mean, col='green')
+lines(X_hat$mean, col='red')
+lines(X_test, col='blue')
+```
+
+Obserwujemy zatem, że automatyczna prognoza wydaje się być lepszą od naszej. Dokonajmy porównania za pomocą różnych miar błędów
+
+```{r}
+if (!require('Metrics')){
+  install.packages("Metrics")
+}
+library('Metrics')
+```
+
+Wyznaczmy kolejne błędy naszej prognozy
+
+* MSE `r mse(X_test,fc$mean )` 
+* MAE  `r mae(X_test,fc$mean )`
+* RMSE  `r rmse(X_test,fc$mean )`
+* MAPE `r mape(X_test,fc$mean )`
+* MASE `r mase(X_test,fc$mean )`
+
+Oraz błedy prognozy automatycznej
+
+* MSE `r mse(X_test,X_hat$mean )` 
+* MAE  `r mae(X_test,X_hat$mean )`
+* RMSE  `r rmse(X_test,X_hat$mean )`
+* MAPE `r mape(X_test,X_hat$mean )`
+* MASE `r mase(X_test,X_hat$mean )`
+
+Czyli model automatyczny faktycznie jest pod wszystkimi względami dokładniejszy od tego wytworzonego przez nas.
+
+Dokumentacja podpowiada, że auto.arima może również przeprowadzić transformację Boxa Coxa poprzez przekazanie parametru $\lambda$.
+
