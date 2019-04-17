@@ -1,0 +1,111 @@
+---
+title: "cw5-stanczyk-FEX-EUR-TRY"
+author: "Anna Stańczyk"
+date: "16 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+W niniejszej analizie zajmować się będziemy prognozami na podstawie modelów AR, MA, ARMA/ARIMA, przy wcześniejszym wykorzystaniu wykresów ACF i PACF.
+
+## Wczytanie danych
+
+```{r wczytanie_danych}
+library(readxl)
+wczytywanie_styczen = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 1)
+wczytywanie_luty = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 2)
+wczytywanie_marzec = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 3)
+wszystkie_dane <- rbind(wczytywanie_styczen, wczytywanie_luty, wczytywanie_marzec)[1:5]
+wszystkie_dane <- cbind(godzina = substr(wszystkie_dane$czas,12,19), wszystkie_dane)
+head(wszystkie_dane)
+
+```
+
+## Zawężenie i modyfikacja danych
+
+Do dalszej analizy będziemy brać pod uwagę jedynie notowania kursu zamknięciaz godziny 20:00. W tym celu zawężamy zakres naszych danych. Ponadto dla zwiększenia czytelności naszej ramki danych zmodyfikujemy kolumnę, która daje nam informacje o dacie.
+
+```{r zawężenie_modyfikacja_danych}
+
+wybrane_dane = wszystkie_dane[wszystkie_dane$godzina == "20:00:00", c(2,6) ]
+wybrane_dane <- cbind(dzien = substr(wybrane_dane$czas,1,11), wybrane_dane)
+wybrane_dane <- wybrane_dane[ ,c(1,3)]
+head(wybrane_dane)
+```
+## Szereg czasowy, ACF i PACF
+
+Tworzymy szereg czasowy dla kursu zamknięcia z godziny 20:00 oraz generujemy wykresy odpowiednio: wartości szeregu czasowego, ACF i PACF.
+
+```{r szereg_czasowy}
+sc = ts(wybrane_dane$`kurs zamknięcia`, frequency = 1)
+plot(sc)
+acf(sc)
+pacf(sc)
+
+```
+
+Widzimy, że wartości z wykresu ACF zbiegają nam do zera, tak jak powinno być, gdy szereg jest słabo stacjonarny. Ponadto na wykresie naszego szeregu czasowego od czasu nie obserwujemy wyraźnego trendu liniowego. Z powodu powyższych obserwacji nie będziemy zajmować się różnicowaniem naszego szeregu.  Zauważmy, że wartości istotnie różne od 0 na wykresie ACF zaczynają się dopiero od 8 obserwacji (q=7). Z kolei na wykresie PACF możemy zaobserwować bardzo szybką zbieżność wartości do 0 (p=1). Z tego powodu trafnym może okazać się model autoregresji AR(1). Wydaje się być zasadne również, rozważenie modelu mieszanego ARMA o relatywnie niskiej wartości (p+q) określającą ilość parametrów do estymacji. 
+
+## Podział danych na zbiór testowy i uczący
+
+Podzielmy teraz nasze dane na zbiór uczący (35 dni) i testowy, dla którego będziemy później wykonywać prognozę (13 dni).
+```{r podział_na_zbiór_uczący_testowy}
+length(sc)
+sc.train = window(sc,end = 35)
+sc.train
+sc.test = window(sc,start = 36)
+sc.test
+```
+## Modele 
+
+Jako pierwszy rozważmy model MA(7):
+```{r model_MA(7)}
+ma <- Arima(sc.train, order = c(0,0,7))
+summary(ma)
+```
+
+Następnie rozważmy model AR(1):
+
+```{r model_AR(1)}
+ar <- Arima(sc.train, order = c(1,0,0))
+summary(ar)
+```
+
+Jako ostatni rozważmy model ARMA, przy czym weźmy p=1 oraz q=4 (zamiast zaobserwowanego na wykresie ACF q=7, w celu osiągnięcia relatywnie niskiej wartości (p+q)).
+
+```{r model_ARMA(1,0,4)}
+model_arma = Arima(sc.train, order = c(1,0,4))
+summary(model_arma)
+```
+## Prognoza
+
+Biorąc pod uwagę jak najniższe wartości kryteriów AIC, AICc oraz BIC rozważanych modeli oraz fakt, że  że wartości na wykresie ACF nie zbiegają do 0 bardzo szybko, skupimy się na modelach AR(1) oraz ARMA(1,0,4). Sporządźmy na podstawie tych dwóch modeli prognozy na ostatnie 13 dni z naszych danych i zobaczmy, jak one wyglądają na wykresach.
+
+```{r prognoza_AR(1)}
+fc_ar = forecast(ar, h=length(sc.test))
+fc_ar
+plot(fc_ar)
+lines(sc.test, col='red')
+```
+
+```{r prognoza_ARMA(1,0,4)}
+fc_arma = forecast(model_arma, h = length(sc.test))
+plot(fc_arma)
+lines(sc.test, col = 'red')
+```
+## Średnie błędy kwadratowe i wybór prognozy
+
+Na koniec w celu wybrania lepszej prognozy, porównajmy średnie błędy kwadratowe.
+```{r}
+sredni_blad_kwadratowy <-function(fc)
+    {
+        return(mean((sc.test- fc)^2))
+}
+sredni_blad_kwadratowy(fc_ar$mean)
+sredni_blad_kwadratowy(fc_arma$mean)
+```
+
+Na podstawie średnich błędów kwadratowych możemy stwierdzić, że lepszym wydaje się być model ARMA(1,0,4).
