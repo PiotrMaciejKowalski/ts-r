@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Do realizacji zadania oraz analizy danych pobieramy dane notowań spółki "Octava SA" ze strony https://stooq.pl/q/d/?s=08n&c=0&d1=20190101&d2=20190319 z okresu 02.01.2019-18.03.2019.
 ```{r wczytywanie}
 setwd('~/Desktop/ts-r/cw3')
-df <- read.csv("08n_d.csv")
+df <- read.csv("soja-data.csv")
 head(df)
 ```
 ```{r}
@@ -28,6 +28,7 @@ Wolumen<-df$Wolumen
 ```{r}
 Data2 <- as.Date(Data, "%Y-%m-%d")
 df<-cbind(df,Data2)
+Data3<- as.numeric(1:length(Data2))
 ```
 ## Charakterystyka zmiennych
 Przedstawimy najważniejsze informcje dotyczące naszych danych
@@ -79,7 +80,6 @@ barplot(w,names = c("Otwarcie","Najwyzszy","Najnizszy","Zamkniecie"),main="Liczb
 ## Predykcja
 
 Wykonamy prognozę modelem regresji liniowej dla wszystkich danych.
- Nasze dane podzieliłam na dwa zbióry, jeden dla 11 ostatnich wartości a drugi dla reszty
 
 ```{r}
 ramka<-data.frame(Data2,Zamkniecie)
@@ -90,39 +90,38 @@ plot(reg);
 abline(reg)
 summary(reg)
 ```
+Nasze dane podzieliłam na dwa zbióry uczący i testowy
 ```{r}
-ramka1<-data.frame(Data2[1:40],Zamkniecie[1:40])
-head(ramka1)
-plot(ramka1,'p',col="red");
-reg1 <- lm(ramka1$Zamkniecie~ramka1$Data2);
+uczacy<-data.frame(Data3[1:40],Zamkniecie[1:40])
+testowy<-data.frame(Data3[41:51],Zamkniecie[41:51])
+```
+Wykonamy model regresji dla zbioru uczącego
+```{r}
+reg1<-lm(Zamkniecie~Data3, data=uczacy)
 plot(reg1);
 abline(reg1)
 summary(reg1)
 ```
+Teraz wyznaczmy prognoze dla zbioru testowego
 ```{r}
-ramka2<-data.frame(Data2[41:51],Zamkniecie[41:51])
-head(ramka2)
-plot(ramka2,'p',col="red");
-reg2 <- lm(ramka2$Zamkniecie~ramka2$Data2);
-plot(reg2);
-abline(reg2)
-summary(reg2)
+wsp=coef(reg1)
+a=wsp[2]
+b=wsp[1]
+prognoza=a*testowy$Data3.41.51. +b
+prognoza
 ```
+
 ```{r}
-prog2<- predict(reg2)
-prog1<- predict(reg1)
-plot(ramka1$Data2,prog1)
-plot(prog2)
-plot(ramka2,col="blue", ylab="Kurs zamkniecia", xlab="Data")
-lines(ramka2$Data2, prog2, type = "l", col="red")
+plot(testowy$Data3.41.51.,testowy$Zamkniecie.41.51., main = "Prognoza", ylab = "Zamkniecie", xlab = "Dni 41- 51")
+lines(testowy$Data3.41.51., prognoza, col="red")
 ```
 
 Wyznaczmy błąd średniokwadratowy
 ```{r}
-mean((prog2-ramka2$Zamkniecie)^2)
+mean((prognoza-testowy$Zamkniecie.41.51.)^2)
 ```
 oraz wartość statystki Theil'a
 
 ```{r}
-sum((prog2-ramka2$Zamkniecie)^2)/sum(ramka2$Zamkniecie^2)
+sum((prognoza-testowy$Zamkniecie)^2)/sum(testowy$Zamkniecie^2)
 ```
