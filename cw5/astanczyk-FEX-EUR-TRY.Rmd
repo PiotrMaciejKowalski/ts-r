@@ -15,9 +15,9 @@ W niniejszej analizie zajmować się będziemy prognozami na podstawie modelów 
 
 ```{r wczytanie_danych}
 library(readxl)
-wczytywanie_styczen = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 1)
-wczytywanie_luty = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 2)
-wczytywanie_marzec = read_excel('FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 3)
+wczytywanie_styczen = read_excel('astanczyk-FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 1)
+wczytywanie_luty = read_excel('astanczyk-FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 2)
+wczytywanie_marzec = read_excel('astanczyk-FEX-EUR-TRY.xlsx',col_names = c('czas','kurs otwarcia','szczyt', 'dołek', 'kurs zamknięcia', '0'),  sheet = 3)
 wszystkie_dane <- rbind(wczytywanie_styczen, wczytywanie_luty, wczytywanie_marzec)[1:5]
 wszystkie_dane <- cbind(godzina = substr(wszystkie_dane$czas,12,19), wszystkie_dane)
 head(wszystkie_dane)
@@ -63,6 +63,7 @@ sc.test
 
 Jako pierwszy rozważmy model MA(7):
 ```{r model_MA(7)}
+library(forecast)
 ma <- Arima(sc.train, order = c(0,0,7))
 summary(ma)
 ```
