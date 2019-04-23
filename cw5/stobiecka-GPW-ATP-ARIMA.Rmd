@@ -1,0 +1,120 @@
+---
+title: "Modele ARIMA dla cen akcji ATP"
+author: "Izabela Stobiecka"
+date: "9 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(RColorBrewer)
+library(forecast)
+library(tseries)
+```
+
+## Wczytanie danych 
+Wczytujemy jak poprzednio dane dotyczące cen akcji spółki Atlanta Poland S.A. w 2019 roku.
+
+```{r}
+dane=read.csv("stobiecka-dane.csv")[,1:5]
+head(dane)
+```
+Weźmiemy pod uwagę tylko cenę otwarcia. Zamieńmy data frame na format szeregu czasowego.
+```{r}
+otwarcie=ts(dane$Otwarcie, frequency = 1)
+```
+
+## Wykresy ACF i PACF
+Wykres naszego szeregu czasowego wygląda następująco:
+```{r}
+plot(otwarcie, xlab="czas", col=brewer.pal(n = 4, name = "PRGn")[1], main="Cena otwarcia")
+```
+
+
+Wykres autokorelacji i autokorelacji cząstkowej:
+```{r}
+par(mfrow = c(1,2), pty = "m")
+acf(otwarcie, col=brewer.pal(n = 4, name = "PRGn")[3], main="Wykres ACF dla ceny otwarcia")
+pacf(otwarcie,col=brewer.pal(n = 4, name = "PRGn")[4], main="Wykres PACF dla ceny otwarcia")
+```
+
+Wykres autokorelacji spada do zera relatywnie wolno, zatem nasz szereg nie ma cech słabej stacjonarności. Możemy również sprawdzić jego stacjonarność przy użyciu testu Dickeya-Fullera
+
+```{r}
+adf1=adf.test(otwarcie)
+adf1
+```
+p-value=`r adf1$p.value`>0.05 zatem nie możemy stwierdzić, że nasz szereg ma cechy słabej stacjonarności.
+Sprawdźmy czy szereg przejdzie test jeśli go zróżnicujemy
+```{r}
+adf2=adf.test(diff(otwarcie))
+adf2
+```
+p-value=`r adf2$p.value`<0.05, zatem zróżnicowany szereg czasowy ma cechy słabej stacjonarności, w związku z tym w poniższych modelach będę używała stopnia integracji szeregu d=1.
+Wykresy ACF i PACF dla zróżnicowanego szeregu:
+```{r}
+par(mfrow = c(1,2), pty = "m")
+acf(diff(otwarcie), col=brewer.pal(n = 4, name = "PRGn")[3], main="Wykres ACF")
+pacf(diff(otwarcie),col=brewer.pal(n = 4, name = "PRGn")[4], main="Wykres PACF")
+```
+
+##Podział na zbiór uczący i zbiór testowy
+```{r}
+p=35
+Uczacy = window(otwarcie,end = p)
+Testowy = window(otwarcie,start = p+1)
+```
+```{r}
+plot(otwarcie, xlab="czas", col=brewer.pal(n = 4, name = "PRGn")[1], main="Cena otwarcia")
+abline(v=p,lty=2,col='red')
+```
+
+##Model ze średnią ruchomą
+Sprawdźmy najpierw jakie efekty da nam model MA ze zróżnicowaniem szeregu.
+```{r}
+model1=Arima(Uczacy, order = c(0,1,1))
+summary(model1)
+```
+##Model autoregresyjny
+Teraz sprawdźmy jak zadziała model AR ze zróźnicowaniem szeregu.
+```{r}
+model2=Arima(Uczacy,order=c(2,1,0))
+summary(model2)
+```
+##Model ARIMA
+```{r}
+model3=Arima(Uczacy,order = c(2,1,1))
+summary(model3)
+```
+## Prognoza
+Przeprowadźmy prognozę na zbiorze testowym dla modelu pierwszego i trzeciego (MA i ARMA)
+```{r}
+n=length(Testowy)
+prognoza1 = forecast(model1, h=n)
+prognoza3=forecast(model3,h=n)
+```
+
+Przedstawmy uzyskane prognozy na wykresach.
+Wykres prognozy uzyskanej za pomocją modelu pierwszego (ARIMA(0,1,1)):
+```{r}
+plot(prognoza1, xlab="czas", col=brewer.pal(n = 4, name = "PRGn")[1], main="Prognoza ARIMA(0,1,1)")
+abline(v=p,lty=2,col='red')
+lines(Testowy, col=brewer.pal(n = 4, name = "PRGn")[4])
+```
+
+Wykres prognozy uzyskanej za pomocją modelu trzeciego (ARIMA(1,1,1)):
+```{r}
+plot(prognoza3, xlab="czas", col=brewer.pal(n = 4, name = "PRGn")[1], main="Prognoza ARIMA(2,1,1)")
+abline(v=p,lty=2,col='red')
+lines(Testowy, col=brewer.pal(n = 4, name = "PRGn")[4])
+```
+
+Porównajmy skuteczność prognoz obliczając ich błąd średnio-kwadratowy
+```{r}
+err1=mean(((prognoza1$mean-Testowy)^2))
+err3=mean(((prognoza3$mean-Testowy)^2))
+err=c(err1,err3)
+names(err)=c("Model 1","Model 3")
+err
+```
+Model 3 jest skuteczniejszy.
