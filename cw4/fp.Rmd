@@ -1,0 +1,183 @@
+---
+title: "Functional programming examples"
+author: "Piotr Kowalski"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Programowanie funkcyjne w R
+
+Programownie funkcyjne jest niezwykle przydatne w pracy analityka. W zwykłym programowaniu w pewnym momencie generowane jest bardzo wiele zagnieżdżeń, które znacząco utrudniają czytelność kodu. Spróbujemy zaprezentować ich wykorzystanie z pomocą danych z plików z poprzedniego ćwiczenia
+
+```{r}
+load('data/apartments.rda')
+head(apartments)
+```
+
+# Pakiet dplyr
+
+Rozpocznijmy od pracy z pakietem dplyr
+
+```{r}
+library(dplyr)
+```
+
+Pakiet ten udostępnia wiele funkcji, które implementują paradymaty programowania funkcyjnego. Warto wyszczególnić np. 
+
+1. filter - służącego do wyodrębniania na wierszach
+1. select - służacego do wyodrębniania na kolumanch
+1. arrange  - służącego do sortowania
+1. mutate - modyfikowania kolumn
+1. group_by/ungroup - do grupowania
+1. summarize - do wyliczania agregacji w grupach
+
+## Filtrowanie
+
+```{r}
+x = filter(apartments, district == "Srodmiescie")
+head(x)
+```
+
+
+
+
+## Selekcja
+
+```{r}
+x = select(apartments,year, street)
+head(x)
+```
+
+## Sortowanie
+
+```{r}
+x = arrange(apartments,surface, year, desc(month))
+head(x, n=30)
+```
+
+Użyte tu konstrukcje są dość oczywiste, ale widzimy, że dodatkowe użyto funkcji desc do odwrócenia porządku wg. zmiennej month.
+
+## Dodawanie kolumn
+
+```{r}
+x = mutate(apartments, Wiek = 2019 - year)
+head(select(x, year, Wiek), n =30)
+```
+
+### Uwaga
+
+Omówione tu operacje są bardzo podobne i w efekcie można zdefiniować ich odpowiedniki w składni języka SQL.
+
+# Programowanie funkcyjne - preludium strumieni/potoków
+
+Wykorzystanie programowania funkcyjnego pozwala usprawnić przetwarzanie danych. Zamiast wielokrotnych zagnieżdżeń otrzymujemy płaską listę kolejnych przetworzeń
+
+```{r}
+head(apartments)
+```
+
+
+```{r}
+t1 <- filter(apartments, n.rooms == 1 )
+t2 <- mutate(t1, przecietny.pokoj = surface / n.rooms)
+t3 <- arrange(t2, przecietny.pokoj)
+t4 <- select (t3, district, street, przecietny.pokoj, transaction.price)
+head(t4)
+```
+
+W praktyce jednak programiści często próbują unikać definiowania zmiennych (kłopot wymyślania kolejnych nazw) co często owocuje zastąpienie jednego zagnieżdżania - innym zagnieżdżaniem
+
+```{r}
+head(
+  select (
+      arrange(
+          mutate(
+              filter(apartments, n.rooms == 1 )
+            , przecietny.pokoj = surface / n.rooms)
+        , przecietny.pokoj)
+    , district, street, przecietny.pokoj, transaction.price)
+)
+```
+
+Zauważmy, że nie dość że ten zapis powoduje wprowadzenie zagnieżdżeń to jeszcze znowu odwraca kolejność samego przekształcania (istotnie - select miał być ostatni - zapisany jest jako pierwszy). Stąd należało rozwiązać tę sytuację, aby usunąć obie patologie programistyczne.
+
+# Przetwarzanie potokowe
+
+Rozwiązanie to przynosi przetwarzanie strumieniowe (bardzo popularne np. od Javy 8), w R zwane częściej potokowym wyglądające w nastepujący sposób:
+
+```{r}
+apartments %>%
+  filter(n.rooms == 1 ) %>%
+  mutate(przecietny.pokoj = surface / n.rooms) %>%
+  arrange(przecietny.pokoj) %>%
+  select(district, street, przecietny.pokoj, transaction.price) -> result
+head(result)
+```
+
+Działanie to jest możliwe dzięki sprytnej konstrukcji operatora
+
+```
+dane %>% funkcja 
+```
+
+wywołuje
+
+```
+nowe_dane <- funkcja(dane)
+return(nowe_dane)
+```
+
+Jest to również możliwe dzięki specyficznej konstrukcji tego operatora.
+
+# Reprodukcja konstrukcji programistycznej w operatorze potoku
+
+Przyjrzyjmy się próbie zaprezentowania sposobu działania tego wszystkie. Zacznijmy od własnej funkcji map
+
+```{r}
+myMap = function(data, func){
+  y = c();
+  for (item in data){
+    temp = func(item)
+    y = c(y,  temp)
+  }
+  return(y)
+}
+```
+
+Wtedy zadziałać powinno np.
+```{r}
+kwadraty = myMap(1:10, function(i){return(i*i)})
+kwadraty
+```
+
+Teraz powinna pojawić się druga funkcja 
+
+```{r}
+mymap = function(func){
+  # tu mozna zapisac dodatkowe pola
+  functor = function(data){ #functorowi będzie już brakowało tylko danych z parametrów
+    return(myMap(data, func))
+  }
+  return( functor )
+}
+```
+
+Pozostaje potrzeba zdefiniowania odpowiedniego operatora
+
+```{r}
+'%wlasny%' = function(data, functor) {
+  return (functor(data));
+}
+```
+
+Przetestujmy działanie powyższej składni
+
+```{r}
+1:20 %wlasny% mymap(function(i){return(2*i)}) -> result
+result
+```
+

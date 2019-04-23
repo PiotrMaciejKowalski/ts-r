@@ -1,0 +1,126 @@
+---
+title: "Rozpoznawanie trendów z użyciem regresji"
+author: "Piotr Kowalski"
+date: "21 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+W nieniejszym przykładzie pokażemy jak z wykorzystaniem prostego kodu języka R można uzyskać regresję liniową na potrzeby przewidywania zachowania trendu
+
+# Przykłady użycia regresji
+
+Wykorzystamy historycznie bardzo dobrze znany zbiór, za pomocą którego Francis Galton wykazał zależność dziedziczenie wzrostu synów przez ojców i ogłosił wzrost w kolejnych pokolenia dąży do przeciętnego na skutek jego regresji.
+
+
+
+```{r}
+library(HistData)
+ data(Galton)
+ reg <- lm(Galton$child ~ Galton$parent)
+ summary(reg)
+```
+
+Składnia tworzenia *l*inear *m*odel (stąd *lm*) jest dość szczególna i wykorzystuje symbol tyldy do zapisania spodziewanej zależnośc. Składania ma postać taką, że jeśli spodziewamy się zależności
+$$
+Y = a_1 X_1 + a_2 X_2 + c 
+$$
+
+zapisujemy w modelu
+
+```{}
+lm(Y ~ X_1 + X_2)
+```
+
+
+Obejrzymy jak wygląda prosta wytworzonej regresji
+
+```{r}
+ plot(Galton$child,Galton$parent,'p',col="blue")
+ abline(reg)
+```
+
+## Dwa formaty użycia
+
+R udostępnia dwa sposoby na przekazanie danych w postaci ramki danych do wywołania dopasowania modelu regresji
+
+```{r}
+ load('data/heights.rda')
+ plot(heights$Wife,heights$Husband,'p',col="red");
+ reg <- lm(Husband~Wife,data=heights);
+ abline(reg)
+```
+oraz 
+
+```{r}
+ load('data/heights.rda')
+ plot(heights$Wife,heights$Husband,'p',col="red");
+ reg <- lm(heights$Husband~heights$Wife);
+ abline(reg)
+```
+
+Pierwszy schemat jest bardziej przejrzysty, w drugim jednak działa podpowiadanie w RStudio. Wybór jest pozostawiony do państwa preferencji.
+
+## Podsumowanie regresji
+
+Niezależnie od sposobu powołania modelu regresji do życia, dostępna jest dla niego funkcja podsumowania
+
+```{r}
+summary(reg)
+```
+
+## Regresja wieloraka
+
+Nie ma poważnych ograniczeń jeśli chcemy stosować regresję wielowymiarową zwaną również wieloraką
+
+```{r}
+load('data/apartments.rda')
+ reg <- lm(apartments$offer.price ~ apartments$construction.date+apartments$condition+apartments$n.rooms+apartments$surface)
+ summary(reg)
+```
+
+## Zmienne silnie skorelowane
+
+Czasami może się okazać, że znajdujemy się w sytuacji gdy model zawiera w sobie zmienne silnie skorelowane. Zobaczmy co się w takiej sytuacji dzieje w modelu liniowym regresji
+
+```{r}
+mieszkania = read.csv2('data/daneMieszkania.csv',dec='.');
+```
+
+
+```{r}
+summary(lm(cena~powierzchnia+pokoi,data=mieszkania ));
+```
+
+```{r}
+summary(lm(cena~powierzchnia,data=mieszkania ));
+```
+
+```{r}
+summary(lm(cena~pokoi,data=mieszkania ));
+```
+
+Z powyższego wynika, że wartość mieszkanai jest silnie zależna od ilości pokoi, jest silnie zależna od powierzchnii mieszkania - lecz gdy badamy tę zależności jedncześnie nagle zależność od pokoju całkowicie zanika? Wiążę się to z silnym skorelowaniem tych zmiennych. W końcu im więcej pokoi tym większa powierzchnia, i czym większa powierzchnia tym więcej pokoi. Algorytm pracujący pod spodem dostrzegł jednak, że zmienność naszej zmiennej objaśnianej wyczerpuje zmienność zmiennej objaśniającej powierzchnia. W efekcie do pozostałej zmienności zmienna pokoje nie umiała już objaśniach i stąd sugestia by ją wyrzucić z modelu.
+
+Z powyższego eksperymentu wynika wprost, że należy usuwać zmienne skorelowane jako zależne jedna od drugich. Czemu skoro i tak w modelu R obliczy, że powinna zostać jedna? Ponieważ R wybierze, która z nich ma zostać w sposób randomizowany - a to z reguły nie jest tym co nas zadowala.
+
+## Wykresy diagnostyczne
+
+R posiada również możliwość wytworzenie specjalnych zmiennych, które pomagają w diagnostyce problemów objawiających się w danych
+
+```{r}
+par(mfrow=c(2,2))
+plot(reg)
+```
+
+W przypadku dobrze dobranego modelu powinniśmy obserwować następujące cechy
+
+1. Na wykresie Residuals vs Fitted powniśmy obserwować stałe wahania scentrowane wokół średniej wartości.
+1. Na wykresie Q-Q powiniśmy oglądać pokrycie linii przerywanej. Najczęściej jednak wartości skrajnie niedopasowywują się linii. Oznacza to, że model dobrze opanował modelowanie danych pośrednich, ale gorzej radzi sobie z danymi skrajnymi.
+1. Scale-location powiniśmy obserwować równomierne wahania w przekroju próby losowej.
+1. na Residuals vs Leverage - powiśmy obserwować pojedyncze skupisko próby. Wartości odstają i małe rozłączne grupy sugerują wartości odstające w próbie, które silnie przekładają się na modyfikowanie parametrów modelu.
+
+

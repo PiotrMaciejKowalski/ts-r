@@ -3,3 +3,7 @@
 .Rhistory
 .RData
 .Ruserdata
+*.rda
+*.csv
+*.pdf
+*.RData

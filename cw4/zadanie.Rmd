@@ -1,0 +1,27 @@
+---
+title: "Zadanie"
+author: "Piotr Kowalski"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Zadanie
+
+Proszę o wybranie ponownie tego samego pliku danych. Następnie proszę przeprowadzić 3 procesy filtrowania potokowego a ich wyniki zaprezentować na wykresach. Proszę użyć
+1. 3 krotnie funkcję filter
+1. 2 krotnie funkcje mutate
+1. 1 grupowanie
+1. 1 podsumowanie
+
+Wykorzystać operator przetwarzania potoków z R.
+
+## Uwaga
+
+Proszę zmienić nazwy swoich plików tak aby były poprzedzone nazwą autora np.
+pkowalski-FEX-GBP-PLN.Rmd
+oraz
+pkowalski-data.csv

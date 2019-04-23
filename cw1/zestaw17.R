@@ -1,5 +1,4 @@
-## Zadanie 
-
+## Zadanie
 ## Napisz funkcje wyznaczajaca liczbe cyfr podanych w tekscie
 ilosc_cyfr = function(x){
     ile<-0

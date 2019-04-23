@@ -1,0 +1,58 @@
+---
+title: "FP2"
+author: "Piotr Kowalski"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Funkcje programowania funkcyjnego
+
+W FP występuje kilka typowych metod programowania funkcyjnego
+
+* map
+* filter
+* reduce
+* partial
+
+## Map
+
+Funkcja przyjmuje kolekcję danych oraz funkcję którą wykonuje pokolej na danych
+
+Np. Zamiast pisać
+
+```{r}
+  x = 1:10
+  y = rep(0, times = length(x))
+  for (i in 1:length(x)){
+    y[i] = x[i]*x[i]*x[i];
+  }
+  y
+```
+
+```{r}
+Map(function(i){return(i*i*i)}, 1:10)
+```
+
+## Filter
+
+```{r}
+x = 1:100
+y = c()
+for (i in 1:length(x))
+{
+  if (x[i] %% 7 == 0) 
+  {
+    y = c(y, x[i])
+  }
+}
+y
+```
+
+```{r}
+Filter(function(i){return(i%% 7==0)}, 1:100)
+```
+

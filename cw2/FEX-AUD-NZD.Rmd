@@ -1,0 +1,60 @@
+---
+title: "Analiza kursu dolara australijskiego (AUD) do dolara nowozelandzkiego (NZD)"
+author: "Małgorzata Woźna"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Analizowane dane 
+
+Analizowane będą dane ze strony HistData.com (https://www.histdata.com/) dotyczące kursu dolara australijskiego do dolara nowozelandzkiego. Dokładniej analiza kursów z bieżacego roku (dokładny okres 01.01.2019 - 25.03.2019) z godzin 8:00, 12:00, 16:00 i 20:00. Na potrzeby przedstawienia danych w formie wykresów pobrane przezemnie dane musiały zostać odpowiednio wybrane z obszernego pliku. Pokazany jest wyłącznie kurs zamknięci. Dodatkowo dane nie zawierają informacji o notowaniach w weekendy.
+
+## Wczytywanie danych
+Dane zostały wcześniej obrobione w programie Excel
+
+```{r wczytywanie}
+dane <- read.csv2(file = 'DaneN.csv', header = TRUE)
+godz_8 <- dane[dane$godzina == 80000, ]
+godz_12 <- dane[dane$godzina == 120000, ]
+godz_16 <- dane[dane$godzina == 160000, ]
+godz_20 <- dane[dane$godzina == 200000, ]
+```
+
+## Wyświetlenie losowych 6 linijek danych z wybranych godzin
+```{r}
+head(godz_8)
+head(godz_12)
+head(godz_20)
+```
+
+## Wykresy
+
+Początkowo przedstawione będą wykresy przedstawiające kurs walut z danej godziny osobno.
+
+```{r echo=FALSE}
+par(mfrow = c(2, 2), pty= "m")
+plot(1:length(godz_8$data), godz_8$zamkniecie, type = "l", main = "Kursy z 8:00", xlab = "Dzień", ylab = "Kurs", col="blue")
+plot(1:length(godz_12$data), godz_12$zamkniecie, type = "l", main = "Kursy z 12:00", xlab = "Dzień", ylab = "Kurs", col="blue")
+plot(1:length(godz_16$data), godz_16$zamkniecie, type = "l", main = "Kursy z 16:00", xlab = "Dzień", ylab = "Kurs", col="blue")
+plot(1:length(godz_20$data), godz_20$zamkniecie, type = "l", main = "Kursy z 20:00", xlab = "Dzień", ylab = "Kurs", col="blue")
+par(mfrow = c(1, 2))
+
+```
+
+## Wspólny wykres 
+Wykres przedstawia kursy walut o godzinie 8:00, 12:00, 16:00, 20:00. Wgląd na jeden wykres ułatwi analize róznic występującą między danymi godzinami.
+
+```{r echo=FALSE}
+curve(godz_8$zamkniecie[x], from = 1, to = length(godz_8$data), type = "l", xlab = "Dzień", ylab = "Kurs", col = "blue")
+curve(godz_12$zamkniecie[x], from = 1, to = length(godz_12$data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Kurs", col = "red")
+curve(godz_16$zamkniecie[x], from = 1, to = length(godz_16$data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Kurs", col = "brown")
+curve(godz_20$zamkniecie[x], from = 1, to = length(godz_20$data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Kurs", col = "yellow")
+legend("bottomleft", legend = c("Godzina 8:00", "Godzina 12:00", "Godzina 16:00", "Godzina 20:00"), col = c("blue", "red", "brown", "yellow"), lwd = 1)
+```
+
+Możemy zauważyć podobieństwo wykresów z godziny 8:00, 12:00 oraz 16:00. Różni się jedynie wykres z godziny 20:00. Róznica ta nie wynika z dużego wzrostu czy spadku wartości kursu lecz ilość pobranych danych. Danych o godzinie 20:00 jest najwięcej. Dzięki obserwacji wykresu widzimy, że kurs walut jest najwyższy w połowie miesiąca póżniej spada.
+

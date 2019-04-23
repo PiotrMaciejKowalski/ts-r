@@ -1,0 +1,50 @@
+---
+title: "Analiza kursu dolara amerykańskiego do dolara kanadyjskiego"
+author: "Patrycja Kolanowska"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Dane
+
+Analizować będziemy dane pobrane ze strony Forex.pl dotyczące kursy dolara amerykańskiego do dolara kanadyjskiego. Interesuje nas bieżący rok (01.01.2019-22.03.2019) z godziny 8:00, 12:00, 16:00, 20:00. Interesować nas będzie godzina zamknięcia.
+
+```{r cars}
+dane <- read.csv2(file = 'USDCAD.csv', header = TRUE)
+dane_8 <- dane[dane$Godzina == 80000, ]
+dane_12 <- dane[dane$Godzina == 120000, ]
+dane_16 <- dane[dane$Godzina == 160000, ]
+dane_20 <- dane[dane$Godzina == 200000, ]
+
+head(dane_8)
+```
+
+## Wykresy
+Teraz zajmiemy się tworzeniem wykresów. Przedstawione zostaną wykresy pokazujące cenę w danej godzinie w ciągu całego analizowanego okresu.
+
+
+```{r pressure, echo=FALSE}
+x=1:58 
+
+wykres_1<-plot(x, dane_8$Zamkniecie, type="l",main="Kursy z godziny 8:00", xlab="Dni", ylab="Cena")
+wykres_2<-plot(x,dane_20$Zamkniecie, type="l",main="Kursy z godziny 20:00", xlab="Dni", ylab="Cena")
+```
+
+Wykresy wyglądają podobnie, dlatego zobaczmy wszystkie na jednym wspólnym wykresie
+
+```{r }
+curve(dane_8$Zamkniecie[x], from=1, to=60,type="l", main="Kursy  8:00, 12:00, 16:00, 20:00", xlab="Dni", ylab="Cena", col="red")
+curve(dane_20$Zamkniecie[x], from=1, to=60, col="blue", add=TRUE)
+curve(dane_12$Zamkniecie[x], from=1, to=60, col="black", add=TRUE)
+curve(dane_16$Zamkniecie[x], from=1, to=60, col="green", add=TRUE)
+legend("bottomleft",legend=c("Godzna 8:00", "Godzina 12:00", "Godzina 16:00", "Godzina 20:00"), col=c("red","black","green", "blue"), lwd=2)
+```
+
+
+Na wykresie widzimy, że cena kursu różni się w zależności od godziny. 
+
+
