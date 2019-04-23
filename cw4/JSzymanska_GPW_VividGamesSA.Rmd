@@ -1,0 +1,244 @@
+---
+title: "GPW-Vivid Games SA"
+author: "Joanna Szymańska"
+date: "16 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wczytywanie danych
+
+Poniższy plik przedstawia dane dotyczące notowań spółki Vivid Games SA w okresie 16.03.2018.-16.03.2019.
+
+## O spółce
+
+Vivid Games SA to nowoczesne studio deweloperskie zajmujące się projektowaniem, produkcją oraz publikowaniem gier na konsole przenośne i stacjonarne, komputery klasy PC i Mac, oraz nowoczesne telefony komórkowe (smartfony), które stanowią najbardziej dynamicznie rozwijający się sektor rynku.
+
+```{r dane}
+dgpw1 <- read.csv("jszymanska_dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
+head(dgpw1)
+```
+```{r}
+dgpw<-dgpw1[,2:5]
+head(dgpw)
+```
+
+Poniżej widoczne jest krótkie podsumowanie dla każej z czterech badanych wartości - w tym najmniejsza i największa osiągnięta wartość oraz średnia i mediana.
+```{r}
+summary(dgpw)
+```
+
+
+```{r pressure, echo=FALSE}
+x=250:1
+  
+wykres_otw=plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie", xlab="Dni robocze od 16.03.2018", ylab="Wartosc w mln zl")
+plot(x,dgpw$Zamkniecie, type ="l",   main="Zamkniecie", xlab="Dni robocze od 16.03.2018", ylab="Wartosc w mln zl", col="blue")
+```
+
+Dla u?atwienia por?wnania zobaczmy dane na jednym wykresie:
+
+```{r}
+plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie i zamkniecie", xlab="Dni robocze od 16.03.2018", ylab="Wartość w mln zl")
+lines(x,dgpw$Zamkniecie, type ="l",  col="blue")
+```
+
+```{r}
+i=1
+otw=dgpw$Otwarcie
+zam=dgpw$Zamkniecie
+zmiana=rep(0,250)
+for(i in 1:250){
+  zmiana[i]=otw[i]-zam[i]
+}
+plot(x,zmiana, type="l", main="Zmiana wartosci pomiedzy otwarciem i zamknieciem", xlab="Dni robocze od 16.03.2018", ylab="Wartosc", col="purple")
+```
+
+Teraz przyjrzymy się maksymalnym i minimalnym warto?ciom w kolejnych dniach roboczych.
+```{r}
+plot(x,dgpw$Max, type ="l", main="Maksimum i minimum ", xlab="Dni robocze od 16.03.2018", ylab="Wartość w mln zł", col="green")
+lines(x,dgpw$Min, type ="l",  col="red")
+```
+
+
+Sprawd?my częstotliwość osiągania wartości z określonych przedziałów dla maksimum i minimum.
+
+```{r}
+hist(dgpw$Max, main="Histogram maksimum", xlab="Wartość", ylab="Czestotliwość", col="green", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
+hist(dgpw$Min, main="Histogram minimum", xlab="Wartość", ylab="Czestotliwość", col="red", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
+```
+
+
+Policzmy różnice pomiedzy najwiekszą a najmniejszą wartością w poszczególne dni.
+```{r}
+i=1
+Maxi=dgpw$Max
+Mini=dgpw$Min
+roznica=rep(0,250)
+for(i in 1:250){
+  roznica[i]=Maxi[i]-Mini[i]
+}
+plot(x,roznica, type="l", main="Różnica pomiędzy największą a najmniejszą wartości?", xlab="Dni robocze od 16.03.2018", ylab="Wartość")
+```
+
+
+Na koniec zobaczmy zestawienie wszystkich badanych wartości w postaci wykresu pudełkowego.
+```{r}
+boxplot(dgpw$Otwarcie,dgpw$Zamkniecie,dgpw$Max,dgpw$Min, names=c("Otwarcie","Zamkniecie","Maksimum","Minimum"), col=rainbow(5))
+```
+
+#Predykcja
+
+```{r}
+dgpw2 <- read.csv("jszymanska_dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
+x=length(dgpw2$Data):1
+ plot(x,dgpw2$Otwarcie,'p',col="red", xlab="Dni robocze", ylab="Cena otwarcia");
+ reg <- lm(dgpw2$Otwarcie~x);
+ abline(reg)
+```
+```{r}
+summary(reg)
+```
+```{r}
+blad_sredniokwad <- function(zbior, pred) 
+    { n=length(pred)
+    i=1
+    suma=0
+    blad=0
+    for(i in 1:n){ 
+      l=pred$fitted.values[i]
+      blad[i]=(zbior[i]-l)^2
+    suma=suma+blad[i]
+      }
+   return(suma/n)
+    }
+Statystyka_theila <- function(zbior, pred) 
+    {
+    
+    n=length(pred)
+    i=1
+    sumalicz=0
+    sumamian=0
+    roz=0
+    for(i in 1:n){ 
+      l=pred$fitted.values[i]
+      
+      roz[i]=(zbior[i+1]-l)^2
+    sumalicz=sumalicz+roz[i]
+    sumamian=sumamian+l^2
+      }
+   iloraz=sumalicz/sumamian
+   return(iloraz)
+}
+```
+
+
+```{r}
+dl=length(dgpw2$Otwarcie)
+n0=1:dl
+otwarcie=dgpw2$Otwarcie
+model=lm(otwarcie~n0)
+plot(n0,otwarcie,main="predykcja w oparciu o dane z ostatniego roku", xlab="dni", ylab="cena otwarcia")
+lines(predict(model), col="blue")
+```
+
+
+Błąd średniokwadratowy dla modelu:
+```{r}
+blad_sredniokwad(dgpw$Otwarcie,model)
+```
+
+Statystyka Theil'a:
+```{r}
+Statystyka_theila(dgpw$Otwarcie,model)
+```
+
+```{r}
+n=100
+otwarcie2=dgpw2$Otwarcie[11:n]
+x2=1:90
+model90=lm(otwarcie2~x2)
+plot(x2, otwarcie2,main="predykcja w oparciu o dane z 90 dni", xlab="dni", ylab="cena otwarcia")
+predykcja90=predict(model90)
+lines(x2,predykcja90, col="blue")
+```
+
+Błąd średniokwadratowy dla modelu:
+```{r}
+blad_sredniokwad(dgpw$Otwarcie,model90)
+```
+
+Statystyka Theil'a:
+```{r}
+Statystyka_theila(dgpw$Otwarcie,model90)
+```
+```{r}
+n2=28
+otwarcie3=dgpw2$Otwarcie[14:n2]
+x3=1:15
+model14=lm(otwarcie3~x3)
+plot(x3,otwarcie3,main="predykcja w oparciu o dane z  14 dni", xlab="dni", ylab="cena otwarcia")
+lines(predict(model14), col="blue")
+```
+
+
+Błąd średniokwadratowy dla modelu:
+```{r}
+blad_sredniokwad(dgpw$Otwarcie,model14)
+```
+
+Statystyka Theil'a:
+```{r}
+Statystyka_theila(dgpw$Otwarcie,model14)
+```
+#ZADANIE 4
+
+```{r}
+dgpw3=dgpw[1:90,]
+summary(dgpw3)
+```
+
+```{r}
+library(dplyr)
+dgpw3 %>%
+ filter(Otwarcie >= 2) %>%
+  filter( Zamkniecie >= 2) %>%
+ mutate(RoznicaMaksMin = Max-Min ) %>%
+  arrange(Max) %>%
+  group_by(Max) %>%
+ summarise( SredniaRoznicaMaksMin = mean(RoznicaMaksMin, na.rm=TRUE))-> dane
+head(dane)
+```
+
+```{r}
+matplot(dane$Max,dane$SredniaRoznicaMaksMin, "l", xlab="Maximum", ylab="średnia różnica", col="blue")
+```
+
+```{r}
+dgpw3 %>%
+ filter(Min>1) %>%
+  filter( Max < 2) %>%
+ mutate(RoznicaOtwZamk = Otwarcie-Zamkniecie ) %>%
+  arrange(Otwarcie) %>%
+  group_by(Otwarcie) %>%
+ summarise(SredniaRozOtwZamk = mean(RoznicaOtwZamk, na.rm=TRUE))-> dane2
+head(dane2)
+```
+```{r}
+matplot(dane2$Otwarcie,dane2$SredniaRozOtwZamk, "l", xlab="Otwarcie", ylab="średnia różica", col="red")
+```
+```{r}
+dgpw3 %>%
+ filter(Otwarcie-Zamkniecie<0.05,Otwarcie-Zamkniecie>-0.05) %>%
+ mutate(RoznicaMaksMin = Max-Min , RoznicaOZ=Otwarcie-Zamkniecie) %>%
+  arrange(RoznicaOZ) %>%
+  group_by(RoznicaOZ) %>%
+ summarise( SredniaRoznicaMaksMin = mean(RoznicaMaksMin, na.rm=TRUE), sredniaRoznicaOZ=mean(RoznicaOZ, na.rm=TRUE))-> dane3
+head(dane3)
+```
+```{r}
+plot(dane3$sredniaRoznicaOZ,dane3$SredniaRoznicaMaksMin, "p", xlab="Różnica pomiedzy cena otwarcia a zamkniecia", ylab="Różnica pomiedzy max a min wartoscia", col="purple")
+```
