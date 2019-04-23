@@ -1,0 +1,103 @@
+---
+title: "Filtrowanie potokowe dla cen akcji ATP"
+author: "Izabela Stobiecka"
+date: "31 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wczytanie danych
+Używam tych samych danych co poprzednio- notowania akcji spółki Atlanta Poland S.A. (ATP) w 2019 roku z uwzględnieniem ceny otwarcia, zamknięcia, maksymalnej i minimalnej. 
+```{r}
+dane=read.csv("stobiecka-data.csv")[,1:5]
+head(dane)
+```
+Potrzebny będzie nam również pakiet dplyr.
+```{r}
+library(dplyr)
+```
+Załączę też bibliotekę z paletami kolorów.
+```{r}
+library("RColorBrewer")
+```
+
+##Przetwarzanie potokowe
+Przeprowadzę 3 procesy przetwarzania potokowego.
+
+W pierwszym użyję funkcji filter i mutate. Wybiorę notowania tylko z lutego i utworzę nową kolumnę z różnicą cen w ciągu dnia.  
+```{r}
+dane %>%
+  filter(grepl("-02-", Data)) %>%
+  mutate(Roznica.cen = Najwyzszy - Najnizszy) %>%
+  select(Data, Najwyzszy, Najnizszy, Roznica.cen) -> tabela1
+  head(tabela1)
+```
+
+Wykres rozrzutu cen w lutym przedstawia się następująco:
+```{r}
+plot(tabela1$Roznica.cen, type="l", main="Rozrzut cen akcji ATP w lutym",col=brewer.pal(n = 4, name = "PRGn")[1], xlab = "Dni", ylab="Rozrzut")
+```
+
+
+W drugim procesie użyję filter, mutate, group_by i summarise. Wybiorę dni kiedy cena otwarcia była większa od 4 zł i tak przefiltrowane dane pogrupuję ze względu na miesiąc. Następnie wyświetlę podsumowanie pokazujące średnie ceny w każdym miesiącu.
+```{r}
+by_miesiac <- dane %>%
+  filter(Otwarcie > 4) %>%
+  mutate(Miesiac = format(as.POSIXct(Data), "%m")) %>%
+  group_by(Miesiac) %>%
+  summarise(
+  Srednia.Otwarcie = mean(Otwarcie),
+  Srednia.Zamkniecie = mean(Zamkniecie),
+  Srednia.Najwyzszy = mean(Najwyzszy),
+  Srednia.Najnizszy = mean(Najnizszy)
+  )
+  by_miesiac
+```
+
+```{r}
+op = par(mfrow = c(2, 2), pty = "m")
+barplot(
+by_miesiac$Srednia.Otwarcie,
+names.arg = c("Styczeń", "Luty", "Marzec"),
+col = brewer.pal(n = 4, name = "PRGn"),
+ylab = "Średnia cena ATP",
+main = "Średnia cena otwarcia"
+)
+barplot(
+by_miesiac$Srednia.Zamkniecie,
+names.arg = c("Styczeń", "Luty", "Marzec"),
+col = brewer.pal(n = 4, name = "PRGn"),
+ylab = "Średnia cena ATP",
+main = "Średnia cena zamknięcia"
+)
+barplot(
+by_miesiac$Srednia.Najwyzszy,
+names.arg = c("Styczeń", "Luty", "Marzec"),
+col = brewer.pal(n = 4, name = "PRGn"),
+ylab = "Średnia cena ATP",
+main = "Średnia cena maksymalna"
+)
+barplot(
+by_miesiac$Srednia.Najnizszy,
+names.arg = c("Styczeń", "Luty", "Marzec"),
+col = brewer.pal(n = 4, name = "PRGn"),
+ylab = "Średnia cena ATP",
+main = "Średnia cena minimalna"
+)
+```
+
+W trzecim procesie użyję funkcji filter, aby wyświetlić tylko te notowania dla których różnica między ceną otwarcia a ceną zamknięcia była mniejsza niż 7 gr
+```{r}
+dane %>%
+  filter(abs(Otwarcie-Zamkniecie)<0.07) %>%
+  select(Data,Otwarcie,Zamkniecie)->tabela3
+tabela3
+```
+Przedstawmy tak przefiltrowaną cenę otwarcia i zamknięcia na wykresie pudełkowym.
+```{r}
+boxplot(tabela3$Otwarcie,tabela3$Zamkniecie, main="Cena otwarcia i zamknięcia",names=names(tabela3)[2:3], col=brewer.pal(n = 4, name = "PRGn"))
+```
+
