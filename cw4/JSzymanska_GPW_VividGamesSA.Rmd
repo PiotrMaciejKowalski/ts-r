@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Wczytywanie danych
 
-Poni?szy plik przedstawia dane dotyczące notowań spółki Vivid Games SA w okresie 16.03.2018.-16.03.2019.
+Poniższy plik przedstawia dane dotyczące notowań spółki Vivid Games SA w okresie 16.03.2018.-16.03.2019.
 
 ## O spółce
 
@@ -35,14 +35,14 @@ summary(dgpw)
 ```{r pressure, echo=FALSE}
 x=250:1
   
-wykres_otw=plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie", xlab="Dni robocze od 16.03.2018", ylab="Warto?? w mln z?")
-plot(x,dgpw$Zamkniecie, type ="l",   main="Zamkniecie", xlab="Dni robocze od 16.03.2018", ylab="Warto?? w mln z?", col="blue")
+wykres_otw=plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie", xlab="Dni robocze od 16.03.2018", ylab="Wartosc w mln zl")
+plot(x,dgpw$Zamkniecie, type ="l",   main="Zamkniecie", xlab="Dni robocze od 16.03.2018", ylab="Wartosc w mln zl", col="blue")
 ```
 
 Dla u?atwienia por?wnania zobaczmy dane na jednym wykresie:
 
 ```{r}
-plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie i zamkni?cie", xlab="Dni robocze od 16.03.2018", ylab="Warto?? w mln z?")
+plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie i zamkniecie", xlab="Dni robocze od 16.03.2018", ylab="Wartość w mln zl")
 lines(x,dgpw$Zamkniecie, type ="l",  col="blue")
 ```
 
@@ -54,12 +54,12 @@ zmiana=rep(0,250)
 for(i in 1:250){
   zmiana[i]=otw[i]-zam[i]
 }
-plot(x,zmiana, type="l", main="Zmiana wartosci pomiedzy otwarciem i zamknieciem", xlab="Dni robocze od 16.03.2018", ylab="Warto??", col="purple")
+plot(x,zmiana, type="l", main="Zmiana wartosci pomiedzy otwarciem i zamknieciem", xlab="Dni robocze od 16.03.2018", ylab="Wartosc", col="purple")
 ```
 
 Teraz przyjrzymy się maksymalnym i minimalnym warto?ciom w kolejnych dniach roboczych.
 ```{r}
-plot(x,dgpw$Max, type ="l", main="Maksimum i minimum ", xlab="Dni robocze od 16.03.2018", ylab="Warto?? w mln z?", col="green")
+plot(x,dgpw$Max, type ="l", main="Maksimum i minimum ", xlab="Dni robocze od 16.03.2018", ylab="Wartość w mln zł", col="green")
 lines(x,dgpw$Min, type ="l",  col="red")
 ```
 
@@ -67,8 +67,8 @@ lines(x,dgpw$Min, type ="l",  col="red")
 Sprawd?my częstotliwość osiągania wartości z określonych przedziałów dla maksimum i minimum.
 
 ```{r}
-hist(dgpw$Max, main="Histogram maksimum", xlab="Warto??", ylab="Cz?stotliwo??", col="green", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
-hist(dgpw$Min, main="Histogram minimum", xlab="Warto??", ylab="Cz?stotliwo??", col="red", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
+hist(dgpw$Max, main="Histogram maksimum", xlab="Wartość", ylab="Czestotliwość", col="green", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
+hist(dgpw$Min, main="Histogram minimum", xlab="Wartość", ylab="Czestotliwość", col="red", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
 ```
 
 
@@ -81,7 +81,7 @@ roznica=rep(0,250)
 for(i in 1:250){
   roznica[i]=Maxi[i]-Mini[i]
 }
-plot(x,roznica, type="l", main="R??nica pomi?dzy najwi?ksz? a najmniejsz? warto?ci?", xlab="Dni robocze od 16.03.2018", ylab="Warto??")
+plot(x,roznica, type="l", main="Różnica pomiędzy największą a najmniejszą wartości?", xlab="Dni robocze od 16.03.2018", ylab="Wartość")
 ```
 
 
@@ -241,4 +241,5 @@ head(dane3)
 ```
 ```{r}
 plot(dane3$sredniaRoznicaOZ,dane3$SredniaRoznicaMaksMin, "p", xlab="Różnica pomiedzy cena otwarcia a zamkniecia", ylab="Różnica pomiedzy max a min wartoscia", col="purple")
+
 ```
