@@ -1,0 +1,82 @@
+---
+title: "Kurs EUR-GBP"
+author: "Agnieszka Jadczak"
+date: "30 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wczytanie danych 
+
+Dane pochodzą ze strony histdata.com.  
+  
+Okres z którego pochodzą dane: 01.01.2019-08.01.2019r. 
+```{r}
+options(max.print = 99999999) 
+d<-read.csv2(file="ajadczak-data.csv", header = TRUE, sep = ";", dec = ".")
+head(d)
+```
+
+
+Wczytamy odpowiedni pakiet.
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+```
+
+## Proces 1
+
+Zaprezentujemy kursy z godziny 16:00 dla których jednocześnie kurs zamknięcia oraz otwarcia jest conajmniej równy średniemu kursowi zamknięcia dla całego okresu.
+
+```{r}
+m<-mean(d$zamkniecie)
+d %>%
+  filter(godzina == 160000, zamkniecie>= m ,otwarcie>=m)%>%
+  select(godzina,otwarcie,zamkniecie)->result
+head(result)
+```
+
+```{r echo=FALSE}
+plot(result$zamkniecie,xlab = "Pomiar",ylab = "Kurs zamknięcia",main = "Kursy większe niż średni kurs, godz 16:00")
+```
+
+## Proces 2
+
+Zaprezentujemy różnice pomiędzy kursem zamknięcia, a otwarcia dla godziny 8:00.
+
+```{r}
+d %>% 
+  filter(godzina==80000)%>%
+  select(godzina,otwarcie,zamkniecie)%>%
+  mutate(roznica=zamkniecie-otwarcie)->result2
+head(result2)
+```
+
+```{r echo=FALSE}
+plot(result2$roznica,xlab = "Pomiar",ylab = "Różnica",main = " Różnica pomiędzy kursem otwarcia,  a zamknięcia, godz 8:00")
+abline(h=0)
+```
+
+## Proces 3
+
+Podsumujemy pewne charakterystyczne wartości dla danych 
+
+```{r}
+
+d %>%
+   group_by(godzina) %>% 
+   summarise(max_zamkniecie=max(zamkniecie,na.rm = T),
+             mean_zamkniecie = mean(zamkniecie,na.rm=T),
+             std_zamkniecie = sd(zamkniecie, na.rm = T) ) %>%
+  arrange(-max_zamkniecie,-mean_zamkniecie)->result3
+result3 
+```
+
+```{r echo=FALSE}
+plot(result3$godzina,result3$mean_zamkniecie,main="Średni kurs zamknięcia dla odpowiedniej godziny",xlab = "Godziny",ylab = "Średnie")
+```
+
+
+
