@@ -1,6 +1,6 @@
 ---
 title: "GPW-Vivid Games SA"
-author: "Joanna Szymañska"
+author: "Joanna SzymaÅ„ska"
 date: "16 marca 2019"
 output: html_document
 ---
@@ -11,14 +11,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Wczytywanie danych
 
-Poni¿szy plik przedstawia dane dotycz¹ce notowañ spó³ki Vivid Games SA w okresie 16.03.2018.-16.03.2019.
+Poni?szy plik przedstawia dane dotyczÄ…ce notowaÅ„ spÃ³Å‚ki Vivid Games SA w okresie 16.03.2018.-16.03.2019.
 
-## O spó³ce
+## O spÃ³Å‚ce
 
-Vivid Games SA to nowoczesne studio deweloperskie zajmuj¹ce siê projektowaniem, produkcj¹ oraz publikowaniem gier na konsole przenoœne i stacjonarne, komputery klasy PC i Mac, oraz nowoczesne telefony komórkowe (smartfony) – które stanowi¹ najbardziej dynamicznie rozwijaj¹cy siê sektor rynku.
+Vivid Games SA to nowoczesne studio deweloperskie zajmujÄ…ce siÄ™ projektowaniem, produkcjÄ… oraz publikowaniem gier na konsole przenoÅ›ne i stacjonarne, komputery klasy PC i Mac, oraz nowoczesne telefony komÃ³rkowe (smartfony), ktÃ³re stanowiÄ… najbardziej dynamicznie rozwijajÄ…cy siÄ™ sektor rynku.
 
 ```{r dane}
-dgpw1 <- read.csv("GPW-VividGamesSA-dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
+dgpw1 <- read.csv("jszymanska_dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
 head(dgpw1)
 ```
 ```{r}
@@ -26,7 +26,7 @@ dgpw<-dgpw1[,2:5]
 head(dgpw)
 ```
 
-Poni¿ej widoczne jest krótkie podsumowanie dla ka¿ej z czterech badanych wartoœci - w tym najmniejsza i najwiêksza osi¹gniêta wartoœæ oraz œrednia i mediana.
+PoniÅ¼ej widoczne jest krÃ³tkie podsumowanie dla kaÅ¼ej z czterech badanych wartoÅ›ci - w tym najmniejsza i najwiÄ™ksza osiÄ…gniÄ™ta wartoÅ›Ä‡ oraz Å›rednia i mediana.
 ```{r}
 summary(dgpw)
 ```
@@ -35,14 +35,14 @@ summary(dgpw)
 ```{r pressure, echo=FALSE}
 x=250:1
   
-wykres_otw=plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie", xlab="Dni robocze od 16.03.2018", ylab="Wartoœæ w mln z³")
-plot(x,dgpw$Zamkniecie, type ="l",   main="Zamkniecie", xlab="Dni robocze od 16.03.2018", ylab="Wartoœæ w mln z³", col="blue")
+wykres_otw=plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie", xlab="Dni robocze od 16.03.2018", ylab="Warto?? w mln z?")
+plot(x,dgpw$Zamkniecie, type ="l",   main="Zamkniecie", xlab="Dni robocze od 16.03.2018", ylab="Warto?? w mln z?", col="blue")
 ```
 
-Dla u³atwienia porównania zobaczmy dane na jednym wykresie:
+Dla u?atwienia por?wnania zobaczmy dane na jednym wykresie:
 
 ```{r}
-plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie i zamkniêcie", xlab="Dni robocze od 16.03.2018", ylab="Wartoœæ w mln z³")
+plot(x,dgpw$Otwarcie, type ="l", main="Otwarcie i zamkni?cie", xlab="Dni robocze od 16.03.2018", ylab="Warto?? w mln z?")
 lines(x,dgpw$Zamkniecie, type ="l",  col="blue")
 ```
 
@@ -54,25 +54,25 @@ zmiana=rep(0,250)
 for(i in 1:250){
   zmiana[i]=otw[i]-zam[i]
 }
-plot(x,zmiana, type="l", main="Zmiana wartosci pomiedzy otwarciem i zamknieciem", xlab="Dni robocze od 16.03.2018", ylab="Wartoœæ", col="purple")
+plot(x,zmiana, type="l", main="Zmiana wartosci pomiedzy otwarciem i zamknieciem", xlab="Dni robocze od 16.03.2018", ylab="Warto??", col="purple")
 ```
 
-Teraz przyjrzymy siê maksymalnym i minimalnym wartoœciom w kolejnych dniach roboczych.
+Teraz przyjrzymy siÄ™ maksymalnym i minimalnym warto?ciom w kolejnych dniach roboczych.
 ```{r}
-plot(x,dgpw$Max, type ="l", main="Maksimum i minimum ", xlab="Dni robocze od 16.03.2018", ylab="Wartoœæ w mln z³", col="green")
+plot(x,dgpw$Max, type ="l", main="Maksimum i minimum ", xlab="Dni robocze od 16.03.2018", ylab="Warto?? w mln z?", col="green")
 lines(x,dgpw$Min, type ="l",  col="red")
 ```
 
 
-SprawdŸmy czêstotliwoœæ osi¹gania wartoœci z okreœlonych przedzia³ów dla maksimum i minimum.
+Sprawd?my czÄ™stotliwoÅ›Ä‡ osiÄ…gania wartoÅ›ci z okreÅ›lonych przedziaÅ‚Ã³w dla maksimum i minimum.
 
 ```{r}
-hist(dgpw$Max, main="Histogram maksimum", xlab="Wartoœæ", ylab="Czêstotliwoœæ", col="green", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
-hist(dgpw$Min, main="Histogram minimum", xlab="Wartoœæ", ylab="Czêstotliwoœæ", col="red", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
+hist(dgpw$Max, main="Histogram maksimum", xlab="Warto??", ylab="Cz?stotliwo??", col="green", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
+hist(dgpw$Min, main="Histogram minimum", xlab="Warto??", ylab="Cz?stotliwo??", col="red", breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7) )
 ```
 
 
-Policzmy ró¿nice pomiedzy najwiêksz¹ a najmniejsz¹ wartoœci¹ w poszczególne dni.
+Policzmy rÃ³Å¼nice pomiedzy najwiekszÄ… a najmniejszÄ… wartoÅ›ciÄ… w poszczegÃ³lne dni.
 ```{r}
 i=1
 Maxi=dgpw$Max
@@ -81,11 +81,11 @@ roznica=rep(0,250)
 for(i in 1:250){
   roznica[i]=Maxi[i]-Mini[i]
 }
-plot(x,roznica, type="l", main="Ró¿nica pomiêdzy najwiêksz¹ a najmniejsz¹ wartoœci¹", xlab="Dni robocze od 16.03.2018", ylab="Wartoœæ")
+plot(x,roznica, type="l", main="R??nica pomi?dzy najwi?ksz? a najmniejsz? warto?ci?", xlab="Dni robocze od 16.03.2018", ylab="Warto??")
 ```
 
 
-Na koniec zobaczmy zestawienie wszystkich badanych wartoœci w postaci wykresu pude³kowego.
+Na koniec zobaczmy zestawienie wszystkich badanych wartoÅ›ci w postaci wykresu pudeÅ‚kowego.
 ```{r}
 boxplot(dgpw$Otwarcie,dgpw$Zamkniecie,dgpw$Max,dgpw$Min, names=c("Otwarcie","Zamkniecie","Maksimum","Minimum"), col=rainbow(5))
 ```
@@ -93,7 +93,7 @@ boxplot(dgpw$Otwarcie,dgpw$Zamkniecie,dgpw$Max,dgpw$Min, names=c("Otwarcie","Zam
 #Predykcja
 
 ```{r}
-dgpw2 <- read.csv("GPW-VividGamesSA-dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
+dgpw2 <- read.csv("jszymanska_dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
 x=length(dgpw2$Data):1
  plot(x,dgpw2$Otwarcie,'p',col="red", xlab="Dni robocze", ylab="Cena otwarcia");
  reg <- lm(dgpw2$Otwarcie~x);
@@ -146,7 +146,7 @@ lines(predict(model), col="blue")
 ```
 
 
-B³¹d œredniokwadratowy dla modelu:
+BÅ‚Ä…d Å›redniokwadratowy dla modelu:
 ```{r}
 blad_sredniokwad(dgpw$Otwarcie,model)
 ```
@@ -166,7 +166,7 @@ predykcja90=predict(model90)
 lines(x2,predykcja90, col="blue")
 ```
 
-B³¹d œredniokwadratowy dla modelu:
+BÅ‚Ä…d Å›redniokwadratowy dla modelu:
 ```{r}
 blad_sredniokwad(dgpw$Otwarcie,model90)
 ```
@@ -185,7 +185,7 @@ lines(predict(model14), col="blue")
 ```
 
 
-B³¹d œredniokwadratowy dla modelu:
+BÅ‚Ä…d Å›redniokwadratowy dla modelu:
 ```{r}
 blad_sredniokwad(dgpw$Otwarcie,model14)
 ```
@@ -214,7 +214,7 @@ head(dane)
 ```
 
 ```{r}
-matplot(dane$Max,dane$SredniaRoznicaMaksMin, "l", xlab="Maximum", ylab="Œrednia ró¿nica", col="blue")
+matplot(dane$Max,dane$SredniaRoznicaMaksMin, "l", xlab="Maximum", ylab="Å›rednia rÃ³Å¼nica", col="blue")
 ```
 
 ```{r}
@@ -228,7 +228,7 @@ dgpw3 %>%
 head(dane2)
 ```
 ```{r}
-matplot(dane2$Otwarcie,dane2$SredniaRozOtwZamk, "l", xlab="Otwarcie", ylab="Œrednia ró¿nica", col="red")
+matplot(dane2$Otwarcie,dane2$SredniaRozOtwZamk, "l", xlab="Otwarcie", ylab="Å›rednia rÃ³Å¼ica", col="red")
 ```
 ```{r}
 dgpw3 %>%
@@ -240,5 +240,5 @@ dgpw3 %>%
 head(dane3)
 ```
 ```{r}
-plot(dane3$sredniaRoznicaOZ,dane3$SredniaRoznicaMaksMin, "p", xlab="Ró¿nica pomiedzy cena otwarcia a zamkniecia", ylab="Ró¿nica pomiedzy max a min wartoscia", col="purple")
+plot(dane3$sredniaRoznicaOZ,dane3$SredniaRoznicaMaksMin, "p", xlab="RÃ³Å¼nica pomiedzy cena otwarcia a zamkniecia", ylab="RÃ³Å¼nica pomiedzy max a min wartoscia", col="purple")
 ```
