@@ -1,0 +1,53 @@
+---
+title: "Analiza kursu USD-CHF"
+author: "Joanna Kamiñska"
+date: "29 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##  Analizowane dane
+Dane s¹ pobrane z HistData.com (https://www.histdata.com/), dotycz¹ce kursu dolara amerykañskiego do franka szwajcarskiego. Analizowane dane pochodz¹ z okresu 01.01.2019 - 15.03.2019, z godzin: 8:00, 12:00, 16:00, 20:00.
+
+## Wczytywanie danych
+Dane zosta³y obrobione w Excelu.
+```{r}
+d<-read.csv2(file="kaminska-USD-CHF1.csv", header = TRUE, sep = ";", dec = ".")
+d8<-d[d$godzina==80000,]
+d12<-d[d$godzina==120000,]
+d16<-d[d$godzina==160000,]
+d20<-d[d$godzina==200000,]
+
+head(d8)
+```
+
+##Wykresy
+Przedstawiam pojedyncze wykresy z chwili zamkniÄ™cia z godziny: 8:00, 12:00, 16:00, 20:00.
+```{r echo = FALSE}
+par(mfrow=c(2,2))
+plot(1:nrow(d8), d8$zamkniecie, type = "l", xlab = "Dni", ylab = "Cena",col="red",main = "Kursy z godziny 8:00")
+plot(1:nrow(d12), d12$zamkniecie, type = "l", xlab = "Dni", ylab = "Cena",col="green", main = "Kursy z godziny 12:00")
+plot(1:nrow(d16), d16$zamkniecie, type = "l", xlab = "Dni", ylab = "Cena",col="blue", main = "Kursy z godziny 16:00")
+plot(1:nrow(d20), d20$zamkniecie, type = "l", xlab = "Dni", ylab = "Cena",col="purple", main = "Kursy z godziny 20:00")
+par(mfrow=c(1,1))
+```
+## Wykres
+
+```{r echo = FALSE}
+plot(1:nrow(d8), d8$zamkniecie, type = "l", xlab = "Dni", ylab = "Cena",col="red",main = "Porównanie kursów zamkniêcia")
+lines(d12$zamkniecie, col="green")
+lines(d16$zamkniecie, col="blue")
+lines(d20$zamkniecie, col="purple")
+grid(NULL, NULL, col = "black")
+legend("bottomright", c("godzina 8:00", "godzina 12:00", "godzina 16:00","godzina 20:00"), col =c("red","green","blue","purple"), lwd=2)
+```
+## Wykres porównuj¹cy kursy z godziny 8:00 i 20:00 w chwili otwarcia.
+```{r echo = FALSE}
+plot(1:nrow(d8), d8$otwarcie, type = "l", xlab = "Dni", ylab = "Cena",col="red",main = "Porównanie kursów z godziny 8:00 i 20:00")
+x<-c(1:nrow(d8),53,0)
+polygon(x,c(d8$otwarcie,0,0), col="pink")
+polygon(x,c(d20$otwarcie,0,0), col="yellow")
+
+```
