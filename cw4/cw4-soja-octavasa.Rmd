@@ -13,11 +13,16 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 ```
 
+# Wczytywanie danych
+
+Do realizacji zadania oraz analizy danych pobieramy dane notowań spółki "Octava SA" ze strony https://stooq.pl/q/d/?s=08n&c=0&d1=20190101&d2=20190319 z okresu 02.01.2019-18.03.2019.
+
 ```{r wczytywanie}
 setwd('~/Desktop/ts-r/cw4')
 df <- read.csv("08n_d.csv")
 head(df)
 ```
+
 ```{r}
 Data<-df$Data
 Otwarcie<-df$Otwarcie
@@ -26,11 +31,15 @@ Najnizszy<-df$Najnizszy
 Zamkniecie<-df$Zamkniecie
 Wolumen<-df$Wolumen
 ```
+
 ```{r}
 Data2 <- as.Date(Data, "%Y-%m-%d")
 df<-cbind(df,Data2)
 ```
 # Pierwszy proces
+
+W pierwszym procesie będziemy używać funkcji filter i mutate. Wybierzemy dane gdzie cena owarcia jest wieksza od 0,85 i utworzymy kolumne średniej otwarcia i zamknięcia.
+
 ```{r}
 df %>%
   filter(Otwarcie > 0.85 ) %>%
@@ -38,12 +47,15 @@ df %>%
   select(Data2, Otwarcie, Zamkniecie, srednia) -> result
 head(result)
 ```
+
 ```{r}
 plot(result$Data2, result$srednia, xlab="Data", ylab = "Srednia kursu", main = "Srednia kursu otwarcia i zamkniecia", type="l", col="pink")
 ```
-  mutate(month = format(as.Date(Data, "%d/%m/%Y"), "%m")) %>%
-  group_by(month) %>%
+ 
 # Drugi proces
+
+W drugim procesie użyjemy funkcji filter, mutate i group_by. Wybierzemy dane gdzie ceny otwarcia i zamknięcia są równe, utworzymy kolumne tego stałego kursu i kolumne miesiecy, pogrupujemy nasze dane po miesiącach. 
+
 ```{r}
 df %>%
   filter(Otwarcie==Zamkniecie ) %>%
@@ -53,7 +65,9 @@ df %>%
   select(month,Data2,staly_kurs) -> result1
 result1
 ```
+
 Poniższy wykres przedstawia ilość dni takich gdzie kurs otwarcia jest równy kursowi zamkniecia
+
 ```{r}
 a=lengths(result1[result1$month=="01",1],use.names = FALSE)
 b=lengths(result1[result1$month=="02",1],use.names = FALSE)
@@ -61,7 +75,10 @@ c=lengths(result1[result1$month=="03",1],use.names = FALSE)
 wykres=c(a,b,c)
 barplot(wykres, names=c("Styczen","Luty","Marzec"), col = c("red","green","orange"))
 ```
+
 ## Trzeci proces
+
+W trzecim procesie użyjemy funkcji filter, mutate i summarise. Wybierzemy dane gdzie cena zamknięcia jest większa od ceny otwarcia, dodamy kolumne róznicy ceny zakmnięcia i otwarcia i podsumujemy średnią różnicę tych cen. 
 
 ```{r}
 df %>%
@@ -69,6 +86,7 @@ df %>%
   mutate(roznica = Zamkniecie-Otwarcie) %>%
   summarise(roznicasrednia = mean(roznica)) 
 ```
+
 ```{r}
 x <- df[Zamkniecie>Otwarcie, c(7,5)]
 plot(x, xlab="Data", ylab="Kurs", col="maroon", main="Zamkniecie wieksze od otwarcia")
