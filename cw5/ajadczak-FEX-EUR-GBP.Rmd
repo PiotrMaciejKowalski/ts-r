@@ -1,0 +1,125 @@
+---
+title: "Kurs EUR-GBP"
+author: "Agnieszka Jadczak"
+date: "12 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(zoo)
+library(forecast)
+library(dplyr)
+library(stats)
+library(tseries)
+```
+
+## Wczytanie danych 
+
+Dane pochodzą ze strony histdata.com.  
+  
+Okres z którego pochodzą dane: 01.01.2019-08.03.2019r. 
+```{r}
+options(max.print = 99999999) 
+d<-read.csv2(file="ajadczak-data.csv", header = TRUE, sep = ";", dec = ".")
+```
+
+Tworzymy szereg czasowy dla danych z godziny 16:00 i kursu zamknięcia.
+
+```{r message=FALSE, warning=FALSE}
+
+d %>%
+  filter(godzina == 160000)%>%
+  select(zamkniecie)->result
+d.ts<-ts(data = result, frequency = 1)
+is.ts(d.ts)
+```
+
+```{r warning=FALSE}
+tsdisplay(d.ts)
+```
+
+Widać, że szereg nie jest stacjonarny, ponieważ wyraźnie możemy zauważyć trend malejący. Poza tym możemy odczytać z wykresu autokorelacji (ACF), że wystepuje
+6 opóźnień istotnie większych od 0. Zastosujemy zatem różnicowanie dla tego szeregu.
+```{r}
+diff.ts<-diff(d.ts)
+tsdisplay(diff.ts)
+
+```
+
+Na podstawie tych wykresów, możemy wnioskować że ten szereg jest już stacjonarny.
+Z wykresu ACF możemy odczytaż, że q=1, z wykresu PACF odczytujemy, że p=1.
+Ponieważ różnicowaliśmy szereg, więc d=1.
+
+Sprawdźmy stacjonarność tego szeregu poprzez poniższy test statystyczny.
+```{r}
+
+pp.test(diff.ts, alternative = "stationary")
+
+```
+
+Widać, że p-value < 0.05 zatem odrzucamy hipotezę zerową, czyli to że szereg nie jest stacjonarny, na korzyść hipotezy alternatywnej mówiącej o tym, że szereg jest stacjonarny.
+
+## Podział na zbiór uczący i testowy
+
+```{r}
+a<-40
+N<-length(diff.ts)
+train<-window(diff.ts,end = a+1)
+test<-window(diff.ts,start=a+1)
+```
+
+
+```{r}
+ts.plot(train, test, col=1:2, lty=c(1,2))
+```
+
+
+## MODEL AR(1)
+
+```{r}
+AR<-arima(train, c(1,1,0))
+summary(AR)
+```
+
+
+
+## MODEL MA(1)
+```{r}
+MA<-arima(train, c(0,1,1))
+summary(MA)
+```
+
+
+
+## MODEL ARMA
+
+```{r}
+ARMA<-arima(train, c(1,1,1))
+summary(ARMA)
+```
+
+## Prognozy
+
+Prognoza dla modelu AR.
+```{r}
+prognozaAR<-forecast(AR,h=length(test)-1)
+plot(prognozaAR,type="l")
+lines(test, col="red")
+```
+
+
+Prognoza dla modelu MA.
+```{r}
+prognozaMA<-forecast(MA,h=length(test)-1)
+plot(prognozaMA,type="l")
+lines(test, col="red")
+```
+
+Błędy średniokwadratowe dla zaproponowanych predykcji.
+```{r}
+m1<-mean( (prognozaAR$mean - test)^2, na.rm = TRUE)
+m2<-mean( (prognozaMA$mean - test)^2, na.rm = TRUE)
+```
+Błąd średniokwadratowy dla prognozy AR wynosi `r m1`, natomiast dla MA wynosi `r m2`
+Wybieramy model MA.
