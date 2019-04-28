@@ -1,0 +1,100 @@
+---
+title: "zadanie2"
+author: "KŁądka"
+date: "1 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(XLConnect)
+library("quantmod")
+library("tidyr")
+```
+
+Wczytujemy dane notowania CCC z excela.
+```{r}
+dane = readWorksheetFromFile('Ladka-GPW-CCC.xlsx', sheet = 1)
+head(dane)
+```
+
+Przygotowujemy dane do wykresów.
+```{r}
+dane2 = dane[2:5]
+ccc <- xts(dane2, order.by = as.Date(dane[, 1]))
+head(ccc)
+```
+
+Tworzymy wykresy.
+```{r}
+chartSeries(ccc, bar.type = "hlc", TA=NULL, type = "bars", theme = chartTheme(1))
+matplot(1:nrow(dane), ccc[,1:4], "l",xlab="Data", ylab="Wartości w mln")
+legend("topleft", c("Otwarcie", "Zamknięcie", "Maks", "Min"), col = 1:4, lty = 1:4)
+```
+
+W zadaniu 3 ograniczymy się do jednej zmiennej - ceny otwarcia. 
+```{r}
+co <- data.frame( "Data" = as.Date(dane[, 1]), "Otwarcie" = dane2$Otwarcie)
+cena_otwarcia <- co[order(co$Data),]
+head(cena_otwarcia)
+```
+
+Rozważmy teraz model liniowy dla wszystkich danych oraz sprawdźmy jego dopasowanie.
+```{r}
+reg <- lm(cena_otwarcia$Otwarcie ~ cena_otwarcia$Data)
+plot(cena_otwarcia$Data, cena_otwarcia$Otwarcie,"l", xlab = "DATA", ylab = "CENA", pch = 20, cex = 1.5)
+abline(reg, col = "green", lwd = 2)
+text(mean(cena_otwarcia$Data), mean(cena_otwarcia$Otwarcie), round(summary(reg)$r.squared, 3), pos = 4)
+```
+
+Przejdźmy teraz do modelu, który będzie korzystał ze stałej ilości danych poprzedzających daną chwilę. Przyjmujemy np. moment m=45 oraz stałą k=15. Dokonamy podziau na zbiory - uczący i testowy
+```{r}
+m <- 45
+k <-  15
+train <- cena_otwarcia[(m-k):(m-1),]
+test <- cena_otwarcia[m:nrow(cena_otwarcia),]
+```
+
+
+```{r}
+x <- 1:length(train$Data)
+reg2 <- lm(train$Otwarcie ~ x)
+summary(reg2)
+wsp_reg2 <- coef(reg2)
+```
+
+Zobaczmy jak wygląda wykres regresji na tle danych.
+```{r}
+plot(x, train$Otwarcie,"l", xlab = "DATA", ylab = "CENA")
+abline(reg2, col = "yellow", lwd = 2)
+text(mean(x), mean(train$Otwarcie), round(summary(reg2)$r.squared, 3), pos = 4)
+```
+
+
+Prognozowane wartości
+```{r}
+n <- (length(train$Data)+1):(length(train$Data)+length(test$Data))
+prognoza <- wsp_reg2[2]*n+wsp_reg2[1]
+prognoza
+```
+
+#Wykres prognozy
+```{r}
+plot(test$Data, test$Otwarcie,  "l", col = "blue", main = "Prognoza")
+lines(x = test$Data, prognoza)
+```
+
+
+Na koniec wyznaczymy błąd średniokwadratowy i statystykę Theil'a 
+```{r}
+theil <- sum(((prognoza-test$Otwarcie)^2))/sum((test$Otwarcie^2))
+blad_srkw<- mean(((prognoza-test$Otwarcie)^2))
+theil
+blad_srkw
+```
+
+
+
