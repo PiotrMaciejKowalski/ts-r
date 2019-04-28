@@ -1,0 +1,127 @@
+---
+title: "Analiza notowań OctavaSA"
+author: "Maria Soja"
+date: "28 03 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wczytywanie danych
+Do realizacji zadania oraz analizy danych pobieramy dane notowań spółki "Octava SA" ze strony https://stooq.pl/q/d/?s=08n&c=0&d1=20190101&d2=20190319 z okresu 02.01.2019-18.03.2019.
+```{r wczytywanie}
+setwd('~/Desktop/ts-r/cw3')
+df <- read.csv("soja-data.csv")
+head(df)
+```
+```{r}
+Data<-df$Data
+Otwarcie<-df$Otwarcie
+Najwyzszy<-df$Najwyzszy
+Najnizszy<-df$Najnizszy
+Zamkniecie<-df$Zamkniecie
+Wolumen<-df$Wolumen
+```
+
+```{r}
+Data2 <- as.Date(Data, "%Y-%m-%d")
+df<-cbind(df,Data2)
+Data3<- as.numeric(1:length(Data2))
+```
+## Charakterystyka zmiennych
+Przedstawimy najważniejsze informcje dotyczące naszych danych
+```{r}
+summary(df)
+```
+## Wykresy
+Na początek przedstawimy podstawowe wykresy naszych danych
+```{r}
+plot(Data2,Otwarcie,type = "l", col='red' ,xlab = "Data",ylab = "Wysokość kursu")
+lines(Data2,Najwyzszy,type = "l", col='green', main = "Najwyzszy")
+lines(Data2,Najnizszy,type = "l", col = 'blue', main = "Najnizszy")
+lines(Data2,Zamkniecie,type = "l",main = "Zamkniecie")
+legend("topright",c("Otwarcie","Najwyzszy","Najnizszy","Zamkniecie"),col = c("red","green","blue","black"),pch = "-")
+```
+Teraz pokażemy wartości które sa większe od średniej. Zacznijmy od policzenia średnich.
+```{r}
+sredniaotw=mean(Otwarcie)
+srednianajw=mean(Najwyzszy)
+srednianajn=mean(Najnizszy)
+sredniazamk=mean(Zamkniecie)
+```
+```{r}
+otwarcia<-df[Otwarcie>sredniaotw,c(7,2)]
+najwyzsze<-df[Najwyzszy>srednianajw,c(7,3)]
+najnizsze<-df[Najnizszy>srednianajn,c(7,4)]
+zamkniecia<-df[Zamkniecie>sredniazamk,c(7,5)]
+```
+```{r}
+plot(otwarcia,col="red",main ="Otwarcie",xlab="Data",ylab="Kurs")
+plot(najwyzsze,col="green",main="Najwyzszy",xlab="Data",ylab="Kurs")
+plot(najnizsze,col="blue",main="Najnizszy",xlab="Data",ylab="Kurs")
+plot(zamkniecia,main="Zamkniecie",xlab="Data",ylab="Kurs")
+```
+Teraz policzmy ile jest wartości wiekszych od srednich.
+```{r}
+length(otwarcia$Otwarcie)
+length(najwyzsze$Najwyzszy)
+length(najnizsze$Najnizszy)
+length(zamkniecia$Zamkniecie)
+```
+Wynik przedstawmy na wykresie
+```{r}
+w<-c(length(otwarcia$Otwarcie),length(najwyzsze$Najwyzszy), length(najnizsze$Najnizszy), length(zamkniecia$Zamkniecie))
+colors=c("red","green","blue","black")
+barplot(w,names = c("Otwarcie","Najwyzszy","Najnizszy","Zamkniecie"),main="Liczba wartości wiekszych od srednich",col = colors)
+```
+
+## Predykcja
+
+Wykonamy prognozę modelem regresji liniowej dla wszystkich danych.
+
+```{r}
+ramka<-data.frame(Data2,Zamkniecie)
+head(ramka)
+plot(ramka,'p',col="red");
+reg <- lm(ramka$Zamkniecie~ramka$Data2);
+plot(reg);
+abline(reg)
+summary(reg)
+```
+Nasze dane podzieliłam na dwa zbióry uczący i testowy
+```{r}
+uczacy<-data.frame(Data3[1:40],Zamkniecie[1:40])
+testowy<-data.frame(Data3[41:51],Zamkniecie[41:51])
+```
+Wykonamy model regresji dla zbioru uczącego
+```{r}
+reg1<-lm(Zamkniecie~Data3, data=uczacy)
+plot(reg1);
+abline(reg1)
+summary(reg1)
+```
+Teraz wyznaczmy prognoze dla zbioru testowego
+```{r}
+wsp=coef(reg1)
+a=wsp[2]
+b=wsp[1]
+prognoza=a*testowy$Data3.41.51. +b
+prognoza
+```
+
+```{r}
+plot(testowy$Data3.41.51.,testowy$Zamkniecie.41.51., main = "Prognoza", ylab = "Zamkniecie", xlab = "Dni 41- 51")
+lines(testowy$Data3.41.51., prognoza, col="red")
+```
+
+Wyznaczmy błąd średniokwadratowy
+```{r}
+mean((prognoza-testowy$Zamkniecie.41.51.)^2)
+```
+oraz wartość statystki Theil'a
+
+```{r}
+sum((prognoza-testowy$Zamkniecie)^2)/sum(testowy$Zamkniecie^2)
+```
