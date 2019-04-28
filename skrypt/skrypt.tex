@@ -49,6 +49,7 @@ Wersja & Autor & Data & Opis\\\hline
 1.5 & P. Kowalski & 21.06.18 & Poprawki Przepióra, Margielewski  \\\hline
 1.6 & P. Kowalski & 03.04.19 & Pierwsze poprawki w kolejnym roku edycji \\\hline
 1.7 & P. Kowalski & 10.04.19 & Dodanie elementów do modeli GARCH \\\hline
+1.8 & P. Kowalski & 24.04.19 & Dodanie wprowadzenia do procesów decyzyjnych Markowa, oraz predykcji opartej o sieci neuronowe \\\hline
 \end{tabular}
 \caption{Wersje dokumentu.}
 \end{table}
@@ -2505,16 +2506,632 @@ Każdy proces zgodny z modelem $ARIMA(p,1,q)$ można rozłożyć na dwie składo
 \end{itemize}
 \end{theorem}
 
+\chapter{Inne modele prognostyczne}
+
+Rozdział opracowany na podstawie następującej literatury \citep{geron2018uczenie}.
+
+W niniejszej części wprowadzimy podstawowe pojęcia dotyczące uczenia maszynowego. Choć dla wielu może się on wydawać odległą i skrajnie różną od stanu obecnego przyszłością - to już obecnie obszary stosujące uczenie maszynowe są powszechne i wykazują się skutecznością zdolną pozostawać niezauważonym dla ludzkich oczu. Przykładami takich obszarów są techniki rozpoznawania obrazów, pisma czy też powszechnie spotykane filtry spamu. Środowiska naukowe oraz przedsiębiorstwa szeroko korzystające ze współczesnych rozwiązań IT są niezmiennie przez ostatnie lata głęboko zafascynowane rozwojem uczenia maszynowego. Powod jest jeden i prozaiczny. Każdy dowolny kolejny dzień, może przynieść przełom wywracający całą strukturę naszego świata. Ostatnim znaczącym przełomem była przełomowa praca z zakresu głębokich sieci neuronowych opublikowana w 2006 roku \cite{hinton2006fast}, która wskazała ogrom zastosowań tych sieci. Jednym z najbardziej jaskrawych przykładów ich zastosowania jest opracowany przez firmę DeepMind (Grupa Google) algorytm AlphaGo. Jest to komputerowy gracz w japońskiej grze Go, uznawanej za jedną z najtrudniejszych gier logicznych w historii człowieka. Opracowany algorytm w roku 2016 pokonał mistrzów europy, mistrzów świata, a ostatecznie całą czołówkę graczy - dodatkowo wygrywając wszystkie partie. Co więcej strategie używane przez algorytm są niezrozumiałe dla zwykłych graczy, całkowicie niwilując efekty wszelkich obecnie znanych człowiekowi strategii. 
+
+W zakresie definicji uczenia maszynowe wymieniane są dwie wiodące definicje
+
+\begin{definition}[Uczenie maszynowe wg. Arthura Samuela, 1959 {\citep[Rozdział 1]{geron2018uczenie}}]
+Uczenie maszynowe to dziedzina nauki dająca komputerom możliwość uczenia się bez konieczności ich jawnego programowania. 
+\end{definition}
+
+\begin{definition}[Uczenie maszynowe wg. Toma Mitchella, 1997 {\citep{geron2018uczenie, szeliga2017data}}]
+Mówimy, że program komputerowy uczy się na podstawie doświadczenia E w odniesieniu do zadania T i pewnej miary wydajności P, jeśli jego wydajność (mierzona przez P) wobec zadania T wzrasta wraz z nabywaniem doświadczenia E.
+\end{definition}
+
+Powyżej przedstawiana koncepcja ogranicza uczenie maszynowe do komputerów, jednak nie musi być tak koniecznie. Ucząc się o uczeniu maszynowym poznajemy całe grupy matematycznych koncepcji, które podlegając procesowi uczenia mogą adaptować się do wielu zadań. Tym właśnie sposobem możemy zdefiniować
+
+\begin{definition}[Maszyna ucząca]
+Maszyną uczącą nazwiemy matematyczny model składający się z parametrów oraz transformacji, wyposażony w proces modyfikacji swoich parametrów na podstawie danych w procesie nazywanym uczeniem, na potrzeby adaptacji do realizacji wybranego zadania.
+\end{definition} 
+
+Powinniśmy umówić dodatkowo przyczyny dla których samo pojęcie uczenia maszynowego pojawiło się we współczesnej wiedzy. Aby mogły zaistnieć warunki do przeprowadzania dowolnego doświadczenia z uczeniem maszyn potrzebne są dwa elementy:
+
+\begin{itemize}
+\item Odpowiednio szybkie komputery do przetwarzania informacji,
+\item odpowiednio duże zbiory danych, aby uzyskiwać wiarygodny opis zjawisk.
+\end{itemize}
+
+Wraz ze wzrostem obu tych cech następują kolejne postępy w rozwoju dziedziny. Pierwszy ze znaczących wzrostów popularności uczenia maszynowego wiąże się z pojawieniem się baz SQL oraz szybkich procesorów wielordzeniowych. Kolejny, który miał miejsce nie więcej niż 15 lat temu wiążę się z pojawiem się baz NoSQL, BIG DATA oraz rozwiązań w postaci chmur oraz potężnych klastrów obliczeniowych, przeprowadzających równoległe obliczenia. 
+
+Omówmy dalej najważniejsze klasy i pojęcia związane z uczeniem maszynowym. 
+
+\section{Dane w uczeniu maszynowym}
+
+Dane są tak bardzo niezbędne w uczeniu maszynowym, że aż w samej definicji maszyny uczącej musieliśmy podkreślić ich niezbędność. Co można powiedzieć o danych?
+\begin{itemize}
+\item Ilość - musi ich być dużo. Pracując z uczeniem maszynowym przyjmuje się, że im większą ilość danych dostarczymy naszemu modelowi, tym lepiej musi on rozwiązywać zadanie przed nim postawione. Nie zakłada się tempa tego wzrostu, ani nawet mając chwilowe pogorszenie modelu - nie będzie powodowało pochopnego odrzucenia modelu. Określa to jedynie długofalow efekt działania lub uczenia danego modelu.
+\item Dane muszą być uporządkowane, uformowane i uzupełnione. Aby dane były dostępne w przetwarzaniu komputerowym muszą bowiem posiadać odpowiednie ustrukturyzowanie.
+\item Dane powinny być wielowymiarowe. Albo analizowane w długiej osi czasu.Nie ma sensu analizować danych, które nie mają do siebie odniesienia. Tym co może być zaskakujące jest zastosowanie tych metod do np. obrazów. Jednak w tym wszystkim można dostrzec, że teoretycznie pojedynczy obraz jest tak naprawdę zbiorem kilku tysięcy (lub większej) pikseli różnych kolorów, dodatkowo często silnie ze sobą skorelowanych.  
+\item Dane powinny być reprezentatywne. To znaczy przedstawiać pełny przekrój (często nawet zgodny co do proporcji) zjawiska, które ma badać. Znane są historycznie przypadki, kiedy takie zaniedbanie posiadało haniebne skutki. Jednym z najbardziej znanych jest algorytm, który został opracowany celem rozpoznawania twarzy na obrazach cyfrowych. Z uwagi na niefrasobliwy dobór zbioru uczącego, algorytm ten nie był w stanie poprawnie oznaczyć twarzy osób rasy afrykańskiej oraz o wyjątkowo ciemnej karnacji. 
+\item W znacznej większości naszych doświadczeń (uczenie nadzorowane, o którym za chwilę) nasze dane będą podlegać podziałowi na dwa podzbiory
+\begin{itemize}
+\item Podzbiór uczący - nazywany także zbiorem treningowym. Określającym dane, które służą do strojenia parametrów modelu. 
+\item Podzbiór weryfikujący - nazywany także zbiorem testowym. Określa podzbiór danych, które służą do oceny jakości modelu.
+\end{itemize}
+Z uwagi na powszechność takiego podziału, nazewnictwo zostało również zaadaptowane na potrzeby problemów, które takowe podziału faktycznie nie potrzebują. Co do samego sposobu podziału danych jest wiele różnych koncepcji. Ogólnie zbiory testowe powinny być istotnie mniejsze od treningowych i w miarę wzrostu całości zbioru danych dysproporcja ta powinna jeszcze rozrosnąć się. 
+\end{itemize}
+
+Wyszczególniamy również następujący podział danych:
+\begin{itemize}
+\item Strukturyzowane - gdy dane są powiązane relacjami z bazy danych,
+\item Pół-strukturyzowane - dane reprezentowane w postaci tabeli, ale bez powiązań relacyjnych,
+\item Nieustrukturyzowane - dane multimedialne, teksty, dźwięki.
+\end{itemize}
+
+\section{Proces nauki w uczeniu maszynowym}
+
+Kolejnym istotnym sposobem dokonania podziału modeli uczenia maszynowego jest z uwagi na sposób prowadzenia uczenia. Wyróżniamy tu:
+
+\begin{itemize}
+\item Uczenie nadzorowane - w którym uczenie wykorzystuje znane wartości poprawnych odpowiedzi. Uczenie to przypomina matematycznie następujące zadanie - Dla równania postaci:
+$$
+Y= F(X)
+$$
+dla znanych wartości wektora $X$ oraz znanych wartości $Y$ opracuj skuteczne przybliżenie $\overline{F}$ przekształcenia $F$, tzn.
+$$
+Error(\overline{F}(X) - y) \to \min.
+$$
+\item Uczenie nienadzorowane - w którym uczenie odbywa się przy braku znajomości poprawnych odpowiedzi (lub ich ogólnego braku w problemie). Najczęściej celem eksplorowania nowych własności i zależności w zbiorze danych. Przypomina to matematycznie następujące zadanie - Dla równania postaci :
+$$
+Y = F(X)
+$$
+dla znanych wartości wektora $X$ oraz nieznanych wartości $Y$ opracuj przyblżenie przekształcenia $F$ posiadające pewne własności.
+\item Uczenie semi-nadzorowane - kiedy część danych nie posiada wartości poprawnych odpowiedzi.
+\item Uczenie ze wzmacnianiem - w którym również nie są znane wartości poprawnych odpowiedzi, ale jest określony szczególny cel optymalizacyjny.Uczenie to przypomina matematycznie następujące zadanie - Dla równania postaci:
+$$
+Y = F(X)
+$$
+dla znanych wartości wektora $X$ opracuj skuteczne przybliżenie przekształcenia $F$ tzn. takie, że dla znanej funkcji nagrody $R$ uzyskuje się największą wartość nagrody $R(F(X))$. W procesie tym wzmacniane są decyzje powodujące powiększenie wartości nagrody.
+\end{itemize}
+
+\section{Uczenie wsadowe i przyrostowe}
+
+Wystepuje również podział procesów uczenia w zależności od przeprowadzenia uczenia w odniesieniu do etapu wdrożenia. Wyróżniamy:
+
+\begin{itemize}
+\item Uczenie wsadowe - w tym trybie cały proces uczenia odbywa się w okresie poprzedzającym wdrożenie. Uczenie to nazywa się również uczeniem offline. Projekty stosujące takie uczenie, najlepiej jest okresowo zastępować nowym - douczonym nowymi wartościami systemem. Uczenie w tym trybie jest również długie czasowo. Przy pewnym rozmiarze danych może się również okazać, że ten model uczenia nie jest do zrealizowania.
+\item Uczenie przyrostowe - w tym trybie uczenie odbywa się w małych grupach i może być kontynuowane dalej po wdrożeniu. W tym trybie wymagane jest aby algorytm uczący mógł przeprowadzić szybką poprawkę dla nowych danych. Ten tryb uczenia nazywany jest również uczeniem online.
+\end{itemize}
+
+\section{Problemy procesu uczenia}
+
+Uczenie maszynowe okazuje się być jednym z najskuteczniejszych narzędzi współczesnego IT. Oczywiście o ile proces nauczania zakończy się sukcesem. Tymczasem okazuje się, że wiele elementów tego procesu może nie zakończyć się sukcesem i to z wielu różnych przyczyn. Omówmy najistotniejsze z nich
+\begin{itemize}
+\item Niedobór danych - jest pierwszym z problemów - choć nie zawsze dotyczącym obecnych czasów. Jeśli mamy zbyt mało danych, algorytm nie będzie w stanie odpowiednio zrozumieć ukrytych w danych informacji, aby realizować swoje zadanie.
+\item Dane nie są reprezentatywne - powód częściowo omówiony już wcześniej - jeśli dane nie reprezentują całej przestrzeni danych, nie będą w stanie odpowiednio aproksymować problemu na nieznanym regionie wielowymiarowej przestrzeni.
+\item Dane niskiej jakości - jeśli dane są niedokładne i posiadają w sobie wiele przypadkowego szumu, może on wydatnie wpłynąć na strojenie parametrów modelu. 
+\item Nieistotne cechy - jeśli w zbiorze danych znajduje się znaczna liczba składowych, które ostatecznie nie wnoszą informacji o badanym zjawisku, to stanowią one szum rozstrajający parametry modelu.
+\item Przetrenowanie modelu - nazywane również overfittingiem. Oznacza on sytuację w której model tak dobrze dopasowywuje się do danych uczących, że traci zdolność generalizowania rozwiązania na inne obszary danych. Efektem tego jest spadek wydajności rozpoznania na zbiorze testowym. Problem ten jest prawdziwą zmorą wszystkich osób zajmujących się uczeniem maszynowym. Z reguły określa on moment kiedy, nie da się już uzyskać poprawy za pomocą danych i należy rozważyć istotniejszą zmianę w modelu, inną ilość parametrów, inne funkcje lub przekształcenie danych.
+\end{itemize}
+
+\section{Podział modeli uczeniu maszynowego}
+
+Modele uczenia maszynowego dzielimy na:
+\begin{itemize}
+\item Modele geometryczne - gdzie do analizy wykorzystywane są kształty, obiekty i figury geometryczne opisane w przestrzeniach wielowymiarowych,
+\item Modele probabilistyczne - gdzie do analizy wykorzystywane są powiązania zmiennych za pomocą rozkładów prawdopodobieństwa,
+\item Modele logiczne - gdzie powiązania pomiędzy zmiennymi są reprezentowane poprzez 0-1 wartości oznaczające powiązanie lub jego brak.
+\item Modele hybrydowe - posiadające cechy conajmniej dwóch powyżej opisanych grup.
+\end{itemize}
+
+\section{Predykcja z użyciem sieci neuronowych}
+
+Jednym z najpopularniejszych narzędzi uczenia maszynowego w modelach predykcyjnych, jest wykorzystanie sztucznych sieci neuronowych. W tej części rozdziału omówimy sobie ogólnie działanie tego modelu.
+
+\subsection{Wprowadzenie do sieci neuronowych}
+
+Inspiracją do stworzenia sztucznych sieci neuronowych, podobnie jak w przypadku wielu innych wynalazów, były prawdziwe neurony. A tak naprawdzę do pojawiania się tych pojęć przyczyniły się w znacznej mierze prace badawcze z zakresu działania komórek neuronowych. Nie można bowiem czegoś naśladować jeśli nie ma się pojęcia o jego działaniu. Również trudno odmówić zasadności próbie stworzenia narzędzi obdarzonych ludzką inteligencją, jeśli narzędzia te powstają wg modelu opisującego źródła naszej własnej inteligencji. W każdym razie prowadzone działania pozwoliły poznać strukturę kómórki nerwowej na tyle dobrze, że możliwe stało się opisanie procesu jej działania wg poniższego schematu:
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.5]{images/neuron.png}
+\caption{Model neuronu}
+\end{figure}
+
+\begin{enumerate}
+\item Komórka nerwowa wyposażona jest jądro komorkowego, wiele końcówek komórki nazywane dendrytami oraz pojedynczą końcówekę nazywaną aksonem.
+\item Neurony komunikują się ze sobą wysyłając do siebie elektrochemiczne (elektryczne w komórce, chemicznie na łączeniu) sygnały.
+\item Neuron w trybie gotowości prowadzi nasłuchiwanie i czeka na pobudzenie elektryczne na dowolnym z jego dendrytów . 
+\item Kiedy zostanień pobudzony poprzez dowolny z dendrytów, wyznaczana jest wartość wewnętrznego stanu neuronu.
+\item Jeśli stan te przekracza pewien poziom progowy, neuron przechodzi w tryb aktywności i otrzymywaną energię zaczyna w postaci wzmocnnionej przekazywać.
+\item Jeśli neuron przechodzi w stan aktywności, to za pomocą jego aksonu przekazywane jest do sąsiadów rozważanego neuronu - sygnał w stanie pobudzenia.
+\item Połączenia prowadzące do aktywacji neuonów powodują wzmacnianie ich wpływu na końcowy egekt działania kodu.
+\end{enumerate}
+
+\begin{figure}
+\centering 
+\includegraphics[scale=0.5]{images/model_neuronu.png}
+\caption{Model neuronu McCullocha i Pittsa.} \label{fig.chapter.predictions.neuron.model}
+\end{figure}
+
+W roku 1943 opracowany został matematyczny model neuronu autorstwa  McCullocha i Pittsa opisane np. na grafice \ref{fig.chapter.predictions.neuron.model}. Wyszczególniam on pojęcia takie jak:
+\begin{itemize}
+\item Funkcja aktywacji - transformacja, której poddawany jest łączny sygnał z wejść, przed oceną przekroczenia progu aktywacji.  
+\item Wagi - parametry opisujące początkową ocenę sygnału odczytanego przez dendryty.
+\item Bias - opisujący przesunięcie poziomu aktywacji,
+\item Wejścia/ wyjścia opisujące początek i koniec przetwarzania.
+\item Wartwa ukryta czyli grupy neuronów nie stanowiących ani początkowego, ani końcowego etapu przekształcania. 
+\end{itemize}
+
+\subsubsection{Rodzaje sieci neuronowych}
+
+Najbardziej podstawowy podział neuronów odbywa się z uwagi na funkcję aktywacji:
+\begin{itemize}
+\item Adaline - funkcja aktywacji jest identycznością
+\item Perceptron - funkcja aktywacji jest signum lub podobną funkcją
+\item Sigmoidalny - funkcja aktywacji jest funkcja podobna do signum, ale różniczkowalna
+\begin{itemize}
+\item unipolarna $ f(x) = \frac{1}{1+e^{-\beta x}}$
+\item bipolarna $ f(x) = \frac{2}{1+e^{-\beta x}} -1$
+\end{itemize}
+\end{itemize}
+
+Znacząca siła sieci neuronowych (ANN) płynie z łączenia neuronów w duże struktury.
+
+Wyróżniamy:
+\begin{itemize}
+\item (FNN) Sieci gdzie neurony są połączone w warstwy i przetwarzane kolejno. Sieci w których nie ma cykli pomiędzy neuronami nazywamy sieciami jednokierunkowymi.
+\item (RNN)Sieci gdzie występują cykle nazywamy rekurencyjnymi. Lub sieciami z pamięcią, gdyż wtedy w sieciach ukrywają się informacje z przekształceń dla poprzednich danych.
+\item Dopasowane do zadań o szczególnej specyfikacji.
+\item (CNN) Sieci splotowe.
+\item Sieci głębokie.
+\end{itemize}
+
+\begin{remark*}
+Dla większości sieci neuronowych nie zostały opracowane matematyczne dowody zbieżności procesu uczenia. Zbieżność danego rodzaju sieci do danego problemu są z reguły potwierdzane na kanwie eksperymentów numerycznych.Rozwiązania za pomocą sieci neuronowych są zatem heurystykami.
+\end{remark*}
+
+\subsection{Sieci jednokierunkowe}
+W niniejszej części skupimy się na sieciach jednokierunkowych - sieciach najprostszych - i nie oszukując się - dogłębnie już przebadanych.
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{images/siec_neuronowa.jpg}
+\caption{Jednokierunkowa sieć neuronowa.} \label{fig.chapter.predictions.FNN.schemat}
+\end{figure}
+
+Nasze sieci neuronowe w większości przypadków działają w trybie uczenia nadzorowanego. Dysponujemy zatem zbiorem treningowym postaci $ Tren = \set{ (x,y), x \in \setR^n, y \in \setR^m}$, gdzie $x$ są wektorami cech objaśniających, a $y$ są wektorami cech objaśnianych. Przez $w$ oznaczmy wektor wektorów współczynników sieci (niekoniecznie macierz bo warstwy mogą być różnoliczne). Przez $F$ oznaczmy natomiast całe przekształcenie związane z siecią.
+
+Chcąc wyjaśnić zależność pomiędzy cechami $X$ a cechami $Y$ przypuszczamy istnienie funkcji $G$ takiej, że 
+\begin{equation*}
+y = G(x),
+\end{equation*}
+spełnionej dla każdego $x$ i każdego $y$. Następnie przypuszczamy, że funkcję $G$ daje sie aproksymować za pomocą funkcji z klasy $x \mapsto F(w,x)$. 
+
+Poszukujemy naszej odpowiedniej aproksymacji w następujący sposób:
+\begin{enumerate}
+\item Losujemy początkowy stan wektora wag.
+\item Bierzemy element ze zbioru treningowego $(x,y) \in Tren$ i przekształcamy go przez naszą sieć.
+\begin{equation*}
+\hat{y} = F(w,x).
+\end{equation*}
+\item Wyznaczamy błąd naszego układu wag, z reguły zdefiniowany jako błąd średniokwadratowy na wyjściu
+\begin{equation*}
+Error = \sum_{i = 1}^{m} (y_i - \hat{y}_i)^2
+\end{equation*}
+\item Poprawiamy układ wag celem zmiejszenia błędu sieci.
+\end{enumerate}
+
+\subsubsection{Algorytm wstecznej propagacji błędu}
+
+Wzór na błąd dla elementu zbioru treningowego $(x,y) \in Tren$ można zapisać jeszcze inaczej
+\begin{equation*}
+Error(w) = \sum_{i =1 }^{m} (y_i - F(w,x)_i)^2.
+\end{equation*}
+Zauważmy, że wszystkie wagi sieci mają aktywny udział w popełnianiu błędu. Widzimy również, że błąd popełniany przez kolejne neurony wpływa na błąd popełniany przez neurony kolejnych warstw. Jednak tylko dla wektorów ostatnich warstw możemy łatwo policzyć błąd
+\begin{enumerate}
+\item Błąd popełniony przez $i$-ty neuron ostatniej warstwy to $(y_i - \hat{y}_i)^2$,
+\item Błąd popełniany przez $j$-tą wagę tego neuronu powinien być proporcjonalny do jej udziału w utworzeniu $\hat{y}_i$,
+\item Błędy popełniane przez poprzedzające warstwy wyznaczane są jako sumy błędów popełnionych przez wagi dla danego wejścia w warstwie wyżej.
+\item Błąd popełniony przez $i$-ty neuron ostatniej warstwy to $(y_i - \hat{y}_i)^2$,
+\item Błąd popełniany przez $j$-tą wagę tego neuronu powinien być proporcjonalny do jej udziału w utworzeniu $\hat{y}_i$,
+\item Błędy popełniane przez poprzedzające warstwy wyznaczane są jako sumy błędów popełnionych przez wagi dla danego wejścia w warstwie wyżej.
+\end{enumerate}
+
+Wprowadzanie poprawki w wektorach wag jest zadaniem z zakresu optymalizacji wielowymiarowej. Najczęściej do jej rozwiązywania stosujemy algorytm najszybszego spadku wprowadzający poprawki wg. zasady (oznaczmy $w^{i,j}_k(t)$ jako $k$-tą wagę w $j$-tym neuronie $i$-tej warstwy w $t$-tej iteracji)
+
+\begin{equation*}
+w^{i,j}_k(t+1) = w^{i,j}_k (t) - \eta \ddx{w^{i,j}_k(t)} Error(w)
+\end{equation*}
+
+Współczynnik $-\eta$ jest parametrem danego procesu uczenia, $\eta \in (0,1)$. Zapewnia wykonanie przesunięcie wektora wag danego neuronu w kierunki przeciwnym do gradientu funkcji w tym punkcie (czyli przesunięcie ku największemu spadkowi).  Wprowadźmy następujące oznaczenia:
+\begin{description}
+\item[$M$] - ilość warstw sieci
+\item[$i$] - licznik warstw sieci
+\item[$N_i$] - ilość neuronów w i-tej warstwie
+\item[$j$] - licznik neuronów w danej warstwie
+\item[$k$] - licznik wejścia w danym neuronie. Ograniczony przez ilość neuronów warstwy poprzedniej
+\item[$x$] - wektor na wejściu sieci
+\item[$y$] - wektor na wyjściu sieci
+\item[$\hat{y}$] - odpowiedź sieci na wektor $x$
+\item[$x_i$] - wektor na wejściu i-tej warstwy sieci $x_1 = x$
+\item[$y_i$] - wektor na wyjściu i-tej warstwy sieci $y_i = x_{i+1}$ oraz $y_M = \hat{y}$.
+\item[$f$] - funkcja aktywacji neuronu
+\item[$F$] - funkcja odpowiadająca całości sieci
+\item[$s^{i,j}$] - wartość iloczynu skalarnego wag $j$-tego neuronu $i$ tej warstwy przez wektor wejścia $i$-tej warstwy
+\item[$w^{i,j}$] - wektor wag $j$-tego neuronu $i$ tej warstwy
+\item[$w^{i,j}_k$] - $k$-ta waga $j$-tego neuronu $i$-tej warstwy
+\item[$w^{i,j}_k(t)$] - $k$-ta waga $j$-tego neuronu $i$-tej warstwy w $t$-tej iteracji.
+\end{description}
+
+Wtedy 
+\begin{equation*}
+w^{i,j}_k (t+1) = w^{i,j}_k(t) - \eta \delta^{i,j} x^{i}_k
+\end{equation*}
+gdzie
+\begin{eqnarray*}
+\delta^{M,j} &= -( y_j - f(s^{M,j} ))  f'(s^{M,j}), \\
+\delta^{i,j} &= f'(s^{i,j}) \sum_{l=1}^{N_{i+1}} \delta^{i+1,l} w^{i+1,l}_j.
+\end{eqnarray*}
+
+\subsubsection{Czemu sieci działają}
+
+Aby zrozumieć motywację za działaniem sieci przypomnijmy sobie zasadę działania klasyfikatora liniowego (obrazek 
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{images/klasyfikator_liniowy.png}
+\caption{Schemat klasyfikatora liniowego}
+\label{fig.chapter.predictions.linear.ann}
+\end{figure}
+
+Natomiast w przypadku gdy dane są nieseparowalne liniowo:
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{images/nieseparowalne_dane.png}
+\caption{Przykład danych nie separowalnych}
+\label{fig.chapter.predictions.linear.ann.not.separable}
+\end{figure}
+
+Sieci neuronowe uzyskują wyraźną przewagę nad klasyfikatorem liniowym.
+\begin{itemize}
+\item Funkcje działającej w neuronach są ciągłe, różniczkowalne, odwracalne etc.
+\item Sieć całościowo dokonuje dyfeomorficznego przekształcenia wielowymiarowej przestrzeni $\setR^n$
+\item Prowadzi to transformacji danych do postaci liniowo separowalnej
+\item Dzieje sie w przestrzeniach o takiej ilości wymiarów, że nie są w stanie pokazać tego żadnego wykresy
+\end{itemize}
+
+Nie każda sieć potrafi wytworzyć odpowiedni rodzaj dyfeomorfizmu. Najważniejszym uczestnikiem jest funkcja aktywacji oraz sposób w jaki $x$ jest wprowadzany do niej. Przyjrzyjmy się \ref{fig.chapter.predicition.separability.2} oraz temu jak po wzroście ilości wymiarów nasze zadanie staje wydatnie separowalne \ref{fig.chapter.predicition.separability.3}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{images/nieseparowalne_dane2.png}
+\caption{Przykład braku separowalności danych} \label{fig.chapter.predicition.separability.2}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.15]{images/jednak_separowalne.png}
+\caption{Przykład jednak separowalnych danych} \label{fig.chapter.predicition.separability.3}
+\end{figure}
+
+\subsection{Sieci rekurencyjne}
+
+Wszystkie sieci, które nie są jednokierunkowymi - są sieciami rekurencyjnymi. W sieciach tych występują tzw. sprzężenia zwrotne, a więc informacje wychodzące z pewnego neuronu mogą jeszcze do niego powrócić. Sieci takiej postaci okazują się dobrze modelować zjawiska z pamięcią - czyli np. szeregi czasowe, w których predykcja zależy silnie od wcześniejszych informacji o zjawisku. Innym obszarem zastosowań tego rodzaju sieci są problemy optymalizacyjne. Najpopularnieszym rodzajem sieci tego typu są Sieci Hopfielda
+
+\subsubsection{Sieci Hopfielda}
+
+%TODO uzupełnić
+
+\subsection{Sieci splotowe}
+
+%TODO uzupełnić
+
+\subsection{Sieci głębokie}
+
+Głebokie sieci neuronowe stanowią jeden z najbardziej (jeśli nie najbardziej) obiecujących postępów technologicznych naszych czasów. Sieci tego rodzaju pozwoliły na uzyskanie znakomitych komputerowych rozwiązań dla bardzo trudnych problemów komputerowych.
+
+Rozważmy kilka problemów, z którymi można spotkać się w codziennym życiu, lub pracy zawodowej.
+
+\begin{problem*}
+Jednym z najprężniej rozwijanym działów komputerowych, i jednocześnie posiadającym bardzo znaczne fundusze, jest sektor gier komputerowych. Wiele z tych opiera się w swoim działaniu o rywalizację pomiędzy graczem, a komputerowo wygenerowanym przeciwnikiem. Jednym z podstawowych wskazań postępu rozwoju danej gry jest określenie stopnia inteligencji jaką wykazują się cyfrowi przeciwnicy. Biorąc pod uwagę, że człowiek jest istotą uczącą się - jednego można być pewnym. Wraz ze wzrostem umiejętności gry człowieka - jego oczekiwania w zakresie cyfrowych przeciwnków rosną jednakowo.
+\end{problem*}
+
+\begin{problem*}
+Rozważmy inny problem. Gry są pewnego rodzajami symulacji, w których znajdujemy się w sytuacjach dla siebie nietypowych.
+\begin{itemize}
+\item Wojna, walka - choć gry tego dotyczące są bardzo popularne, niewiele z nas ma życzenie wziąć udział w prawdziwym konflikcie zbrojnym,
+\item Zarządzanie dużym przedsiębiorstwem - tu często chętnie byśmy znaleźli w sytuacji pewnego bogatego człowieka, zmuszonego do zarządzania przedsiębiorstwem. Choć znaczna część nas by łatwo pogodziła sie z dodatkowymi pieniędzmi, już mniej chętnie podjęłaby się obowiązków pełnionych przez tego człowieka.
+\item Wyścigi sporty -  podobnie pozwala nam to sprawdzać się w sytuacjach, które normalnie wymagałyby od nas tytanicznej pracy, i jeszcze zostawiały nas mocno zmęczonymi.
+\end{itemize}
+Wirtualne symulacje mogą jednak dotyczyć nie naszej rozrywki, ale naszego szkolenia. Wyobraźmy sobie, żołnierzy ćwiczących na symulatorach, manewry samolotem, czołgiem, łodzią podwodną lub bezpośrednią walką, strzelanie. Jeśli symulacje treningowe okażą się wysokiej jakości - być może ocalą później życie żołnierza w boju. Zapewnią mu rutynę, którą potrzebuje by uzyskać wysoki stopień skuteczności. Co ze szkoleniami dla policji, straży pożarnej?
+\end{problem*}
+
+\begin{problem*}
+Kolejnym popularnym ostatnio problemem jest powracający temat pojazdów autonomicznych. Badania statystyków pokazały, że przeciętny amerykanin w czasie swoje życia spędza ponad 2 lata w samochodzie, przemieszczając się. Automatyczne sterowane pojazdy to nie tylko oszczędność czasu, bo człowiek ten zamiast prowadzić samochód mógłby realizować inne cele 
+\begin{itemize}
+\item wykonać pewne zadania w swojej pracy,
+\item poczytać książkę,
+\item monitorować swoje życie społeczne (?! na to akurat szkoda czasu),
+\item porozmawiać z rodziną (prowadząc samochód mamy ograniczone pole do takich akcji).
+\end{itemize}
+To poza tym wzrost bezpieczeństwa podróży (zawodny człowiek, zastąpiony przez niezawodne maszyny), ale oszczędność paliwa 
+\begin{itemize}
+\item Samochód może ograniczyć prędkość wiedząc, że zbliża się do czerwonego światła (choćby ono samo się jeszcze nie zapaliło),
+\item Samochód może zmienić trasę na podstawie danych o ruchu, czy deklarowanej trasy innych pojazdów.
+\item Może roztropnieć zarządzać przyśpieszeniem redukując skoki mocy silnika.
+\end{itemize}
+Wszystkie te rzeczy są do osiągnięcia wraz z konstrukcją takiego pojazdu. Podstawowym celem poprzedzającym jego powstanie - jest powstanie algorytmów pozwalającym samochodowi widzieć. Widzenie to bowiem coś więcej niż patrzenie. Patrzeć potrafi kamera, czy oko. Jednak dopiero umysł człowieka jest w stanie uporządkować te informacje by dostrzec przeszkodę, możliwość czy zagrożenie. Algorytmy automatycznego rozpoznawania na obrazach są tu nieodzowne.  
+\end{problem*}
+
+\begin{problem*}
+A może komputer który wspiera proces leczania, poprzez asystowanie lekarzowi w zakresie diagnostyki, lub wczesnego pogorszenia stanu zdrowia.
+\end{problem*}
+
+\begin{problem*}
+A może komputer komponujący nową muzykę? Albo muzykę podobną do danej. Może program, który próbuje zinterpretować dany utwór tak jakby jego cover wykonywał zespół Queen, czy Elvis Presley lub Frank Sinatra.
+\end{problem*}
+
+\begin{problem*}
+A może algorytm, który rozpoznaje trendy na rynkach finansowych? Algorytm, który znajduje tę jedną prostą sztuczkę przez którą maklerzy z całego świata zaczynają Ciebie nienawidzić. Kto by nie chciał czegoś takiego.
+\end{problem*}
+
+Na całym świecie poszukiwane są obecnie różne konfiguracje głębokich sieci neuronowych i rozpoznawane w zakresie ich zastosowania do rozwiązania między innymi problemów wylistowanych powyżej.
+
+Rodzi się pytanie czego potrzeba aby stosować głębokie uczenie i głębokie sieci. Odnosząc sie do omówionych juz jednokierunokowych sieci neuronowych - w sieciach głębokich mamy doczynienia z 
+\begin{enumerate}
+\item Dużo większej liczby neuronów,
+\item Dużo większej liczby warstw (miały być głębokie),
+\item Bardziej skomplikowanych połączeń między warstwami (nie wszystko ze wszystkim bez przekształceń),
+\item Większa moc obliczeniowa,
+\item Zaufanie strukturom sieci na wyznaczenie istotnych cech.
+\end{enumerate}
+
+Do przeprowadzania analizy tymi metodami niezbędne jest zatem kilka elementów:
+\begin{itemize}
+\item Posiadanie komputera (lub odpowiedniego dostępu) do komputera o znacznej mocy obliczeniowej,
+\item Przydatna jest wiedza z zakresu algebry liniowej i przekształceń wektorów macierzy - w żaden bowiem sposób nie umiemy uciec od zagadnień wstępnego preprocessingu danych,
+\item Podstawowa wiedza z zakresu rachunku prawdopodobieństwa - gdyż proces uczenia jest w taki właśnie sposób rozumiany,
+\item Solidna wiedza z zakresu technik uczenia maszyn. Poprzez ten punkt przydatna jest również wiedza z zakresu matematycznej optymalizacji wielowymiarowej.
+\item Przydaje się wiedza z programowania w Pythonie, biorąc pod uwagę, że Tensorflow jest głównym narzędziem uczenia głębokiego.
+\end{itemize}
+
+W niniejszej pozycji nie będziemy skupiać się na rozpisaniu całego uczenia głębokiego - postaramy się skupić na wyjaśnieniu ogólnego konceptu ich użycia, oraz omówić istniejące zastosowania ich w tematyce analizy danych wielowymiarowych - w tym i analizy np. obrazów - które są szczególną postacią danych wielowymiarowych.
+
+\chapter{Modele decyzyjne Markowa}
+
+\section{Podejmowanie decyzji w warunkach niepewności}
+
+W dalszej części niniejszego skrytpu zastanawiamy się nad szerszą perspektywą związaną z predykcją. Wszystko to zaczyna się od istotnego pytania:
+
+\textit{Do czego potrzebujemy predykcji?.}
+
+Predykcja przecież czemuś musi służyć, jakiemuś szerszemu celowi.
+Co możę być celem predykcji?
+
+\begin{itemize}
+\item W przypadku prognozy pogody może to podpowiedzieć czy należy wziąć parason, rozpocząć żniwa, czy też zakupić wycieczkę nad polskie morze,
+\item W przypadku wartości giełdowej, pozwoli nam to na odpowiedzenie na pytanie czy kupić jakiś produkt, sprzedać lub przechować,
+\item W przypadku dobowej sprzedaży w jakimś sklepie, pozwoli nam to okreslić ilości wymaganych zapasów i w efekcie zminimalizować koszty składowania i psucia się produktów. 
+\end{itemize}
+
+Podsumowująć powyższą listę można dojść do prostego wniosku. Dzięki predykcji, podstawową umiejętność którą zdobywamy jest możliwość podejmowania decyzji dotyczących przyszłości. Biorąc pod uwagę to, że predykcja jest obarczona modelami probabilistycznymi należy nazwać to podejmowaniem decyzji w warunkach niepewności. Powiedzmy sobie zatem co nie co o modelach podejmowania decyzji.
+
+\subsection{Najprostszy modele podejmowania decyzji}
+
+W najprostszym modelu podejmowania decyzji można wyszczególnić jedynie kilka elementów:
+\begin{itemize}
+\item Pojedynczy model predykcyjny, generujący predykcję przyszłej wartości zjawiska, oraz
+\item Funkcje przypisującą do konkretnych przedziałów wartości możliwe decyzje. Funkcje takie najczęściej mają konstrukcje progową. Jeśli przekroczona jest wartość prognowa należy wykonać pewną akcję. Jeśli przeciwnie, wykonać drugą akcję. 
+\end{itemize}
+
+Istotnie nie ma tu wielkiego poziomu skomplikowania. I mogłoby się wydawać, że prostota ta zapewnia nam wszystko co jest na potrzebne. Zapewne tak by właśnie było w idealnym wszechświecie, gdzie odnajdujemy jeden najwłaściwszy model predykcyjny, gdzie estymujemy właściwe statystyki, a dane testowe są doskonale reprezentatywne dla zjawiska. Jak łatwo się domyslić - w praktyce - nie mamy możliwości pracowania z tak dobrymi modelami predykcyjnymi, by ten najprostszy model podejmowania decyzji okazał się trafionym.
+
+Trzeba rozpocząć ogólniejsze rozważania.
+
+\subsection{Nie tak już proste modele podejmowania decyzji} 
+
+Aby dostrzeć inne rodzaje sposobu podejmowania decyzji trzeba się zastanowić. By dostrzec model, trzeba zauważyć jego wdrożenia i stworzyć uogólnienie. To z kolei rodzi pytanie:
+
+\textit{Czy my już kiedyś podejmowaliśmy decyzje w warunkach niepewności?.}
+
+Jesteśmy w stanie wymienić przynajmniej jeden przypadek. W ramach tego skryptu już wielokrotnie podejmowaliśmy decyzję dotyczącą wyboru danego modelu predykcyjnego. Teraz drugie pytanie:
+
+\textit{Na jakiej podstawie podjęliśmy decyzje co do wyboru modelu?}
+
+Na różnych etapach były to różne przesłanki. Można je zgrupować w następujące podgrupy:
+
+\begin{itemize}
+\item Wybieraliśmy funkcję błędu i znajdowaliśmy dla nich optymalne parametry modelu (minimalizacja funkcjonału błędu). Potencjalnie rozważać możemy różne jej postacie.
+\item Ocenialiśmy jakość modeli na podstawie np. wykresów diagnostycznych, czy cech statystycznych ($R^2$),
+\item Rozważaliśmy różne stopnie modeli i stosowaliśmy funkcjonały błędu z poprawkami na kształt modelu (AIC, AICC, BIS),
+\item W reszcie testowaliśmy efekty predykcji na zbiorze testowym, chcąc porównać różne modele o zupełnie różnych konstrukcjach.
+\end{itemize}
+
+Jakie stąd można wysnuć wnioski? Do podjęcia decyzji wykorzystaliśmy wiele informacji, o różnym charakterze, wyliczonych na podstawie różnych formuł. Podobny algorytm możemy zastosować w kontekście podejmowania decyzji na podstawie naszych modeli predykcyjnych. 
+
+\begin{problem*}
+Rozważmy przypadek w którym mamy zespół, który ma wesprzeć podjęcie decyzji biznesowej w firmie. Zespoł dzieli się i wytwarza kilka modeli - które ocenia jako obiecujące. Wsród nich można oczywiścia wskazać model najlepszy. Jaką podjąć decyzje na podstawie tych informacji.
+\end{problem*}
+
+Jeszcze chwilę temu podjęlibyśmy decyzję wskazaną przez najlepszy model, sposród tych wytworzonych przez różne podzespoły. Obecnie jednak dostrzegamy już w tym, że wszelkie informacje ozyskane przez nieco gorsze modele byłyby odrzucone. Zatem obecnie już decyzję podjęlibyśmy patrząc na informacje zwrócone przez wszystkie modele predykcyjne i na tej podstawie podjęlibyśmy łączną decyzję.
+
+\begin{problem*}
+Przyjmijmy, że mamy 7 modeli predykcyjnych. Na tej podstawie musimy podjąć decyzję biznesową. Model wykazujący się w testach najniższym błędem każde podjać decyzję A. Pozostałe 6 modeli wskazuje że należy podjąć decyzję B. Czy podjęcie ostatecznie decyzji B jest bezzasadne?
+\end{problem*}
+
+\begin{definition}[Prosty model podejmowania decyzji]
+Rozważmy model podejmowania decyzji składający się z 
+\begin{itemize}
+\item Rodziny modeli predykujących jedną zmienną,
+\item Rodziny funkcji przypisujących akcję do wartosci zmiennej z danego modelu predykującego, oraz
+\item Funkcji tworzącej łączną decyzję na podstawie decyzji płynących z pojedynczych modeli (syntezator).
+\end{itemize}
+\end{definition}
+
+W dalszej części omówimy zupełnią inną metodą podchodzenia do tematu modeli decyzyjnych, opartą o teorię Łańcuchów Markowa.
+
+\section{Preliminaria do modeli decyzycjnych Markowa}
+
+\subsection{Łańcuchy Markowa, Własność Markowa}
+
+Zanim przejdziemy do samych procesów decyzyjnych przypomnijmy czym są Procesy Markova lub inaczej nazywane Łańcuchy Markowa. 
+
+Rozpatrzmy ciąg zmiennych losowych $\sequence{X_n}{n\in \setN }{}$ określonych na tej samej przestrzeni probabilistycznej $(\Omega, \sigmaalgebra{F},P)$. Zmienne te niech mogą przyjmować jedynie skończoną liczbę wartości (nazywane stanami).
+
+\begin{definition}[Własność Markowa]
+Powiemy, że ciąg zmiennych losowych (takich jak wyżej) ma własność Markowa (jest łańcuchem Markowa) gdy dla każdego $n \in \setN$ oraz każdego ciągu stanów $s_0, s_1, \ldots, s_n \in S$ mamy
+$$
+P(X_n = s_n | X_{n-1} = s_{n-1}, X_{n-2} = s_{n-2}, \ldots, X_1 = s_1) = 
+P(X_n = s_n | X_{n-1} = s_{n-1}),
+$$ 
+czyli gdy prawdopodobieństwa znalezienia sie w danym stanie zależą jedynie od stanu go poprzedzającego.
+\end{definition}
+
+\begin{definition}[Macierz stochastyczna]
+Macierz gromadząca prawdopodobieństwa przejścia z i-tego stanu do j-tego stanu taka, że sumy poszczególnych wierszy wynoszą $1$ to macierz taką nazywamy macierzą przejścia lub macierzą stochastyczną.
+\end{definition}
+
+\subsection{Skończone gry z światem i agentem.}
+
+Modele decyzyjne poruszają się w tzw. skończonych światach. Ponadto wyszczególnia się w nich dwie role świat oraz agentów (czasami konkurujących ze sobą). 
+\begin{itemize}
+\item Świat reprezentuje ogół stanów w jakich znajdują się wszystkie z nim znajdujące sie twory. Często nie cała informacja o świecie jest dostępna agentom.
+\item Agenci są inteligentnymi i zdolnymi do podejmowania decyzji konstruktami osadzonymi w danym świecie. 
+\end{itemize}  
+
+\begin{problem*}
+Rozważmy następujące zagadnienie. Mamy dostępny następujący świat jak na grafice \ref{fig-grid-deterministic}. Załóżmy, że mamy dostępne następujące składowe tego modelu:
+\begin{itemize}
+\item 4 akcje, które można wykonać to ruch w górę-dół-lewo-prawo.
+\item Efekty akcji, powodujące ruch o ile tylko pole w danym kierunku jest dostępne oraz pozostanie w tym samym polu jeśli pole nie jest dostępne. \ldots
+\item 2 stany pochłaniające \ldots
+\item Pytanie o akcje które należy wykonać aby przejść ze startu do skarbu w najkrótszy sposób?
+\end{itemize}
+\end{problem*}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/deterministyczny.png}
+\caption{Skończony świat deterministyczny} \label{fig-grid-deterministic}
+\end{figure}
+
+Mamy dostępne dwa rozwiązania optymalne \ref{fig-grid-deterministic-1sol} oraz \ref{fig-grid-deterministic-2sol}.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/det_solution1.png}
+\caption{Rozwiązanie optymalne 1} \label{fig-grid-deterministic-1sol}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/det_solution2.png}
+\caption{Rozwiązanie optymalne 2} \label{fig-grid-deterministic-2sol}
+\end{figure}
+
+\section{Modele decyzyjne Markova}
+
+Jak mawia klasyk:
+
+\begin{quotation}
+Chcieliśmy dobrze, wyszło jak zawsze. (zwykle)\\
+\begin{flushright}
+Wiktor Czernomyrdin, polityk rosyjski (1938-2010).
+\end{flushright}
+\end{quotation}
+
+Prowadzi to do pewnej refleksji, którą mamy po przemyśleniu skończonych światów deterministycznych. Obserwujemy, że akcje które podejmujemy:
+\begin{itemize}
+\item Mogą powodować zamierzony efekt, przeciwny efekt, inny efekt, niezamierzony efekt lub nawet brak efektu.
+\item Efekty akcji należy rozumieć w kanwie rachunku prawdopodobieństwa.
+\item Rozważać dalej będziemy świat, rządzone przez prawdopodobieństwa - tzw. {Światy (modele) stochastyczne}.
+\end{itemize}
+
+\begin{problem*}
+Rozważmy poprzednio omówiony świat (rysunek \ref{fig-grid-deterministic}) z następującym zestawem zasad:
+
+\begin{itemize}
+\item Bez zmian - 4 akcje, efekty akcji, 2 stany pochłaniające \ldots
+\item Wybrana akcja $a$ wykonuje się poprawnie z pr-stwem $0.8$,
+\item Z pr-stwem $0.1$ wykonuje się ona prostopadle w lewo względem zamierzonej tj. zamiast w dół to w prawo.
+\item Z pr-stwem $0.1$ (brakujące prawdopodobieństwo) wykonana zostanie akcja prostopadle w prawo względem zamierzonej tj. zamiast w lewo to w górę.
+\end{itemize}
+\end{problem*}
+
+\begin{exercise*}
+Rodzi się następujące pytanie. Jakie jest prawdopodobieństwo, że realizując kolejno nasze akcje z wersji świata deterministycznego dotrzemy do skarbu?
+\end{exercise*}
+
+\begin{proof}[Rozwiązanie]
+Występują dwie niezależne drogi, w których nasza strategia zadziała. Pierwsza gdy wszystkie nasze akcje wykonają się poprawnie
+$$
+0.8 \cdot 0.8 \cdot 0.8 \cdot 0.8 \cdot 0.8 = 0.8 ^5 = 0.32768.
+$$
+Oraz druga gdy pomimo błędów dotrzemy do rozwiązania
+$$
+0.1 \cdot 0.1 \cdot 0.1 \cdot 0.1 \cdot 0.8 = 0.8 \cdot 0.1^4 = 0.00008. 
+$$
+
+Zatem ostatecznie nasze prawdopodobieństwo to: $0.32768 + 0.0008 = 0.32776$. 
+\end{proof}
 
 
+\begin{definition}[Proces decyzyjny Markowa]
+Procesem decyzyjnym Markova nazywać będziemy model składający się z 
+\begin{itemize}
+\item Stanów (skończona ilość) - pełne opisy położenia obiektu w świecie. ($s \in S$),
+\item  Akcje (zbiór akcji) - wybory które można podjąć. Tu wystepować mogę dwie odmiany.
+\begin{itemize}
+\item Globalny zbiór akcji $A$,
+\item lub lokalny zbiór akcji dostępnych w danym stanie $A(s)$.
+\end{itemize}
+\item Funkcji przejścia $T \colon S \times A \times S \to [0,1]$ zgodna z formułą:
+$$
+T(s, a, s') = P( s' | s, a ).
+$$
+Czyli oddający prawdopodobieństwa przejścia ze stanu $s$ do stanu $s'$ w efekcie wykonania akcji $a$. Funkcja ta stanowi opis świata, zbió© wszystkich praw jego fizyki,
+\item  Nagrody , które mogą być wprowadzano na jeden z 3 sposobów:
+\begin{itemize}
+\item Nagroda za przebywanie w danym stanie $R(s)$,
+\item Nagroda za przebywanie w danym stanie i podjęcia danej decyzji $R(s,a)$, oraz
+\item Nagroda za przejście ze stany $s$ do stanu $s'$ w skutek decyzji $a$.
+\end{itemize}
+\end{itemize}
+Do ważnych cech procesów decyzyjnych Markowa zaliczamy:
+\begin{itemize}
+\item Własność Markova (niezależność od stanów poprzedzających). Co inaczej oznacza, że liczy się tylko teraźniejszość. Tylko bieżący stan ma wpływ na określanie prawdopodobieństw. Oraz
+\item Stacjonarność (niezależność od czasu). Łatwo tłumaczona na warunek określający, że \textit{Prawa fizyki się nie zmieniają} - albo po prostu, że zasady są stałe.\footnote{Dlatego funkcja przejścia nie posiada }
+\end{itemize}
+\end{definition}
 
+Jeśli powyższe zatem definiuje nam problem to wyjaśnijmy również czym jest rozwiązanie takiego problemu:
 
+\begin{definition}[Polityka]
+Polityką nazwiemy dowolną funkcję $\pi: S \to A$, czyli przypisującą akcję do stanów. Przez naszę funkcję rozumiemy zatem relację grupującą trójki 
+$$
+\pi = \{ <s,a,r>, \ldots \}.
+$$
+\end{definition}
 
+\begin{definition}[Rozwiazanie problemu decyzyjne Markowa]
+Rozwiązaniem problemu decyzyjne Markowa nazwiemy tę funkcję $\pi^\ast: S \to A$, nazywaną polityką optymalną, która spośród zbioru wszystkich polityk danego problemu maksymalizuje wartość oczekiwaną nagrody.
+\end{definition}
 
+Ważnym jest zroumienie pewnej szczególnej różnicy
 
+\begin{remark*}
+Polityka to nie ciąg akcji zapewniajacy zysk (nie ciąg komend) - ale wskazówka (nakaz) co zrobić gdy znajdziemy się w określonym stanie (nawet gdy znaleźliśmy się w nim przez przypadek).
+\end{remark*}
 
+Niewątpliwie najtrudniejszą częścią całej tej teorii jest odszukanie polityki optymalnej. Nie jest to tak łatwe jakby się wydawało  W przypadku procesu decyzyjnego Markowa nagroda za dobre decyzje często może przyjść z bardzo dużym opóźnieniem. Rozważmy kilka przykładów
 
+\begin{example}[Przykłady]
 
+Rozważmy kilka obrazujących przykładów:
+\begin{itemize}
+\item Co zrobić mając do wyboru pójście na przyjęcie do znajomych względem uczenia się do egzaminu? Przyjęcie ze znajomymi może okazać się bardzo udane i wartość natychmiastowej nagrody może być wysoka - natomiast teoria z tego egzaminu - może się ostatecznie okazać nigdy nie zastosowana w późniejszym życiu. Z drugiej strony może okazać się, że nauka do egzaminu pozwoli nam w dalszej perspektywie uzyskać znacząco lepszą pracę i osiągnąć sukcesy w przyszłości.
+\item Jaki ruch na szachownicy wykonać? W końcu być może 3 ruch spowodować, że 40 ruchów później partia będzie przegrana lub wygrana.
+\item Jaki komputer, samochód, telefon, ubezpieczenie wybrać? W końcu tyle zmiennych może warunkować co się stanie w przyszłości.
+\end{itemize}
+
+\end{example}
+
+\begin{problem*}
+Rozważmy kolejną wariację naszego problemu. Do tej pory większość stanu nie niosła ze sobą żadnej nagrody. Co się stanie kiedy to zmienimy
+\end{problem*}
 \addcontentsline{toc}{chapter}{Skorowidz}
 \printindex
 
