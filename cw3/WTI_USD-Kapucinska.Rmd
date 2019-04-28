@@ -1,6 +1,6 @@
 ---
 title: "Zadanie 3"
-author: "Justyna Kapuciñska"
+author: "Justyna KapuciÅ„ska"
 date: "22 kwietnia 2019"
 output: html_document
 ---
@@ -9,9 +9,9 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-Raport dotyczy analizy ceny WTI/USD w dniach 2019-01-02 - 2019-03-15 z uwzglêdnieniem ceny otwarcia, zamkniêcia, maksymalnej i minimalnej. 
+Raport dotyczy analizy ceny WTI/USD w dniach 2019-01-02 - 2019-03-15 z uwzglÄ™dnieniem ceny otwarcia, zamkniÄ™cia, maksymalnej i minimalnej. 
 ## Pobranie i wczytanie danych
-Dane pochodz¹ ze strony histdata.com. 
+Dane pochodzÄ… ze strony histdata.com. 
 
 ```{r}
 dane=read.csv2("Kapucinska_WTI_USD.csv")
@@ -23,9 +23,9 @@ godz20=matrix(c(sort(dane$Data[dane$Godzina.=="20:00"]),dane$Otwarcie.[dane$Godz
 
 
 ## Wykres otwarcia 
-Poni¿sze wykresy zosta³y sporz¹dzone w oparciu o kurs otwarcia. 
+PoniÅ¼sze wykresy zostaÅ‚y sporzÄ…dzone w oparciu o kurs otwarcia. 
 ```{r}
-wyk8=plot(godz8,type="l",xlab="Dzieñ", ylab="Watroœæ",main="Otwarcie godziny")
+wyk8=plot(godz8,type="l",xlab="DzieÅ„", ylab="WatroÅ›Ä‡",main="Otwarcie godziny")
 wyk12=lines(godz12,col="2", lty=2)
 wyk16=lines(godz16,col="3", lty=3)
 wyk20=lines(godz20,col="4", lty=4)
@@ -33,15 +33,15 @@ legend("bottomright", c("godzina 8:00", "godzina 12:00", "godzina 16:00","godzin
 ```
 
 
-## Wykres zamkniêcia
-Poni¿sze wykresy zosta³y sporz¹dzone w oparciu o kurs zamkniêcia.
+## Wykres zamkniÄ™cia
+PoniÅ¼sze wykresy zostaÅ‚y sporzÄ…dzone w oparciu o kurs zamkniÄ™cia.
 ```{r}
-godz8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Zamkniêcie.[dane$Godzina.=="08:00"]),53,2)
-godz12=matrix(c(sort(dane$Data[dane$Godzina.=="12:00"]),dane$Zamkniêcie.[dane$Godzina.=="12:00"]),53,2)
-godz16=matrix(c(sort(dane$Data[dane$Godzina.=="16:00"]),dane$Zamkniêcie.[dane$Godzina.=="16:00"]),47,2)
-godz20=matrix(c(sort(dane$Data[dane$Godzina.=="20:00"]),dane$Zamkniêcie.[dane$Godzina.=="20:00"]),51,2)
+godz8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$ZamkniÄ™cie.[dane$Godzina.=="08:00"]),53,2)
+godz12=matrix(c(sort(dane$Data[dane$Godzina.=="12:00"]),dane$ZamkniÄ™cie.[dane$Godzina.=="12:00"]),53,2)
+godz16=matrix(c(sort(dane$Data[dane$Godzina.=="16:00"]),dane$ZamkniÄ™cie.[dane$Godzina.=="16:00"]),47,2)
+godz20=matrix(c(sort(dane$Data[dane$Godzina.=="20:00"]),dane$ZamkniÄ™cie.[dane$Godzina.=="20:00"]),51,2)
 
-wyk8=plot(godz8,type="l",xlab="Dzieñ", ylab="Watroœæ",main="Zamkniêcie godziny")
+wyk8=plot(godz8,type="l",xlab="DzieÅ„", ylab="WatroÅ›Ä‡",main="ZamkniÄ™cie godziny")
 wyk12=lines(godz12,col="2", lty=2)
 wyk16=lines(godz16,col="3", lty=3)
 wyk20=lines(godz20,col="4", lty=4)
@@ -49,18 +49,18 @@ legend("bottomright", c("godzina 8:00", "godzina 12:00", "godzina 16:00","godzin
 ```
 
 
-## Wykres porównania 
-Poni¿szy wykres przedstawia porównanie otwarcia i zamkniêcia godziny.
+## Wykres porÃ³wnania 
+PoniÅ¼szy wykres przedstawia porÃ³wnanie otwarcia i zamkniÄ™cia godziny.
 ```{r}
 otw8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Otwarcie.[dane$Godzina.=="08:00"]),53,2)
-zam8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Zamkniêcie.[dane$Godzina.=="08:00"]),53,2)
-wyko8=plot(otw8,type="l",xlab="Dzieñ", ylab="Wartoœæ", main="Porównanie zamkniêcia i otwarcia godziny 8:00")
+zam8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$ZamkniÄ™cie.[dane$Godzina.=="08:00"]),53,2)
+wyko8=plot(otw8,type="l",xlab="DzieÅ„", ylab="WartoÅ›Ä‡", main="PorÃ³wnanie zamkniÄ™cia i otwarcia godziny 8:00")
 wykz8=lines(zam8,col="2",lty=2)
-legend("bottomright",c("otwarcie","zamkniêcie"), col= 1:2, lty=1:2)
+legend("bottomright",c("otwarcie","zamkniÄ™cie"), col= 1:2, lty=1:2)
 ```
 
 ## Zadanie 3
-Wybieram jedn¹ zmienn¹- otwarcie godziny 08:00
+Wybieram jednÄ… zmiennÄ…- otwarcie godziny 08:00
 ```{r}
 dane1=dane[,1:3]
 head(dane1)
@@ -71,27 +71,27 @@ Model z trendem liniowym dla wszystkich danych
 ```{r}
 model=lm(Otwarcie.[dane1$Godzina.=="08:00"]~Dni[dane1$Godzina.=="08:00"],data=dane1)
 summary(model)
-plot(dane1$Data[dane1$Godzina.=="08:00"],dane1$Otwarcie.[dane1$Godzina.=="08:00"],pch=20, xlab="Data",ylab="Wartoœæ", main="Otwarcie godziny 8:00")
+plot(dane1$Data[dane1$Godzina.=="08:00"],dane1$Otwarcie.[dane1$Godzina.=="08:00"],pch=20, xlab="Data",ylab="WartoÅ›Ä‡", main="Otwarcie godziny 8:00")
 abline(model, col = "red", lwd = 2)
 summary(model)
 ```
 
-Rozdzielam model na dwa zbiory: ucz¹cy i testuj¹cy
+Rozdzielam model na dwa zbiory: uczÄ…cy i testujÄ…cy
 ```{r}
 N=15
-ucz¹cy= data.frame(cbind(data=dane1$Data[1:(N-1)],otwarcie=dane1$Otwarcie.[1:(N-1)]))
+uczÄ…cy= data.frame(cbind(data=dane1$Data[1:(N-1)],otwarcie=dane1$Otwarcie.[1:(N-1)]))
 testowy=data.frame(cbind(data=dane1$Data[N:length(dane1$Data)],otwarcie=dane1$Otwarcie.[N:length(dane1$Otwarcie.)]))
 ```
 Funkcja prognozy
 ```{r}
-modeld=lm(ucz¹cy$otwarcie~ucz¹cy$data)
+modeld=lm(uczÄ…cy$otwarcie~uczÄ…cy$data)
 summary(modeld)
-wspó³czynnik=coef(modeld)
-prognoza= wspó³czynnik[2]*testowy$data+wspó³czynnik[1]
+wspÃ³Å‚czynnik=coef(modeld)
+prognoza= wspÃ³Å‚czynnik[2]*testowy$data+wspÃ³Å‚czynnik[1]
 
-plot(ucz¹cy$data, ucz¹cy$otwarcie, xlab="Data", ylab="Otwarcie", main="Regresja")
+plot(uczÄ…cy$data, uczÄ…cy$otwarcie, xlab="Data", ylab="Otwarcie", main="Regresja")
 abline(modeld, col="red", lwd= 1)
-text(mean(ucz¹cy$data),mean(ucz¹cy$otwarcie),round(summary(modeld)$r.squared,3),pos=4)
+text(mean(uczÄ…cy$data),mean(uczÄ…cy$otwarcie),round(summary(modeld)$r.squared,3),pos=4)
 ```
 
 Wykres prognozy
@@ -100,7 +100,7 @@ plot(testowy$data, testowy$otwarcie, ylim=c(min(prognoza),max(testowy$otwarcie))
 lines(testowy$data, prognoza,col="red")
 ```
 
-B³¹d œredniokwadratowy
+BÅ‚Ä…d Å›redniokwadratowy
 ```{r}
 mean(((prognoza-testowy$otwarcie)^2))
 ```

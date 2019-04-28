@@ -1,6 +1,6 @@
 ---
 title: "Zadanie4"
-author: "Justyna Kapucińska"
+author: "Justyna KapuciĹ„ska"
 date: "26 kwietnia 2019"
 output: html_document
 ---
@@ -15,39 +15,39 @@ dane=read.csv2("Kapucinska_WTI_USD.csv")
 ```
 
 #Pierwszy proces filtrowania potokowego
-Wybiorę notowania ze stycznia, utworzę nową kolumnę (różnice ceny zamknięcia i otwarcia) oraz wybiorę notowania dla których różnica jest większa od zera.
+WybiorÄ™ notowania ze stycznia, utworzÄ™ nowÄ… kolumnÄ™ (rĂłĹĽnice ceny zamkniÄ™cia i otwarcia) oraz wybiorÄ™ notowania dla ktĂłrych rĂłĹĽnica jest wiÄ™ksza od zera.
 ```{r}
 dane %>%
   filter(grepl("sty", Data)) %>%
-  mutate(różnica=Zamknięcie.-Otwarcie.)%>%
-  filter(różnica>0)->dane1
+  mutate(rĂłĹĽnica=ZamkniÄ™cie.-Otwarcie.)%>%
+  filter(rĂłĹĽnica>0)->dane1
 head(dane1)
 ```
 
 #Wykres
 ```{r}
-plot(dane1$różnica, type="o", main="Dodatnia różnica cen w lutym", xlab = "Dni", ylab="Różnica")
+plot(dane1$rĂłĹĽnica, type="o", main="Dodatnia rĂłĹĽnica cen w lutym", xlab = "Dni", ylab="RĂłĹĽnica")
 ```
 
 #Drugi proces filtrowania potokowego
-Utworzę nową kolumnę (średnią wartość cen) i wybiorę ceny otwarcia mniejsze od średniej.
+UtworzÄ™ nowÄ… kolumnÄ™ (Ĺ›redniÄ… wartoĹ›Ä‡ cen) i wybiorÄ™ ceny otwarcia mniejsze od Ĺ›redniej.
 ```{r}
 dane %>%
-  mutate(śr_wartość=(Wartość.najwyższa.+Wartość.najniższa.)/2)%>%
-  filter(śr_wartość>Otwarcie.)->dane2
+  mutate(Ĺ›r_wartoĹ›Ä‡=(WartoĹ›Ä‡.najwyĹĽsza.+WartoĹ›Ä‡.najniĹĽsza.)/2)%>%
+  filter(Ĺ›r_wartoĹ›Ä‡>Otwarcie.)->dane2
 head(dane2)
 ```
 
 #Wykres
 ```{r}
-plot(dane2$śr_wartość, type="o", main="Średnia wartość", xlab = "Dni", ylab="Wartość")
+plot(dane2$Ĺ›r_wartoĹ›Ä‡, type="o", main="Ĺšrednia wartoĹ›Ä‡", xlab = "Dni", ylab="WartoĹ›Ä‡")
 ```
 
 #Trzeci proces filtrowania potokowego
-Pogrupuję dane według godziny i wyświetlę średnie ceny.
+PogrupujÄ™ dane wedĹ‚ug godziny i wyĹ›wietlÄ™ Ĺ›rednie ceny.
 ```{r}
 dane %>%
   group_by(Godzina.)%>%
-  summarise(Śr_otwarcie=mean(Otwarcie.), Śr_wart_najwyższa=mean(Wartość.najwyższa.), Śr_wart_najniższa=mean(Wartość.najniższa.), Śr_zamknięcie=mean(Zamknięcie.))->dane3
+  summarise(Ĺšr_otwarcie=mean(Otwarcie.), Ĺšr_wart_najwyĹĽsza=mean(WartoĹ›Ä‡.najwyĹĽsza.), Ĺšr_wart_najniĹĽsza=mean(WartoĹ›Ä‡.najniĹĽsza.), Ĺšr_zamkniÄ™cie=mean(ZamkniÄ™cie.))->dane3
 dane3
 ```
