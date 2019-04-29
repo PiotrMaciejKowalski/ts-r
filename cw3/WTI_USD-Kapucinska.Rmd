@@ -78,7 +78,7 @@ summary(model)
 
 Rozdzielam model na dwa zbiory: uczący i testujący
 ```{r}
-N=15
+N=35
 uczący= data.frame(cbind(data=dane1$Data[1:(N-1)],otwarcie=dane1$Otwarcie.[1:(N-1)]))
 testowy=data.frame(cbind(data=dane1$Data[N:length(dane1$Data)],otwarcie=dane1$Otwarcie.[N:length(dane1$Otwarcie.)]))
 ```
