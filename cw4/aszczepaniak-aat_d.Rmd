@@ -1,0 +1,55 @@
+---
+title: "Zadanie4"
+author: "Ania Szczepaniak"
+date: "30 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pobieramy dane:
+
+```{r}
+dane<-read.csv('aszczepaniak-data.csv', header = TRUE)
+View(dane)
+```
+
+Pobieramy pakiet dplyr.
+
+```{r}
+library(dplyr)
+```
+
+Wykonujemy grupowanie po Wolumen.
+
+```{r}
+dane %>%
+group_by(dane$Wolumen)%>%
+summarise(Największa_liczba = max(Najwyzszy))
+```
+Rysujemy wykres z danych otrzymanych po grupowaniu.
+
+```{r}
+plot(dane$Wolumen, dane$Największa_liczba , type="l")
+```
+
+Następnie 3 krotnie skorzystam z funkcji filter i wyświetlę wyniki na wykresach.
+
+```{r}
+dane %>%
+filter(dane$Wolumen> 2000, dane$Najwyzszy<2.70, dane$Najnizszy>2.20) -> dane2
+
+plot(dane2$Data, dane2$Wolumen)
+hist(table(dane$Najwyzszy<2.70))
+hist(table(dane$Najnizszy>2.20))
+
+```
+
+
+Teraz skorzystam z funkcji mutatei również przedstawię wyniki na wykresie.
+
+```{r}
+
+```
