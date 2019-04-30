@@ -27,15 +27,17 @@ Wykonujemy grupowanie po Wolumen.
 ```{r}
 dane %>%
 group_by(dane$Wolumen)%>%
-summarise(Największa_liczba = max(Najwyzszy))
+summarise(Najwieksza_liczba = max(Najwyzszy))
 ```
 Rysujemy wykres z danych otrzymanych po grupowaniu.
 
 ```{r}
-plot(dane$Wolumen, dane$Największa_liczba , type="l")
+plot(dane$Wolumen, dane$Najwieksza_liczba , type="l")
+percentage <- table(dane$Wolumen)
+pie(percentage)
 ```
 
-Następnie 3 krotnie skorzystam z funkcji filter i wyświetlę wyniki na wykresach.
+Następnie 3-krotnie skorzystam z funkcji filter i wyświetlę wyniki na wykresach.
 
 ```{r}
 dane %>%
@@ -43,13 +45,25 @@ filter(dane$Wolumen> 2000, dane$Najwyzszy<2.70, dane$Najnizszy>2.20) -> dane2
 
 plot(dane2$Data, dane2$Wolumen)
 hist(table(dane$Najwyzszy<2.70))
-hist(table(dane$Najnizszy>2.20))
+percentage <- table(dane2$Wolumen) 
+pie(percentage)
+boxplot(dane2$Wolumen, dane2$Najwyzszy, dane2$Najnizszy)
 
 ```
 
 
-Teraz skorzystam z funkcji mutatei również przedstawię wyniki na wykresie.
+Teraz 2-krotnie skorzystam z funkcji mutate i również przedstawię wyniki na wykresie.
 
 ```{r}
+dane %>%
+mutate(wieksza_liczba1 = dane$Najwyzszy,dane$Najnizszy) -> dane3
+dane3
+dane %>%
+mutate(wieksza_liczba2 = dane$Otwarcie,dane$Zamkniecie) -> dane4
+dane4
 
+hist(table(dane3$wieksza_liczba1))
+hist(table(dane4$wieksza_liczba2))
+plot(dane3$wieksza_liczba1, dane4$wieksza_liczba2, type = "p")
+boxplot(dane3$wieksza_liczba1, dane4$wieksza_liczba2)
 ```
