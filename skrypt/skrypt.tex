@@ -50,6 +50,7 @@ Wersja & Autor & Data & Opis\\\hline
 1.6 & P. Kowalski & 03.04.19 & Pierwsze poprawki w kolejnym roku edycji \\\hline
 1.7 & P. Kowalski & 10.04.19 & Dodanie elementów do modeli GARCH \\\hline
 1.8 & P. Kowalski & 24.04.19 & Dodanie wprowadzenia do procesów decyzyjnych Markowa, oraz predykcji opartej o sieci neuronowe \\\hline
+1.9 & P. Kowalski & 28.04.19 & Dodanie elementów dotyczących zastosowania teorii spektralnej do predykcji \\\hline
 \end{tabular}
 \caption{Wersje dokumentu.}
 \end{table}
@@ -1872,7 +1873,266 @@ $$
 
 \chapter{Analiza spektralna w predykcji szeregów czasowych}
 
-%TODO uzupełniamy o teorię sygnałów oraz analizę spektralną
+Spróbujmy umieścić kolejną z technik w predykcji w odniesieniu do znanych nam już technik. Pomoże nam to zrozumieć jej przeznaczenie oraz ograniczenia.
+
+\section{Wokół transformaty Fouriera}
+
+Najbardziej podstawowa z technik predykcji to regresja liniowa. Jednak u podstaw tej metody leży numeryczne zadanie aproksymacji. Oczywiście jest ona rozszerzona o pewne elementy analizy statystycznej, ale u podstaw leży aproksymacja. Trzeba dowiedzieć się, że w metodach numerycznych występuje wiele różnych aproksymacji. Niezwykle istotną grupą aproksymacji jest ta oparta o bazy ortogonalne przestrzeni i sławne twierdzenie Fouriera.
+
+\begin{theorem}[Twierdzenie Fouriera dla przestrzeni Hilberta]
+Rozważmy pewną przestrzeń funkcyjną $H$ - przestrzeń Hilberta. Oznaczmy przez $\scalar{\cdot}{\cdot}$ iloczyn skalarny tej przestrzeni. Niech $(h_1, h_2, \ldots, h_n, \ldots)$ będzie bazą ortogonalna tej przestrzeni. Wtedy dowolną funkcję $f \in H$ można zapisać za pomocą wzoru
+$$
+f = \sum_{i=0}^{\infty} \frac{\scalar{f}{h_i} }{\scalar{h_i}{h_i}} h_i.
+$$
+\end{theorem}
+
+Najsłynniejsza przestrzeń funkcyjna stosowana wraz z powyższym twierdzeniem tworzy tzw. transformację Fouriera. Z uwagi na jej zastosowanie do analizy sygnałów (głównie fal elektromagnetycznych), często spotyka się nazewnictwo, że transformacja ta powoduje zmianę dziedziny z czasu na dziedzinę częstotliwości. 
+
+Twierdzenie dokładnie orzeka, że
+
+\begin{theorem}[Twierdzenie Fouriera-Eulera]
+Niech dana będzie funkcja okresowa $F: \setR \to \setR$ o okresie $T \in \setR^+$, bezwzględnia całkowalna w przedziale $[ \frac{-T}{2}, \frac{T}{2}]$. Wtedy
+$$
+S(x) = \frac{a_0}{2} + \sum_{n=1}^{\infty} \bracket{a_n \function{\cos}{\frac{2n\pi}{T}x} + b_n \function{\sin}{\frac{2n\pi}{T}x}},
+$$
+gdzie
+$$
+a_n = \frac{2}{T} \int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) \function{\cos}{\frac{2 n \pi}{T} x} \dt[x], n = 0,1,\ldots ,
+$$
+$$
+b_n = \frac{2}{T} \int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) \function{\sin}{\frac{2 n \pi}{T} x} \dt[x], n = 1,2,\ldots.
+$$
+mamy zależność mówiącą, że jeśli szereg $S(x)$ jest zbieżny jednostajnie do funkcji $f$ to współczynniki wyrażają się wzorami jak powyżej. Ponadto jeśli $f(x) $ jest różniczkowalna w punkcie $x_0$, to jej szereg Fouriera jest zbieżny do wartości funkcji w tym punkcie.
+\end{theorem}
+
+Twierdzenie o rozwijaniu w szereg cosinusów i sinusów stanowi jednak punkt wyjścia do bardzo ciekawych rozważań. Oznacza on bowiem dualizm form wyrażania funkcji za pomocą zarówno czasu jak i częstotliwości. Pozwala ono na zdefiniowanie tzw. Transformaty Fouriera.
+
+\begin{definition}[Transformata Fouriera]
+Rozważmy funkcję dla $f \in \Lp{1}{\setR}$. Wtedy funkcję $\hat{f}$ daną wzorem
+$$
+\function{\hat{f}}{\omega} = \int_{\setR } f(t) e^{-i\omega t} \dt [t],
+$$
+nazywa się transformatą Fouriera funkcji $f$ (sama operacja nazywa się transformacja Fouriera) z dziedziny czasu do dziedziny częstotliwości. 
+Ponadto zachodzi wtedy zależność:
+$$
+f(t) = \frac{1}{2\pi} \int_{\setR } \hat{f}(\omega) e^{i\omega t}  \dt[\omega],
+$$
+nazywana transformacja odwrotną.
+\end{definition}
+
+Sama transformacja Fouriera jest nam nieprzydatna do analizy szeregów czasowych. Pamiętamy bowiem, że nasze czasowe występują w zasadzie wyłącznie w postaci realizacji czyli spróbkowanej. Aby uzyskać postać częstościową należało by wygenerować aproksymację naszej próbkowanej funkcji, a potem samą funkcję przenieść do dziedziny częstości. Na nasze szczęście jest matematyczna transformacja, która potrafi wykonać obie te operacje jednocześnie. Jest to dyskretna transformata Fouriera
+
+\begin{definition}[DFT]
+Niech dany będzie skończony ciąg próbek $a_0, a_1, \ldots, a_{N-1}$, że $a_i \in \setR $. Wtedy istnieje skończony ciąg $A_0, A_1, \ldots, A_{N-1}$, że $A_i \in \setC $ opisany wzorem
+$$
+A_k = \sum_{n=0}^{N-1} a_n e^{-kn i \frac{2\pi}{N}}, o \leq k \leq N-1.
+$$
+Ponadto dane jest przekształcenie odwrotne (IDFT) postaci
+$$
+a_n = \frac{1}{N} \sum_{k=0}^{N-1} A_k e^{kn i \frac{2\pi}{N}}, 0 \leq n \leq N-1.
+$$
+\end{definition}
+
+Słyszać o DFT być może ktoś również słyszał o FFT czyli szybkiej transformacji Fouriera. Ogólnie wyliczenie dyskretnej transformaty Fouriera jest dość obciążające - jej złożoność obliczeniowa to $O(N^2)$. Tymczasem FFT jest algortmem, który przy pewnych warunkach potrafi skrócić wykonywanie obliczeń do $O(N \log N)$.
+
+Najczęstszym zastosowaniem teorii transformacji Fouriera szeregu czasowego jest transformacja do postaci częstości celem przeprowadzenie filtracji - to jest odrzucenia wysokich częstotliwości (zmiany losowe) a pozostawienie niskich częstości (zmiany regularne, sezonowości). Procedura postępowania jest tutaj bardzo prosta:
+
+\begin{itemize}
+\item Transformujemy sygnał do postaci częstości.
+\item Odrzucamy częstości niższe od pewnego progu.
+\item Dokonujemy odwrotnej transformaty Fouriera uzyskując ponownie sygnał początkowy, ale o mniejszej ilości szumu.
+\end{itemize}
+
+Powyższy algorytm można by nazwać nowym sposobem przeprowadzenia wygladzania wykresu.
+
+\begin{remark*}
+Pamiętajmy o podstawowej cesze tej transformacji. Wszystko o czym tu piszemy zaczyna się od aproksymowania funkcji okresowej. Aby stosować skutecznie zawarte tu teorie, należałoby mieć realne przesłanki, że funkcja ta ma szanse bycia okresową. Szereg czasowy powinien zatem posiadać przynajmnie stałą wartość przeciętną oraz stałą wariancję.
+\end{remark*} 
+
+\begin{remark*}
+DFT nie jest jedyną transformacją, która posiada podobne zastosowanie w analizie ciągów. Wyróżnić warto jeszcze
+\begin{itemize}
+\item DCT, DST (DFT ale tylko dla $\cos$ lub $\sin$,
+\item Transformacje falkowe (oraz DWT),
+\item Transformację Laplace'a (oraz transformację Z).
+\end{itemize}
+Ponadto nawet dla transformaty Fouriera, występuje różne sposoby jej zadania. Co sprawia, że dla analityka dostępna jest liczna rodzina przekształceń.
+\end{remark*}
+
+Dostrzegamy iż teoria związana z analizowanie zjawisk na wykresach częstościowych posiada wiele potencjalnych możliwości do dalszego badania. W dalszej części omówimy jednak już tylko uznane teorie, które wyewoluowały z tej koncepcji:
+
+\section{Teoria widmowa dla szeregów czasowych}
+
+Przejście do dziedziny częstości pozwoliło na wytworzenie dość szczególnej teorii dotyczącej szeregów czasowych, którą nazywać można teorią widmową lub teorią spektralną - w zależności od ulubionego tłumaczenia.
+
+\begin{definition}[Widmo szeregu czasowego]
+Niech $\ts{X_t}{t}$ będzię szeregiem czasowym o zerowej wartości średniej. Wtedy
+$$
+\tsAutoCovariance{X}{h} = \Ex{X_t X_{t-h}}.
+$$
+Postać funkcji autokowariancji pozwala na konstruowanie najbardziej podstawowych tez o postaci generującego próbę modelu. Jako takowa powoduje możliwość definiowania charakterystyk dla danego szeregu czasowego. Widmem (spektrum) danego szeregu czasowego nazywamy transformatę Fouriera funkcji $\tsAutoCovariance{X}{h}$, czyli
+$$
+S_X(\omega) = \frac{1}{2\pi} \sum_{h=-\infty}^{+\infty} e^{-ih\omega} \tsAutoCovariance{X}{h}.
+$$
+\end{definition}
+
+\begin{definition}[Funkcja generująca ciągu]
+Niech $a = \ldots, a_{-n}, \ldots, a_0, a_1, \ldots, a_n, \ldots \subset \setR $ będzie ciągiem liczb rzeczywistych. Funkcję określoną wzorem funkcję $g_a : \setC \to \setC$ opisaną formułą:
+$$
+g_a(x) = \sum_{h= -\infty}^{+\infty} a_h x^{h},
+$$
+nazywamy funkcją generującą ciągu.
+\end{definition}
+
+\begin{remark*}
+Widmo szeregu czasowego jest zatem przeskalowaną funkcją generującą dla ciągu utworzonego przez funkcję autokowariancji. 
+\end{remark*}
+
+\begin{corollary}[]
+Pomiędzy widmem a funkcją autokorelacji występuje następująca zależność:
+$$
+\sum_{h=-\infty}^{h=\infty} \tsAutoCovariance{X}{h} = 2\pi S_X(0).
+$$
+\end{corollary}
+
+\begin{proof}
+W definicji widma weźmy częstotliwość $\omega = 0$. Stąd teza.
+\end{proof}
+
+\begin{corollary}[Jawny wzór na widmo]
+Można posługiwać się alternatywną formułą do obliczania widma danego szeregu czasowego, postaci
+$$
+S_X(\omega) = \frac{1}{2\pi} \bracket{\gamma_0 + 2 \sum_{h=1}^{\infty} \tsAutoCovariance{X}{h} \cos(h\omega)}.
+$$
+\end{corollary}
+
+\begin{proof}
+Wykorzystajmy z rozwinięcia $e^{i\phi} = \cos \phi + i \sin \phi$, oraz warunków symetrycznych $\cos(-x) = \cos(x)$ i $\tsAutoCovariance{X}{-h} = \tsAutoCovariance{X}{h}$, natychmiast otrzymujemy postać z tezy.
+\end{proof}
+
+\begin{corollary}[Zależność odwrotna funkcji auokowariancji i widma]
+$$
+\tsAutoCovariance{X}{h} = \int_{-\pi}^{\pi} e^{i\omega h} S_X(\omega) \dt[\omega] 
+$$
+\end{corollary}
+
+\begin{corollary}[Związek widma i wariancji szeregu czasowe]
+$$
+\Variance{X_t} = \int_{-\pi }^{\pi} S_X(\omega) \dt[\omega].
+$$
+\end{corollary}
+
+Oznacza to, że widmo opisuje rozproszenie wariancji wzdłuż wszystkich dostępnych częstotliwości.
+
+\begin{definition}[Gęstość widmowa]
+Transformatę Fouriera funkcji ACF , tj. 
+$$
+f(\omega) = \frac{1}{2\pi} \sum_{h=-\infty}^{\infty} e^{-i h \omega} \tsAutoCorellation{X}{h},
+$$
+nazywamy gęstością widmową.
+\end{definition}
+
+\begin{theorem}[Poprawność definicji gęstości widmowej.]
+Gęstość widmowa jest gęstością pewnego rozkładu prawdopodobieństwa.
+\end{theorem}
+
+\begin{proof}
+Stosująć odwrotną transformatę Fouriera otrzymujemy
+$$
+\tsAutoCorellation{X}{h}= \int_{-\pi}^{\pi} e^{i \omega h} f_x(\omega) \dt[\omega].
+$$
+W powyższym przejdźmy do $h=0$. Wtedy
+$$
+1= \int_{-\pi}^{\pi} f_x(\omega) \dt[\omega].
+$$
+\end{proof}
+
+Gęstość widmowa jest zatem gęstością rozkładu prawdopodobieństwa opisującą wylosowanie poszczególnych częstości w funkcji autokorelacji. 
+
+Podstawowe pytanie, które się tu pojawia - to sposób w jaki możemy używać spektrum do analizowania szeregów czasowych. Okazuje się, że różne modele szeregów czasowych (a tych już kilka poznaliśmy) posiadają różne kształty widma. W sumie to dzięki temu - mająć wyliczone numerycznie z realizacji szeregu czasowego przybliżenie postaci widma - możemy naprawdę dobrze dobrać model zjawiska.
+
+\begin{remark*}
+W przypadku dziedziny czasu realizacja zawiera tylko jedna wartość. W dziedzinie częstotliwości próba losowa dana częstotliwość może być opisana znacznie większą ilością wartości.
+\end{remark*} 
+
+\begin{theorem}[Widmo szumu białego]
+Niech $\epsilon \sim WN(0,\sigma^2)$. Wtedy 
+$$
+S_X (\omega) = \frac{1}{2\pi} \sigma^2,
+$$
+oraz 
+$$
+f_X (\omega) = \frac{1}{2\pi}.
+$$
+Czyli widmo szumu białego jest stałe.
+\end{theorem}
+
+\begin{theorem}[Widmo filtru liniowego (Model MA($\infty$)]
+Niech dany będzie szereg czasowy zgodny z modelem 
+$$
+Y = \sum_{h=-\infty}^{\infty} \theta_h \epsilon_{t-h} = g_{\theta} (L) \epsilon_t.
+$$
+Wtedy jeśli tylko $\theta$ jest sumowalna w module to 
+$$
+S_{Y} (\omega) = \abs{g_{\theta} e^{-i \omega}}^2 S_\epsilon(\omega).
+$$
+\end{theorem}
+
+\begin{theorem}[Widmo procesu MA(1)]
+Rozważmy $X$ zgodne z procesem MA(1), tj.
+$$
+X_t = \epsilon_t + \theta \epsilon_{t-1}.
+$$
+Wtedy widmo tego procesu wyraża sie formułą
+$$
+S_X(\omega) = \frac{1}{2\pi} \bracket{1 + \theta^2 + \theta (e^{-i \omega} + e^{i \omega}} \sigma_\epsilon^2.
+$$
+\end{theorem}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.6]{images/spectrumMA1.png}
+\caption{Widmo procesu MA(1), dla $\theta = 0.5$ oraz $\theta= -0.5$.} \label{fig-spectrum-ma1}
+\end{figure}
+
+Widmo procesu MA(1) możemy obserwować na wykresie \ref{fig-spectrum-ma1}.
+
+\begin{theorem}[Widmo procesu ARMA(p,q)]
+Niech $X_t$ będzie procesem stochastycznym opisanym ARMA(p,q), tj
+$$
+g_\phi(L) x_t = g_\theta(L) \epsilon_t.
+$$
+Załóżmy, że proces ten jest stacjonarny, czyli wszystkie pierwiastki wielomianu $g_\phi$ leżą w kole jednostkowym. Wtedy widmem procesu $X_t$ jest
+$$
+S_X (\omega) = \frac{1}{2 \pi} \frac{\abs{g_\theta (e^{-i\omega})}^2}{ \abs{ \function{g_\phi}{ e^{-i \omega} }^2} }\sigma^2_\epsilon.
+$$
+\end{theorem}
+
+\begin{theorem}[Widmo procesu AR(1)]
+Rozważmy $X$ zgodne z procesem AR(1), tj.
+$$
+X_t = \epsilon_t + \phi X_{t-1}.
+$$
+Wtedy widmo tego procesu wyraża sie formułą
+$$
+S_X(\omega) = \frac{1}{2\pi} \bracket{1 + \phi^2 - 2 \phi \cos \omega}^{-1} \sigma_\epsilon^2.
+$$
+\end{theorem}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.6]{images/spectrumAR1.png}
+\caption{Widmo procesu AR(1), dla $\phi = 0.5$ oraz $\phi= -0.5$.} \label{fig-spectrum-ar1}
+\end{figure}
+
+Widmo procesu AR(1) możemy obserwować na wykresie \ref{fig-spectrum-ar1}.
+
+\begin{theorem}[O reprezentacji widmowej]
+Niech $X_t$ będzie szeregiem czasowym stacjonarnym z zerową wartością oczekiwaną oraz sumowalną w module funkcją autokowariancji. Wtedy istnieją zmienne losowe $\alpha(\omega)$ oraz $\beta(\omega)$ takie, że
+$$
+x_t = \int_{0}^\pi \bracket{\alpha(\omega) \cos (\omega t) + \beta(\omega) \sin(\omega t) } \dt[\omega].
+$$ 
+\end{theorem}
 
 \chapter{Prognozowanie wielowymiarowych szeregów czasowych}
 
