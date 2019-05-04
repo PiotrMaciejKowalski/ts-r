@@ -79,7 +79,7 @@ grid(NULL, NULL, col = "grey")
 
 #zadanie 3 predykcja
 
-Pierwszym krokiem jest wczytanie danych z poprzedniego zadania. Do wykonania zadania wybrałam kolumnę z cenami otwarcia ze spółki AWM za okres 02.02.2019-22.03.2019
+Pierwszym krokiem jest wczytanie danych z poprzedniego zadania. Do wykonania zadania wybraałam kolumnę z cenami otwarcia ze spółki AWM za okres 02.02.2019-22.03.2019
 
 ```{r}
 library(readxl)
@@ -111,10 +111,10 @@ text(mean(dzien),mean(otwarcie), round(summary(model)$r.squared,5),pos=4)
 
 Zajmiemy się teraz predykcją dla cen akcji spółki AWM od 06-03-2019 (zbior testowy). Możemy także zobaczyć jego wykres
 ```{r}
-prognoza<-predict(model, newdata = zb_testowy)
+prognoza<-predict(model, data = zb_testowy)
 prognoza
 plot(zb_testowy$dzien,zb_testowy$otwarcie,xlab = "Data",ylab = "Cena otwarcia akcji", main="Model z trendem liniowym dla wszytskich przeszłych danych", type="l")
-lines(prognoza)
+lines(prognoza, col="blue")
 ```
 
 
@@ -129,10 +129,20 @@ text(mean(dzien),mean(otwarcie), round(summary(model_n)$r.squared,5),pos=4)
 
 ```
 prognoza dla powyższego modelu dana jest wzorem:
+
 ```{r}
-prognoza1=predict(model_n, newdata = zb_testowy)
-plot(zb_testowy$dzien, zb_testowy$otwarcie, xlab = "Data", ylab="Ceny otwarcia spółki AWM", type="l", main="Prognoza ceny zamknięcia")
-lines(prognoza1, type="l", lwd = "2")
+prognoza2=predict(model_n,data=zb_testowy)
+prognoza2
+```
+
+Zilustrujmy te wartości na wykresie:
+```{r}
+prognoza2=predict(model_n,data=zb_testowy)
+prognoza2
+plot(zb_testowy$otwarcie,
+      xlab = "Data", ylab="Ceny otwarcia spółki AWM", type="l", main="Prognoza ceny Otwarcia")
+
+lines(prognoza2, col="blue", type="l")
 ```
 
 # Błąd średniokwadratowy i statystyka Theil'a
@@ -149,9 +159,8 @@ stat_Th
 Dla drugiego modelu także wyznaczamy powyższe statystyki
 
 ```{r}
-b_sredkw<-mean(((prognoza1 - zb_testowy$otwarcie)^2))
+b_sredkw<-mean(((prognoza2 - zb_testowy$otwarcie)^2))
 b_sredkw
-stat_Th<-sum(((prognoza1-zb_testowy$otwarcie)^2))/sum((zb_testowy$otwarcie^2))
+stat_Th<-sum(((prognoza2-zb_testowy$otwarcie)^2))/sum((zb_testowy$otwarcie^2))
 stat_Th
 ```
-
