@@ -1,0 +1,85 @@
+---
+title: "Zadanie4 GPW-AWM, Filtrowanie potokowe"
+author: "Marta Czarkowska"
+date: "30 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Rozpoczniemy od wczytania notowań spółki AWM
+```{r}
+df <- read.csv("~/dane awm.txt")
+head(df)
+
+Data<-df$Data
+Otwarcie<-df$Otwarcie
+Najwyzszy<-df$Najwyzszy
+Najnizszy<-df$Najnizszy
+Zamkniecie<-df$Zamkniecie
+Wolumen<-df$Wolumen
+Data2 <- as.Date(Data, "%Y-%m-%d")
+dane<-cbind(df,Data2)
+```
+```{r}
+Data2 <- as.Date(Data, "%Y-%m-%d")
+df<-cbind(df,Data2)
+```
+#Wgrywamy pakiet dplyr
+```{r}
+library(dplyr)
+require(dplyr)
+```
+
+#Pierwszy proces
+W pierwszym procesie użyję procesów filter oraz mutate. Obliczę różnicę cen otwarcia oraz zamknięcia, przy założeniu, że cena otwarcia jest wyższa.
+```{r}
+df %>%
+filter(Otwarcie > Zamkniecie ) %>%
+mutate(roznica = abs(Otwarcie-Zamkniecie)) %>%
+select(Data, Otwarcie, Zamkniecie, roznica) -> wynik
+head(wynik)
+
+```
+```{r}
+plot(wynik$Data,wynik$roznica, xlab="Data", ylab="Różnica", main="Wykres dla pierwszego procesu")
+```
+
+#Drugi proces
+W drugim procesie użyję filter, mutate oraz group_by. Wybierzemy dane, gdzie cena "Najwyższa"" jest wyższa od ceny "Zamknięcia"" danego dnia. Utworzę kolumnę dla tych danych oraz kolumnę miesięcy. Dane będą grupowane po miesiącach 
+```{r}
+df %>%
+filter(Najwyzszy>Zamkniecie ) %>%
+  
+  mutate(wartosc=Najwyzszy) %>%
+mutate(miesiac = format(Data2, "%m")) %>%
+  group_by(miesiac) %>%
+  select(miesiac,Data2,wartosc) -> wynik1
+wynik1
+```
+
+
+```{r}
+plot(wynik1$Data2,wynik1$wartosc, xlab="Data",ylab="Cena najwyższa", main="Wykres dla drugiego procesu")
+```
+
+#Trzeci proces
+W trzecim procesie użyję funkcji filter oraz summarise. Najpierw wybiorę dane dla których cena najniższa jest wyższa lub równa 0.69. Następnie za pomocą "summarise" wyświetlę z tych danych cenę najwyższą, najniższą, medianę, oraz odchylenie standardowe
+
+```{r}
+d1<- df %>%
+  filter(Najnizszy>=0.69)
+d1 %>%
+  summarise(maksimum=max(Najnizszy,na.rm = TRUE),
+            minimum=min(Najnizszy,na.rm=TRUE),
+            mediana=median(Najnizszy,na.rm=TRUE),
+            odchylenie_standardowe=sd(Najnizszy,na.rm=TRUE))
+```
+Powyższe ceny pokażemy na wykresie pudełkowym dla ceny otwarcia, umożliwi nam to zaobserwowanie mediany oraz kwartyli górnego oraz dolnego.
+```{r}
+boxplot(d1$Otwarcie, main="Cena najniższa spółki AWM",ylab="Cena najniższa")
+```
+
