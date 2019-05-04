@@ -98,11 +98,11 @@ lines(Testowy$Data2, predykcja, col= "pink")
 
 Wyliczamy błąd średniokwadratowy  na jedna chwilę czasu wprzód i statystykę Theil'a dla tak opracowanej prognozy.
 ```{r}
-blad<- mean((predykcja-Testowy$Otwarcie)^2)
+bladsk<- mean((predykcja-Testowy$Otwarcie)^2)
 theila <- sum((predykcja-Testowy$Otwarcie)^2)/sum(Testowy$Otwarcie^2)
 ```
 ```{r}
-blad
+bladsk
 theila
 
 ```
