@@ -1,0 +1,108 @@
+---
+title: "GPW-Play"
+author: "Karolina Mruk"
+date: "26 marca 2019"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Wczytywanie danych
+
+Wczytujemy notowania Play z pliku csv i "okrajamy " je do interesujących nas kolumn
+
+```{r}
+dane <- read.csv("GPW_PLAY.csv")[,1:5]
+
+head(dane)
+```
+
+```{r}
+summary(dane)
+```
+Poniżej przedstawię notowania spółki Play - maksimum i  minimum
+```{r}
+plot(dane$Maks, type="l", main="Wykres Maks ceny spółki Play",col="blue",xlab = "Data", ylab="Notowania Play")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+plot(dane$Min, type="l", main="Wykres Min ceny spółki Play",col="green",xlab = "Data", ylab="Notowania Play")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+Nanieśmy wszystkie krzywe na jeden wykres- Otwarcia, zamknięcia, max i min, w odniesieniu do daty.
+```{r}
+plot(dane$Otwarcie, type="l", main="Wykres notowania ceny spółki Play",col="red",xlab = "Data", ylab="Notowania Play")
+lines(dane$Min, type="l", col="green")
+lines(dane$Maks, type="l", col="blue")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+
+## Predykcja
+Do pracy z ćwiczeniem 3 wybieram jedną zmienną - cenę otwarcia. Przygotowujemy dane do analizy.
+```{r}
+Data<-dane$Data
+Otwarcie<-dane$Otwarcie
+
+```
+```{r}
+Data2 <- as.Date(Data, "%Y-%m-%d")
+dane<-cbind(dane,Data2)
+```
+Wykonamy prognozę modelem regresji liniowej dla wszystkich danych.
+
+```{r}
+ramka<-data.frame(Data2,Otwarcie)
+head(ramka)
+plot(ramka,'p',col="blue");
+reg <- lm(Otwarcie~Data2, data=ramka);
+plot(reg);
+abline(reg)
+```
+```{r}
+summary(reg)
+```
+
+
+Rozdzielmy nasze dane na dwa zbiory- jeden uczący model, drugi sprawdzający jego skuteczność.
+```{r}
+p=44
+Uczacy=data.frame(cbind(Data2=Data2[1:(p-1)],Otwarcie=Otwarcie[1:(p-1)]))
+Testowy=data.frame(cbind(Data2=Data2[p:length(Data2)],Otwarcie=Otwarcie[p:length(Otwarcie)]))
+```
+
+
+```{r}
+plot(Uczacy$Data2, Uczacy$Otwarcie,'p',col="red", main = "Predykcja na zbiorze uczącym", xlab="Dni", ylab="Otwarcie");
+```
+```{r}
+model <- lm(Uczacy$Otwarcie ~ Uczacy$Data2)
+summary(model)
+```
+
+```{r}
+plot(Uczacy$Data2, Uczacy$Otwarcie,'p',col="red");
+abline(model)
+```
+
+## Predykcji na podstawie nauczonego modelu
+
+```{r}
+a = model$coefficients[[2]]
+b = model$coefficients[[1]]
+
+## zatem nasz model liniowy ma postac y = ax + b
+predykcja = a * Testowy$Data2 + b
+plot(Testowy$Data2, Testowy$Otwarcie, main = "Predykcja dla modelu ", xlab="Dni", ylab="Kursy")
+lines(Testowy$Data2, predykcja, col= "pink")
+```
+
+
+
+Wyliczamy błąd średniokwadratowy  na jedna chwilę czasu wprzód i statystykę Theil'a dla tak opracowanej prognozy.
+```{r}
+blad<- mean((predykcja-Testowy$Otwarcie)^2)
+theila <- sum((predykcja-Testowy$Otwarcie)^2)/sum(Testowy$Otwarcie^2)
+```
+```{r}
+blad
+theila
+
+```
