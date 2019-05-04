@@ -79,7 +79,7 @@ grid(NULL, NULL, col = "grey")
 
 #zadanie 3 predykcja
 
-Pierwszym krokiem jest wczytanie danych z poprzedniego zadania. Do wykonania zadania wybraałam kolumnę z cenami otwarcia ze spółki AWM za okres 02.02.2019-22.03.2019
+Pierwszym krokiem jest wczytanie danych z poprzedniego zadania. Do wykonania zadania wybrałam kolumnę z cenami otwarcia ze spółki AWM za okres 02.02.2019-22.03.2019
 
 ```{r}
 library(readxl)
