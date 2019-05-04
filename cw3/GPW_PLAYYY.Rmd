@@ -67,38 +67,39 @@ p=44
 Uczacy=data.frame(cbind(Data2=Data2[1:(p-1)],Otwarcie=Otwarcie[1:(p-1)]))
 Testowy=data.frame(cbind(Data2=Data2[p:length(Data2)],Otwarcie=Otwarcie[p:length(Otwarcie)]))
 ```
+
+
 ```{r}
-ramka1<-Uczacy
-head(ramka1)
-plot(ramka1,'p',col="red");
-reg1 <- lm(Otwarcie~Data2, data=ramka1);
-plot(reg1);
-abline(reg1)
-summary(reg1)
+plot(Uczacy$Data2, Uczacy$Otwarcie,'p',col="red", main = "Predykcja na zbiorze uczącym", xlab="Dni", ylab="Otwarcie");
 ```
 ```{r}
-ramka2<-Testowy
-head(ramka2)
-plot(ramka2,'p',col="red");
-reg2 <- lm(Otwarcie~Data2, data=ramka2);
-plot(reg2);
-abline(reg2)
-summary(reg2)
+model <- lm(Uczacy$Otwarcie ~ Uczacy$Data2)
+summary(model)
 ```
+
 ```{r}
-prognoza<- predict(reg1)
-prognozaa<- predict(reg2)
-plot(ramka1$Data2,prognoza)
-plot(prognozaa)
-plot(ramka2,col="pink", ylab="Kurs Otwarcia", xlab="Data")
-lines(ramka2$Data2, prognozaa, type = "l", col="red")
+plot(Uczacy$Data2, Uczacy$Otwarcie,'p',col="red");
+abline(model)
 ```
+
+## Predykcji na podstawie nauczonego modelu
+
+```{r}
+a = model$coefficients[[2]]
+b = model$coefficients[[1]]
+
+## zatem nasz model liniowy ma postac y = ax + b
+predykcja = a * Testowy$Data2 + b
+plot(Testowy$Data2, Testowy$Otwarcie, main = "Predykcja dla modelu ", xlab="Dni", ylab="Kursy")
+lines(Testowy$Data2, predykcja, col= "pink")
+```
+
+
 
 Wyliczamy błąd średniokwadratowy  na jedna chwilę czasu wprzód i statystykę Theil'a dla tak opracowanej prognozy.
 ```{r}
-blad<- mean((prognozaa-ramka2$Otwarcie)^2)
-theila <- sum((prognozaa-ramka2$Otwarcie)^2)/sum(ramka2$Otwarcie^2)
-
+blad<- mean((predykcja-Testowy$Otwarcie)^2)
+theila <- sum((predykcja-Testowy$Otwarcie)^2)/sum(Testowy$Otwarcie^2)
 ```
 ```{r}
 blad
