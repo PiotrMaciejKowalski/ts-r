@@ -14,8 +14,8 @@ library(dplyr)
 library(tidyverse)
 library(forecast)
 library(tseries)
-dane<- read.csv("jszymanska_dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
-head(dgpw1)
+dane<- read.csv("JSzymanska_dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
+head(dane)
 ```
 ```{r}
 dane1<-dane
