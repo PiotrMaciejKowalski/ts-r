@@ -1,0 +1,101 @@
+---
+title: "JSzymanska_VividGames"
+author: "Joanna Szymańska"
+date: "4 maja 2019"
+output: html_document
+---
+#Pobranie danych
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+
+library(dplyr)
+library(tidyverse)
+library(forecast)
+library(tseries)
+dane<- read.csv("JSzymanska_dane.csv", col.names =c("Data","Otwarcie","Zamkniecie","Max","Min","Obrot_mln_zl","Zmiana_proc."))
+head(dane)
+```
+```{r}
+dane1<-dane
+dane1 %>%
+  arrange(Data)->dane2
+head(dane2)
+
+```
+```{r}
+plot(dane2$Max, type="l")
+```
+```{r}
+max=ts(dane2$Max,frequency=1)
+adftest=adf.test(max)
+adftest
+```
+#Różnicowanie szeregu
+```{r}
+max_r=diff(max)
+plot(max_r)
+```
+```{r}
+adftest2=adf.test(max_r)
+adftest2
+```
+Możemy odrzucić hipotezę zerową na korzyść hipotezy alternatywnej.
+
+
+#Wykresy ACF i PACF dla zróżnicowanego szeregu
+```{r}
+tsdisplay(max_r)
+```
+
+#Modele MA i AR
+```{r}
+train=window(max_r,end=40)
+train
+test=window(max_r,start=41)
+test
+
+```
+
+```{r}
+modelMA = Arima(train, order=c(0,0,2))
+summary(modelMA)
+forecastMA=forecast(modelMA, h=length(test))
+bladMA=mean((forecastMA$mean-test)^2)
+```
+```{r}
+plot(forecastMA)
+
+```
+```{r}
+modelAR=Arima(train, order=c(1,0,2))
+summary(modelAR)
+forecastAR=forecast(modelAR, h=length(test))
+bladAR=mean((forecastAR$mean-test)^2)
+
+```
+
+```{r}
+plot(forecastAR)
+```
+
+```{r}
+modelARIMA=Arima(train, order=c(1,1,2))
+summary(modelARIMA)
+forecastARIMA=forecast(modelARIMA, h=length(test))
+bladARIMA=mean((forecastARIMA$mean-test)^2)
+```
+
+```{r}
+plot(forecastARIMA)
+```
+
+Porównajmy teraz błędy średniokwadratowe modeli:
+```{r}
+bladMA
+bladAR
+bladARIMA
+```
+
+Wszystkie trzy modele są porównywalne, jednak najlepszy wydaje się być model ARIMA.
