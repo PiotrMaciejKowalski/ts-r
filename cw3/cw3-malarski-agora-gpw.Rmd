@@ -32,9 +32,9 @@ ramka<-data.frame(Date,Otwarcie)
 head(ramka)
 plot(ramka,'p',col="blue");
 regresja <- lm(ramka$Otwarcie~ramka$Date);
-plot(reg);
-abline(reg)
-summary(reg)
+plot(regresja);
+abline(regresja)
+summary(regresja)
 ```
 Dane dzielę na dwa zbióry uczący i testowy
 ```{r}
