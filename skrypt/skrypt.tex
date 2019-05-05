@@ -9,7 +9,7 @@
 \usepackage{graphicx}
 \usepackage{makeidx}
 \usepackage{ifthen}
-\usepackage[polish]{dyschemist}
+\usepackage[polish, section]{dyschemist}
 %\makeindex
 \usepackage[hidelinks]{hyperref}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
@@ -17,6 +17,8 @@
 
 \newcommand{\tsAutoCovariance}[3][\gamma]{\operatorname{#1}_{#2} \left({#3}\right)}
 \newcommand{\tsAutoCorellation}[3][\rho]{\operatorname{#1}_{#2} \left({#3}\right)}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+
 \usepackage{dyschemist}
 \author{dr, mgr inż. Piotr Kowalski}
 \title{Skrypt do wykładu z Szeregów czasowych i prognozowanie w biznesie}
@@ -3389,9 +3391,295 @@ Rozważmy kilka obrazujących przykładów:
 
 \end{example}
 
+
+Rozważmy kolejną wariację naszego problemu. Do tej pory większość stanu nie niosła ze sobą żadnej nagrody. Co się stanie kiedy to zmienimy?
+
 \begin{problem*}
-Rozważmy kolejną wariację naszego problemu. Do tej pory większość stanu nie niosła ze sobą żadnej nagrody. Co się stanie kiedy to zmienimy
+Wykorzystajmy ponownie naszą grafikę \ref{fig-grid-deterministic} z obrazem świata i zmodyfikujmy odpowiednio zasady tego świata.
+Niech nasz świat to będzie opis pewnej plaży. Skarb to będzie chłodne w cieniu wraz ze stanowiskiem z lodami. Pułapką niech będzie część plaży cała w odłamkach szkła. Resztę niech pokrywa lekko gorący piasek. Obserwujemy następujące rzeczy
+
+\begin{itemize}
+\item Kiedy piasek nie parzył można było w nieskończoność poruszać się po stanach świata nie odczuwając presji na przemieszczanie się w kierunku nagrody. Osiągnięcia pola nagrody w 5 turze co i 105 zwracało efekt identyczny z punktu widzenia agentów tego świata.
+\item Piasek lekko parzący powinien spowodować wymuszenie (względnie) szybkie przemieszczanie w kierunku pola z nagrodą. Symuluje to bowiem karanie agenta, za bezproduktywne trwanie w danym stanie.
+\item Im bardziej parzący będzie piasek tym intuicyjnie agent będzie bardziej skłonny do podejmowania ryzyka celem unikania dużych kar.
+\item Tak jak można dostrzec to w przypadku gdyby kary były faktycznie nagrodami - polityka sprowadza się do nie-kończenia-gry \ref{fig-paradise-sand}
+\item Gdy stosowane są srogie kary (co powoduje zmianę plaży w świat parzącej lawy) \ref{fig-lava} - polityka optymalna nakazuje akcje szybko kończące grę.
+\item Natomiast gdy kary są nieznaczne, jak na grafice \ref{fig-warm-sand}, obserwujemy to co wg nas jest najbardziej intuicyjną polityką.
+\end{itemize}
 \end{problem*}
+
+\begin{example}[Pogląd Keynesa na inflację]
+Osobą znające się dobrze matematyce finansowej są świadome dwóch poglądów na temat zjawiska inflancji. Jak wiadomo inflacja jest zjawiskiem, które powoduje osłabianie mocy nabywczej pieniądza w czasie. W efekcie tego wielu ekonomistów wskazuje, że zjawisko to należy zredukować do zera i pozwolić na swobodne i stacjonarne postrzeganie pieniądza. Jednak inna grupa ekonomistów stwierdziła, że efekty działania inflancji na rynek są inne. Grupa ta od twórcy podstaw tych koncepcji nazywa Keynesistami. Wg tej szkoły ekonomicznej
+\begin{itemize}
+\item Duża inflacja rujnuje ekonomię (oczywisty fakt),
+\item Deflacja (ujemna inflacja - czyli pieniądz z czasem zyskuje na wartości) powoduje gromadzenie pieniądza i zahamowanie procesu handlu,
+\item Brak inflacji tylko pozornie nie powoduje strat. W efekcie braku inflacji, tempo obrotu pieniądza jest wyraźnie zredukowane (ludziom nie śpieszy się wydawać pieniędzy).
+\item Nieznaczna dodatnia inflacja powoduje pobudzenie wymiany handlowej, skłania do inwestowania pieniędzy zamiast ich prostego gromadzenia i powoduje rozwój gospodarczy.
+\end{itemize}
+\end{example}
+
+Powyższy przykład jest podany celem umotywowania siły stosowania niewielkich kar do wymuszenia decyzji, które kierunkowane są na konkretny cel.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/warm_world.png}
+\caption{Optymalna polityka w świecie rajskiej plaży z $R(s) = +1$} \label{fig-paradise-sand}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/sand_solution.png}
+\caption{Optymalna polityka w świecie plaży z $R(s) = -0.05$} \label{fig-warm-sand}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/lava_world.png}
+\caption{Optymalna polityka w świecie lawy z $R(s) = -1$} \label{fig-lava}
+\end{figure}
+
+\section{Koncepcja użyteczności w procesach decyzyjnych}
+
+Ważnym elementem, który należy pamiętać - pracując z procesami decyzyjnymi - jest pamiętanie, że polityka nie określa nagrody za jej stosowanie.  To jest jedynie proste określenie wyboru akcji w danym stanie. Mając określoną politykę można określić wartość osiąganą przez pewne postępowania - ale w koncepcji procesów decyzyjnych - jest to sprawa drugoplanowa. Ponadto na tą chwilę miejmy również świadomość o występowaniu dwóch rodzajów procesów decyzyjnych w zależności o wiedzy o jego stanie.
+
+\begin{definition}[Światy z informacją zupełną i niezupełną]
+Powiemy, że dany świat jest światem z informacją zupełną jeśli dowolny agent - może poznać w pełni swój stan (w zależności od definicji - może to być również stan wszystkich agentów świata). Jeśli stan nie jest stanem z informacją zupełną to jest światem z informacją niezupełną. 
+\end{definition}
+
+Wreszcie przechodząc do oceny jakości stosowania danych polityk należy rozważyć dodatkowe pojęcia. Jak np. ciągi nagród.
+
+\begin{definition}[Ciągi nagród, stanów, akcji]
+W efekcie notowania postępów działania agentów tworzone są ciągi.
+I tak
+\begin{itemize}
+\item Ciąg złożony ze stanów przez które kolejno przechodził wybrany agent - nazywa się ciągami stanów,
+\item Ciąg złożony z wartości reprezentujących nagrody uzyskiwane przez wybranego agenta nazywa się ciągami nagród,
+\item Ciąg złożony z akcji wybieranych przez agenta nazywa sie ciągami akcji.
+\end{itemize}
+Ponadto oznaczmy przez $SS$ przestrzeń wszystkich ciągów stanów, $SR$ przestrzeń wszystkich ciągów nagród oraz $SA$ przestrzeń wszystkich ciagów akcji.
+\end{definition}
+
+Zauważmy, że przez stacjonarność w problemach nasze ciągi nagród są potencjalnie nieskończone. Intuicyjnie ciągi nagród stanowia dla nas podstawę do oceny jakości danej polityki. Podstawa część naszego rozumowania na chwilę obecną może być opisana algorytmem:
+
+\begin{enumerate}
+\item Określamy pewną politykę, 
+\item Ustalamy stan początkowy,
+\item Stosując daną politykę możemy tworzyć ciagi nagród.
+\end{enumerate}
+
+
+\begin{remark*}
+Ciągi nagród są zatem pewną realizacją szeregu czasowego.
+\end{remark*}
+
+Intuicyjnie czujemy, że aby uznać daną politykę za optymalną należy rozważać ciągi nagród generowane przez nią i je oceniać. Ciągi te są jednak potencjalnie nieskończone i wszystko to rodzi pytanie jak je oceniać. Do oceny stosowane są tzw. funkcje użyteczności.
+
+\begin{definition}[Funkcja użyteczności]
+Funkcja użyteczności nazywamy funkcję $U: SS \to \setR$. 
+\end{definition}
+
+Dzięki użyciu funkcji użyteczności możemy porównywać ciągi.
+
+\begin{definition}[Porządek częściowy w przestrzeni $SS$ względem funkcji użyteczności $U$]
+Powiemy, że dwa ciągi stanów $ ss^1 = (ss^1_0, ss^1_1, \ldots)$ oraz $ss^2 = (ss^2_0, ss^2_1, \ldots)$ spełniają relację częściowego porządku względem pewnej funkcji użyteczności $U$ gdy
+$$
+ss^1 \preceq ss^2 \iff U((ss^1_0, ss^1_1, \ldots)) \geq U((ss^2_0, ss^2_1, \ldots)).
+$$
+
+Ponadto jeśli $ss^1 \preceq ss^2$ oraz $ss^1 \succeq ss^2$ to napiszemy $ ss^1 \simeq ss^2$.
+\end{definition}
+
+\begin{problem}[Proste sumowanie nagród - przykład odrzucający model.]
+Rozważmy przypadek gdzie funkcja użyteczności jest zadana jako prosta suma nagród w czasie, tj.
+$$
+U : (s_0, s_1, s_2, \ldots) : \mapsto \sum_{n=0}^{\infty} R(s_n).
+$$
+Rozważmy dwa ciągi nagród (dla odpowiednio ciagów stanów $s^1$ oraz $s^2$) postaci
+$$
+R(s^1) = (1,1,1,1,1,1,1,1,1,\ldots), \quad R(s^2) = (1,2,1,2,1,2,1,2,1,2,\ldots).
+$$
+
+Pomimo, iż intuicyjnie stwierdzilibyśmy, ze ciag stanów $s^2$ generuje lepsze ciągi nagród to widzimy, że
+$$
+U(s^1) = \infty = U(s^2),
+$$
+czyli w sensie tej funkcji użyteczności $s^1 \simeq s^2$ - czyli kompletnie nie to co sugeruje nam intuicja.
+\end{problem}
+
+Powyższy przykład powoduje rozbieżności z spodziewanym przez nas rezultatem gdyż rozważona funkcja użyteczności nie jest zgodna z naszym rozumowaniem. Stąd do rozwiazywania procesów decyzyjnych Markova używana jest przez nas inna klasa funkcji użyteczności.
+
+\begin{definition}[Użyteczność Lambda]
+Niech $\lambda \in (0,1)$. Funkcją użyteczność $U_\lambda : SS \to \setR$ nazywamy funkcję zadaną wzorem
+$$
+U: (s_0, s_1, \ldots) \mapsto \sum_{n=0}^{\infty} \lambda^n R(s_n).
+$$
+\end{definition} 
+
+\begin{lemma}[Zbieżność w funkcji użyteczności lambda]
+Niech $\lambda \in (0,1)$ oraz niech $R : S \to \setR$ nie przyjmuje wartości $\pm \infty$. Wtedy funkcja użyteczności lambda przyjmuje skończoną wartość dla wszystkich ciągów stanów.
+\end{lemma}
+
+\begin{proof}
+Niech spełnione będą założenia z lematu. Niech $s = (s_0, s_1, \ldots)$ będzie pewnym dowolnym ciągiem stanów z przestrzeni $SS$. Wtedy
+\begin{align*}
+U(s) & = \sum_{n=0}^{\infty} \lambda^n R(s_n) \\
+& \leq \sum_{n=0}^{\infty} \lambda^n \max \set{R_{max}, -R_{min}} \\
+& = \max \set{R_{max}, -R_{min}} \frac{1}{1-\lambda} < \infty.
+\end{align*}
+Korzystamy w powyższym z tego, że przestrzeń stanów jest skończona - a zatem możliwe nagrody stanowią również skończony zbiór - więc można wskazać elementy maksymalne i minimalne. Reszta to własności ciągów geometrycznych.
+\end{proof}
+
+\begin{remark*}
+Często faktyczną lambda użyteczność nagrody ze stanu $s_k$ tj $\lambda^i R(s_k)$ często jest nazywana zdyskonowaną nagrodą (i-krotnie zdyskontowaną). Przez to dostrzegamy kolejne analogie do matematyki finansowej czy ubezpieczeniowej.
+\end{remark*}
+
+
+\section{Równanie Bellmanna}
+
+Powyżej zdefiniowane pojęcia pozwalają nam uporządkować algorytm oceny polityki. Mamy zatem:
+
+\begin{enumerate}
+\item Wybieramy konkretną politykę,
+\item Ustalamy stan początkowy,
+\item Generujemy postępując zgodnie z polityką ciągi stanów i nagród wychodzące z wybranego stanu początkowego,
+\item Oceniamy je z użyciem funkcji użyteczności.
+\end{enumerate}
+
+Powyższe jednak nie uwzględnia stochastyczności modelu - przecież generowane ciągi stanów są losowe. Rozwiążmy ten problem dodając kolejny krok do algorytmu:
+
+\begin{enumerate}
+\item Wybieramy konkretną politykę,
+\item Ustalamy stan początkowy,
+\item Generujemy postępując zgodnie z polityką ciągi stanów i nagród wychodzące z wybranego stanu początkowego,
+\item Oceniamy je z użyciem funkcji użyteczności.
+\item Jako ocenę danej polityki przy starcie z danego stanu wybieramy wartość przeciętną uzyskiwanej użyteczności.
+\end{enumerate}
+Dokonując podsumowania po wszystkich stanach początkowych otrzymujemy postać wartość całej polityki. Pozwala to sformułować stwierdzenie.
+
+\begin{theorem}[Postać polityki optymalnej]
+Przy zastosowaniu funkcji użyteczności lambda z ustalonym $\lambda \in (0,1)$ polityka optymalna może zostać opisana wzorem
+$$
+\pi^\ast : s \mapsto \argmax_{\pi} \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_n) }{ \pi, s_0 = s},
+$$
+gdzie przez $\ExConditional{\cdot}{\pi, s_0 = s}$ rozumiemy warunkową wartość oczekiwaną przy starcie z stanu $s$ oraz przestrzeganiu polityki $\pi$.
+\end{theorem}
+
+Powyższe twierdzenie dostarcza nam warunki dla polityki optymalnej, ale powyższa formuła nie wzbudza najmniejszych nadziei na obliczenie postaci dla rozważanego problemu. Aby pokazać jak można wykorzystać to do obliczenia realnej polityki danego problemu wprowadźmy dalsze oznaczenia.
+
+\begin{definition}[Użyteczność stanu i polityki]
+Niech $\pi$ będzie pewną polityką w naszym problemie decyzyjnym a $s$ pewnym stanem początkowym. Wtedy użytecznością nazwiemy funkcję 
+$$
+U : (\pi, s) \mapsto \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_t) }{ \pi, s_0 = s}.
+$$
+Czasem z uwagi na stałość wyboru polityki będziemy pisać zamiast
+$$
+U^\pi(s) = U(\pi, s).
+$$
+\end{definition}
+
+\begin{theorem}[Równanie Bellmana]
+Poniższe równania są prawdziew.
+$$
+\pi^\ast : s \mapsto \argmax_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s'),
+$$
+oraz
+$$
+U: (\pi^\ast, s) \mapsto R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Drugie z tych równań nazywane jest równaniem Bellmana. 
+\end{theorem}
+
+
+\begin{proof}
+Zacznijmy od drugiego ze wzorów. Wykorzystamy definicję i twierdzenie o warunkowej wartości oczekiwanej
+\begin{align*}
+U(\pi^\ast, s ) & = \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_t) }{ \pi^\ast, s_0 = s} \\
+& = \ExConditional{ \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_t) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'}.
+\end{align*}
+Rozpisując pierwszy element sumy otrzymujemy
+\begin{align*}
+U(\pi^\ast, s ) & = \ExConditional{ \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_t) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'} \\
+& = \ExConditional{ \ExConditional{R(s) + \lambda \sum_{t=1}^{\infty} \lambda^{t-1} R(s_t) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'} \\
+& = \ExConditional{ \ExConditional{R(s) + \lambda \sum_{t=0}^{\infty} \lambda^{t} R(s_{t+1}) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'}.
+\end{align*}
+Korzystając z tego, że $R(s)$ jest stałe otrzymujemy, a dalej z tego, że kolejna suma nie zależy już od $s_0$ - możemy rozpisać i zmienić numerowanie ciągu
+\begin{align*}
+U(\pi^\ast, s ) & = \ExConditional{ \ExConditional{R(s) + \lambda \sum_{t=0}^{\infty} \lambda^{t} R(s_{t+1}) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'} \\
+& = \ExConditional{R(s)}{s'} + \ExConditional{ \ExConditional{ \lambda \sum_{t=0}^{\infty} \lambda^{t} R(s_{t+1}) }{ \pi^\ast, s_1 = s'} }{s'}\\
+& = R(s) + \lambda \ExConditional{ \ExConditional{ \sum_{t=0}^{\infty} \lambda^{t} R(s_{t}) }{ \pi^\ast, s_0 = s'} }{s'}.
+\end{align*}
+Teraz rozpisując tę zewnętrzna wartość oczekiwaną otrzymujemy
+\begin{align*}
+U(\pi^\ast, s ) & = R(s) + \lambda \ExConditional{ \ExConditional{ \sum_{t=0}^{\infty} \lambda^{t} R(s_{t}) }{ \pi^\ast, s_0 = s'} }{s'} \\
+& = R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') \ExConditional{ \sum_{t=0}^{\infty} \lambda^{t} R(s_{t}) }{ \pi^\ast, s_0 = s'} \\
+& = R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0)
+\end{align*}
+Przedstawiony tu wzór bardzo już przypomina tezę. Pozostaje jednak pytanie o $\max_{a}$ wzgledem $\pi^\ast(s)$. Przypominjmy, że 
+$$
+\pi^\ast : s \mapsto \argmax_{\pi}  U(\pi,s).
+$$
+Przypuścmy, że 
+$$
+R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0) \neq 
+R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Naturalnie skoro polityka $\pi^\ast$ jest optymalna to $U(\pi^\ast, \cdot)$ jest maksymalną użytecznością. Stąd musiałoby być
+$$
+R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0) > 
+R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Wystarczy jednak wziąć konkretne $a = \pi^\ast(s)$ aby pokazać, że powyższe jest sprzeczne. Zatem 
+$$
+U: (\pi^\ast, s) \mapsto R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Obserwacja którą poczyniliśmy chwilę temu orzekająca, że 
+$$
+\sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0) = \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s'),
+$$
+może zostać jednak zapisana w inny sposób znacząc wprost, że 
+$$
+\pi^\ast : s \mapsto \argmax_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Co kończy dowód.
+\end{proof}
+
+Powyższy wzór pokazuje prawdziwą naturę obu tych narzędzi.
+Dla użyteczności dostrzegamy, że
+$$
+U(s) = R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0),
+$$
+czyli użyteczność w danym stanie zależy od otrzymywanej nagrody oraz średniej użyteczności z kolejnych stanów, ale zdyskontowanych jednokrotnie (skoro dochodzi do przesunięcia w czasie). Z równania dla polityki dostrzegamy że
+$$
+\pi^\ast : s \mapsto \argmax_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s'),
+$$
+polityka optymalna to taka, która maksymalizuje przyszłą użyteczność dalszych stanów.
+
+\section{Algorytm Bellmana}
+
+Równania Bellman pojawiły sie w naszej teorii w chwili gdy zaczęliśmy zastanawiać się nad możliwością odszukania optymalnej polityki...
+
+%TODO to be continued...
+
+%\begin{tabular}{|c|c|}\hline
+%Polityka optymalna & $ \pi^\ast = \argmax_{\pi} \Ex{ \sum_{n=0}^{\infty} \lambda^n R(s_n)}{\pi} $ \\\hline
+%\uncover<2->{Użyteczność polityki} & \uncover<2->{$ U^\pi(s) = \Ex{\sum_{n=0}^{\infty} \lambda^n R(s_n)}{\pi, s_0 = s} $} \\\hline 
+%\uncover<3->{Właściwa użyteczność} & \uncover<3-> {$U(s) = U^{\pi^\ast}(s)$}\\\hline
+%\end{tabular}
+%
+%\uncover<4->{
+%\begin{block}{Polityka optymalna}
+%\begin{equation*}
+%\pi^\ast (s) = \argmax_{a} \sum_{s'} T(s,a,s') U(s').
+%\end{equation*}
+%\end{block}
+%}
+%\uncover<5->{
+%\begin{block}{\uncover<6->{Równanie Bellmanna}}
+%\begin{equation}
+%U(s) = R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(s')
+%\end{equation}
+%\end{block}
+
 \addcontentsline{toc}{chapter}{Skorowidz}
 \printindex
 
