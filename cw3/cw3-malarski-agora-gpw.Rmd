@@ -10,7 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-library(XLConnect)
 library(dplyr)
 library(tidyr)
 Dane <- read.csv("C:/Users/Adam/ts-r/cw3/amalarski-agora-gpw.txt")
