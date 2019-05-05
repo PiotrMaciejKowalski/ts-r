@@ -1,0 +1,141 @@
+---
+title: "Woźna-FEX-AUD-NZD"
+author: "Małgorzata Woźna"
+date: "24 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Cel pracy
+
+Przeanalizaowanie ponownie zostaną dane ze strony HistData.com  (https://www.histdata.com/download-free-forex-historical-data/?/ascii/1-minute-bar-quotes/AUDNZD).
+Dla urozmaicenia analizy dodam dzień tygonia oraz dla ułatwienia pracy z danymi zmienie format daty.
+Dla walorów estetycznch zmieniony został format godziny. Niniejszy skrypt pokazuje zastosowanie wykresów ACF PACF. Skorzystam również z modeli: MA, AR, ARMA/ARIMA.
+
+```{r dane}
+dane <- read.csv2("mwozna-dane.csv", colClasses = c('character', 'character' , 'numeric', 'numeric'), dec='.')
+dniTygodnia <- c("Środa","Czwartek","Piątek","Poniedziałek","Wtorek")
+ for(i in 1:nrow(dane)){
+   dane[i,5]<-dniTygodnia[(i-1)%%(length(dniTygodnia))+1]
+ }
+ colnames(dane)[5]  <- "DzienTygodnia"
+ dane$DzienTygodnia = as.factor(dane$DzienTygodnia)
+ Data <- as.Date(dane$Data, "%Y%m%d")
+ dane$Data=Data
+ Time <- strftime(strptime(dane$Godzina, format = '%H%M%S'), format = '%H')
+ dane$Godzina = Time
+ head(dane)
+ 
+```
+
+Dane przechowywane są obecnie w postaci ramki. Zmieńmy typ danych na specjalnie przystowsowany do analizy szeregów czasowych.
+
+```{r}
+library(dplyr)
+library(forecast)
+sc <- ts(dane$Otwarcie, frequency = 1)
+dates <- as.Date(dane$Data, format='%Y-%m-%d')
+```
+Szereg czasowy zmiennej otwarcie jest następującej postaci:
+```{r}
+plot(sc, main="Otwarcie",col="darkblue", xlab = "Dzień analizy", ylab="Cena otwarcia")
+```
+
+## Funkcja autokorelacji (ACF) i autokorelacji cząstkowej (PACF)
+
+Funkcja autokorelacji (ACF). Przy przesunięciu k jest to korelacja między wartościami szeregu oddalonymi o k przedziałów od siebie.
+
+Funkcja autokorelacji cząstkowej (PACF). Przy przesunięciu k jest to korelacja między wartościami szeregu oddalonymi o k przedziałów od siebie, z jednoczesną rejestracją wartości z przedziałów znajdujących się pomiędzy.
+
+Oś x wykresu ACF wskazuje przesunięcie, dla jakiego obliczana jest autokorelacja; oś y wskazuje wartość korelacji (między −1 a 1). Na przykład linia rzutowania przy przesunięciu wynoszącym 1 na wykresie ACF oznacza silną korelację między każdą wartością szeregu a wartością poprzedzającą, zaś linia rzutowania przy przesunięciu wynoszącym 2 oznacza silną korelację między każdą wartością a wartością występującą dwa punkty wcześniej itd.
+
+
+```{r}
+par(mfrow = c( 1, 2), pty = "m")
+acf(sc, main="ACF", ylab="Wartość korelacji", xlab=" ")
+pacf(sc, main="PACF", ylab="Wartość korelacji", xlab= " ")
+
+mtext("Przesunięcie, dla jakiego obliczana jest autokorelacja", side = 1, line = -3, outer = TRUE)
+```
+
+Korelacja dodatnia oznacza, że duże wartości bieżące odpowiadają dużym wartościom dla danego przesunięcia; ujemna korelacja oznacza, że duże wartości bieżące odpowiadają niewielkim wartościom dla danego przesunięcia. 
+
+Wartość bezwzględna korelacji stanowi miarę siły powiązania, przy czym większe wartości bezwzględne oznaczają silniejsze relacje.
+
+## Podział na zbiór uczący i testowy.
+
+Podzielmy nasz zbiór na część uczącą i część testową. Zbiorem treningowym będą dane z miesięcy styczeń-luty, a zbiorem testowym dane z miesiąca marzec.
+
+```{r}
+l<-length(sc)
+```
+
+```{r}
+uczacy<-window(sc,end=104)
+head(uczacy)
+testowy<-window(sc,start=105)
+head(testowy)
+```
+
+**Wspólny wykres** 
+
+
+```{r}
+ts.plot(uczacy, testowy, col=1:2, lty=c(1,2), xlab="Dni", main= "Podział na zbiór uczący i testowy - Kurs otwarcia ")
+```
+
+## Modele AR, MA, ARMA/ARIMA.
+
+**Model AR**
+```{r}
+modelar<-Arima(uczacy,order = c(2,1,0))
+summary(modelar)
+```
+
+**Model MA**
+```{r}
+modelma<-Arima(uczacy, order=c(0,2,3))
+summary(modelma)
+```
+
+**Model ARIMA**
+```{r}
+modelarima<-Arima(uczacy, order=c(1,2,2))
+summary(modelarima)
+```
+
+## Prognoza
+
+```{r}
+prognozaAR<-forecast(modelar,h=length(testowy))
+prognozaAR
+```
+```{r}
+prognozaMA<-forecast(modelma,h=length(testowy))
+prognozaMA
+
+
+
+plot(prognozaAR, xlab="Dni" , main= "Prognoza AR")
+lines(testowy, col='red' )
+plot(prognozaMA, xlab="Dni" , main= "Prognoza MA")
+lines(testowy, col='red' )
+```
+
+##Porównanie uzyskanych błędów średniokwadratowych dla powyższych prognoz.
+
+```{r}
+b1=mean(((prognozaAR$mean-testowy)^2))
+b2=mean(((prognozaMA$mean-testowy)^2))
+
+if(b1==b2){
+  print("Nie możemy wskazać lepszego modelu.")
+} else if(b1<b2){
+  print("Model AR jest lepszy.")
+} else{
+  print("Model MA jest lepszy.")
+}
+```

@@ -1,0 +1,185 @@
+---
+title: "Prognozowanie kursów mBanku z wykorzystaniem modeli ARiMA"
+author: "Jakub Bujnowicz"
+date: "16-04-2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wstęp i przygotowanie danych
+
+Na początku, załadujemy wszystkie potrzebne pakiety.
+
+```{r, message = FALSE}
+library(tidyverse)
+library(forecast)
+library(tseries)
+```
+
+Przygotujemy dane w odpowiedni sposób, poszerzając je o brakujące dni za pomocą
+funkcji `complete` oraz wyczyścimy szereg czasowy z pomocą funkcji `tsclean`.
+
+```{r, warning = FALSE, message = FALSE}
+dane <- read_csv("jbujnowicz-data.csv") %>%
+    complete(Data = seq.Date(min(Data),
+                             max(Data),
+                             by = "day"))
+
+ts_rate <- ts(dane$Otwarcie,
+              start = c(1, 3),
+              frequency = 7) %>%
+    tsclean()
+head(ts_rate)
+```
+
+Zobaczmy jak wyglądają nasze dane na wykresie.
+```{r}
+autoplot(ts_rate)
+```
+
+Niestety, nasz szereg nie wygląda na stacjonarny. Sprawdźmy nasze przypuszczenia
+odpowiednim testem.
+```{r}
+adf <- adf.test(ts_rate)
+adf
+```
+
+Obliczone p-value jest na poziomie `r round(adf$p.value, 4)`, co nie pozwala
+na odrzucenie hipotezy zerowej o niestacjonarności szeregu.
+
+Spróbujmy przeprowadzić dekompozycję szeregu.
+```{r}
+ts_decomp <- stl(ts_rate, s.window = "periodic")
+autoplot(ts_decomp) +
+    labs(title = "Dekompozycja szeregu")
+```
+
+Następnie, utwórzmy nowy szereg, z którego usuniemy wpływ sezonowy i sprawdźmy
+czy różnicowanie tego szeregu pomoże nam z problemem braku stacjonarności.
+```{r}
+ts_seasadj <- seasadj(ts_decomp)
+ts_dseasadj <- diff(ts_seasadj)
+autoplot(ts_dseasadj)
+adf.test(ts_dseasadj)
+```
+
+Jak widać, zróżnicowany szereg jest już stacjonarny. Wykorzystamy tę wiedzę do
+budowy modeli.
+
+## Budowa modeli
+
+W naszej analizie, rozważymy trzy rodzaje modeli - model AR, MA oraz ARiMA.
+Przeanalizujmy wykresy ACF oraz PACF, by odpowiednio dobrać parametry.
+```{r}
+tsdisplay(ts_seasadj)
+```
+
+Utworzony wykres ACF sugeruje użycie modelu MA(7), natomiast wykres PACF
+sugeruje zastosowanie modelu AR(1). Do konstrukcji modelu ARiMA zastosujemy 
+funkcję `auto.arima`. Wszystkie modele będą tworzone dla zróżnicowanego szeregu
+(parametr `d = 1`).
+
+W celu oszacowania jakości modelów, podzielimy nasze dane na zbiór testowy oraz
+zbiór uczący.
+```{r}
+end_ts <- end(ts_rate) - c(2, 0)
+start_ts <- end_ts + c(0, 1)
+ts_train <- window(ts_seasadj, end = end_ts)
+ts_test <- window(ts_rate, start = start_ts)
+```
+
+Następnie utwórzmy opisane wcześniej modele.
+```{r}
+model_ma <- Arima(ts_train, order = c(0, 1, 7))
+model_ar <- Arima(ts_train, order = c(1, 1, 0))
+model_arima <- auto.arima(ts_train, d = 1)
+```
+
+Zobaczmy jak radzą sobie one na zbiorze uczącym.
+```{r}
+summary(model_ma)
+summary(model_ar)
+summary(model_arima)
+```
+
+Wszystkie modele wydają się sprawować podobnie. 
+
+## Diagnostyka modeli
+
+Do oszacowania, jak modele radzą sobie w rzeczywistości, wygenerujemy prognozy
+na zbiorze testowym i porównamy pierwiastki z błędów średniokwadratowych (RMSE).
+```{r}
+all_models <- list(ma = model_ma,
+                   ar = model_ar,
+                   arima = model_arima)
+predictions <- lapply(all_models,
+                      function(x) forecast(x, h = length(ts_test)))
+```
+
+Z pomocą funkcji pomocniczej `add_seasonality` dodamy usuniętą wcześniej 
+sezonowość.
+```{r}
+add_seasonality <- function(x) {
+    x$mean <- x$mean + seasonal(ts_decomp)[-(1:length(ts_train))]
+    return(x)
+}
+
+predictions <- lapply(predictions, add_seasonality)
+```
+
+Zobaczmy jak nasze predykcje wyglądają na wykresach.
+```{r, fig.height = 9}
+par(mfrow = c(3, 1))
+for (i in 1:3) {
+    plot(predictions[[i]])
+    lines(ts_test,
+          lty = 2,
+          col = "darkred")
+}
+par(mfrow = c(1, 1))
+```
+
+Na koniec sprawdźmy wartości błędów oraz statystyki Theila.
+```{r}
+rmse <- function(real, predicted = 0) {
+    if (!is.numeric(real) || !is.numeric(predicted)) {
+        stop("Parameters real and predicted must be numeric")
+    }
+    if (length(real) != length(predicted)) {
+        stop("Both vectors must be of the same length.")
+    }
+
+    value <- real - predicted
+    result <- sqrt(mean(value * value, na.rm = TRUE))
+    return(result)
+}
+
+theil <- function(real, predicted) {
+    if (!is.numeric(real) | !is.numeric(predicted)) {
+        stop("Parameters real and predicted must be numeric")
+    }
+    if (length(real) != length(predicted)) {
+        stop("Both vectors must be of the same length.")
+    }
+
+    result <- rmse(real, predicted) /
+        rmse(real, dplyr::lag(real))
+    return(result)
+}
+```
+```{r}
+pred_values <- lapply(predictions, function(x) as.numeric(x$mean))
+real <- as.numeric(ts_test)
+
+rmse_all <- sapply(pred_values, function(x) rmse(real, x))
+theil_all <- sapply(pred_values, function(x) theil(real, x))
+rmse_all
+theil_all
+```
+
+Wartości statystyki Theila dla każdego modelu są niższe od 1, co sugeruje ich
+przewagę nad prognozą naiwną. Natomiast błędy są do siebie zbliżone, z bardzo
+niewielką przewagą modelu `r toupper(names(pred_values)[rmse_all == min(rmse_all)])`.

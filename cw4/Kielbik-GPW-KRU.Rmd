@@ -1,0 +1,121 @@
+---
+title: "Filtrowanie potokowe cen akcji spółki Kruk S.A."
+author: "Natalia Kiełbik"
+date: "27 kwietnia 2019"
+output: html_document
+---
+
+#Wczytywanie danych
+Rozpoczniemy od przygotowania danych, tj. wgrania pliku *.csv* z notowaniami cen akcji.
+```{r}
+dane <- read.csv("Kielbik-kru_d.csv")[,1:5]
+head(dane)
+```
+
+Wgramy potrzebne w tym zadaniu biblioteki.
+```{r}
+library(dplyr)
+library(lubridate)
+```
+
+#Pierwszy proces
+Przed rozpoczęciem procesu, wyodrębnimy dwie dodatkowe kolumny z uwzględnionym miesiącem notowania oraz różnicą cen zamknięcia i otwarcia notowania danego dnia.
+```{r}
+dane_n <- dane %>%
+    mutate(
+        Data = as.Date(Data),
+        Miesiac = months(Data, abbreviate = FALSE),
+        Roznica = Zamkniecie - Otwarcie)
+```
+
+Następnie w tym procesie użyjemy funkcji `filter` oraz `mutate` - w celu zaprezentowania różnicy między ceną zamknięcia a ceną otwarcia notowania z danego dnia. Wybierzemy tylko te wyniki w których różnica (z nowej kolumny) jest większa od 0 i mniejsza lub równa od 5. 
+```{r}
+dane %>%
+  filter(dane_n$Roznica > 0, dane_n$Roznica <= 5) %>%
+  mutate(Roznica = Zamkniecie - Otwarcie) %>%
+  select(Data, Otwarcie, Zamkniecie, Roznica) -> tabela1
+  head(tabela1)
+```
+
+Wykres dla różnicy cen zamknięcia i otwarcia, spełniającej powyższy warunek (w całym rozpatrywanym okresie) prezentuje się następująco:
+```{r}
+plot(tabela1$Roznica,
+     type = "l",
+     col = "dark blue",
+     main = "Różnica cen akcji z przedziału (0,5]",
+     xlab = "Dni",
+     ylab = "Różnica")
+```
+
+
+#Drugi proces
+W kolejnym procesie zastosujemy funkcje `filter`, `group_by` oraz `summarise`.
+Najpierw przy pomocy funkcji `filter` wybierzemy tylko dane dla których cena otwarcia jest większa od 160. 
+W następnym etapie, przez funkcję `group_by` pogrupujemy dane ze względu na miesiąc notowania oraz wyliczymy wartość maksymalną, wartość minimalną, średnią oraz odchylenie standardowe dla ceny otwarcia, z tak wybranych danych.
+```{r}
+dane_2 <- dane_n %>%
+  filter(Otwarcie > 160) 
+
+dane_2 %>%
+  group_by(Miesiac) %>%
+  summarise(Max=max(Otwarcie, na.rm = TRUE),
+            Min=min(Otwarcie, na.rm = TRUE),
+            Srednie_Otwarcie = mean(Otwarcie,na.rm=TRUE), 
+            Std_Otwarcie = sd(Otwarcie, na.rm = TRUE)) 
+```
+
+Dane te zaprezentujemy na wykresie pudełkowym dla ceny otwarcia z zaznaczoną średnią wartością dla każdego miesiąca. 
+
+```{r}
+boxplot(dane_2$Otwarcie ~ dane_2$Miesiac,
+        col = "purple",
+        main = "Cena otwarcia z uwzględnieniem wartości średniej",
+        xlab = "Miesiąc",
+        ylab = "Cena otwarcia dla Kruk S.A.")
+```
+
+
+#Trzeci proces
+W ostatnim rozpatrywanym procesie użyjemy funkcji `filter` oraz `mutate`.
+Na początku użyjemy funkcji `mutate` w celu utworzenia dodatkowej kolumny, wyodrębniającej dni notowań z kolumny *Data*. Następnie przy pomocy funkcji `filter` przesortujemy notowania i na tym etapie przeprowadzimy dwa procesy, w których weźmiemy pod uwagę dane ze stycznia: w pierwszym - dni parzyste, w drugim - dni nieparzyste.
+Wyniki standardowo przedstawimy na wykresie - w tym przypadku dla obu opcji: ceny otwarcia i zamknięcia akcji.  
+```{r}
+#Dni parzyste
+dane %>%
+  mutate(Dzien = lubridate::day(Data)) %>%
+  filter(grepl("-01-", Data), Dzien %% 2 == 0) %>%
+  select(Data, Otwarcie, Zamkniecie, Dzien) -> tabela3a
+  head(tabela3a)
+  
+#Dni nieparzyste
+dane %>%
+  mutate(Dzien = lubridate::day(Data)) %>%
+  filter(grepl("-01-", Data), Dzien %% 2 != 0) %>%
+  select(Data, Otwarcie, Zamkniecie, Dzien) -> tabela3b
+  head(tabela3b)
+```
+
+Zaprezentujemy ceny otwarcia i zamknięcia dla dni parzystych oraz nieparzystych na wykresach.
+```{r}
+op = par(mfrow = c(2, 2))
+plot(tabela3a$Otwarcie,
+     col="blue",
+     main = "Ceny otwarcia dla parzystych dni",
+     xlab = "Dni",
+     ylab = "Ceny otwarcia")
+plot(tabela3a$Zamkniecie,
+     col="red",
+     main = "Ceny zamknięcia dla parzystych dni",
+     xlab = "Dni",
+     ylab = "Ceny zamknięcia")
+plot(tabela3b$Otwarcie,
+     col="blue",
+     main = "Ceny otwarcia dla nieparzystych dni",
+     xlab = "Dni",
+     ylab = "Ceny otwarcia")
+plot(tabela3b$Zamkniecie,
+     col="red",
+     main = "Ceny zamknięcia dla nieparzystych dni",
+     xlab = "Dni",
+     ylab = "Ceny zamknięcia")
+```

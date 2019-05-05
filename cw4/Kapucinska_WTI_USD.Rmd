@@ -1,0 +1,53 @@
+---
+title: "Zadanie4"
+author: "Justyna Kapucińska"
+date: "26 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Instaluje potrzebny pakiet i wczytuje dane
+```{r}
+library(dplyr)
+dane=read.csv2("Kapucinska_WTI_USD.csv")
+```
+
+#Pierwszy proces filtrowania potokowego
+Wybiorę notowania ze stycznia, utworzę nową kolumnę (różnice ceny zamknięcia i otwarcia) oraz wybiorę notowania dla których różnica jest większa od zera.
+```{r}
+dane %>%
+  filter(grepl("sty", Data)) %>%
+  mutate(różnica=Zamknięcie.-Otwarcie.)%>%
+  filter(różnica>0)->dane1
+head(dane1)
+```
+
+#Wykres
+```{r}
+plot(dane1$różnica, type="o", main="Dodatnia różnica cen w lutym", xlab = "Dni", ylab="Różnica")
+```
+
+#Drugi proces filtrowania potokowego
+Utworzę nową kolumnę (średnią wartość cen) i wybiorę ceny otwarcia mniejsze od średniej.
+```{r}
+dane %>%
+  mutate(śr_wartość=(Wartość.najwyższa.+Wartość.najniższa.)/2)%>%
+  filter(śr_wartość>Otwarcie.)->dane2
+head(dane2)
+```
+
+#Wykres
+```{r}
+plot(dane2$śr_wartość, type="o", main="Średnia wartość", xlab = "Dni", ylab="Wartość")
+```
+
+#Trzeci proces filtrowania potokowego
+Pogrupuję dane według godziny i wyświetlę średnie ceny.
+```{r}
+dane %>%
+  group_by(Godzina.)%>%
+  summarise(Śr_otwarcie=mean(Otwarcie.), Śr_wart_najwyższa=mean(Wartość.najwyższa.), Śr_wart_najniższa=mean(Wartość.najniższa.), Śr_zamknięcie=mean(Zamknięcie.))->dane3
+dane3
+```
