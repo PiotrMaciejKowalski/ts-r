@@ -12,5 +12,68 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(XLConnect)
 library(dplyr)
+library(tidyr)
+Dane <- read.csv("C:/Users/Adam/ts-r/cw3/amalarski-agora-gpw.txt")
+head(Dane)
+Data <- Dane $Data
+Date <- as.Date(Data, "%Y-%m-%d")
+df<-cbind(df,Date)
+Data1<- as.numeric(1:length(Date))
+Wolumen <- Dane $Wolumen
+Otwarcie <- Dane $Otwarcie
+Zamkniecie <- Dane $Zamkniecie
+
 ```
+## Modele regresji
+
+Wykonam model regresji liniowej dla wszystkich danych.
+
+```{r}
+ramka<-data.frame(Date,Otwarcie)
+head(ramka)
+plot(ramka,'p',col="blue");
+regresja <- lm(ramka$Otwarcie~ramka$Date);
+plot(reg);
+abline(reg)
+summary(reg)
+```
+Dane dzielę na dwa zbióry uczący i testowy
+```{r}
+zb_uczacy<-data.frame(Data1[1:45],Otwarcie[1:45])
+zb_testowy<-data.frame(Data1[46:56],Otwarcie[46:56])
+```
+Wykonuję model regresji dla zbioru uczącego
+```{r}
+regresja_u<-lm(Otwarcie~Data1, data=zb_uczacy)
+plot(regresja_u);
+abline(regresja_u)
+summary(regresja_u)
+```
+Wykonuję model regresji dla zbioru testowego
+```{r}
+wspolczynnik=coef(regresja_u)
+a=wspolczynnik[2]
+b=wspolczynnik[1]
+pr=a*zb_testowy$Data1.46.56. +b
+pr
+```
+
+```{r}
+plot(zb_testowy$Data1.46.56.,zb_testowy$Otwarcie.46.56., main = "Prognozowanie", ylab = "Otwarcie", xlab = "Dzień notowań w 2019 roku: od 46 do 56")
+lines(zb_testowy$Data1.46.56., pr, col="blue")
+```
+
+Wyznaczam błąd średniokwadratowy
+```{r}
+bsk <-mean((pr-zb_testowy$Otwarcie.46.56.)^2)
+bsk
+```
+i wartość statystyki Theil'a
+
+```{r}
+theil <-sum((pr-zb_testowy$Otwarcie)^2)/sum(zb_testowy$Otwarcie^2)
+theil
+```
+
+ 
  
