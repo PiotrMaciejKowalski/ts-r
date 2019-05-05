@@ -1,6 +1,6 @@
 ---
 title: "JSzymanska_VividGames"
-author: "Joanna SzymaĹ„ska"
+author: "Joanna Szymańska"
 date: "4 maja 2019"
 output: html_document
 ---
