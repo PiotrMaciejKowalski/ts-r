@@ -1,6 +1,6 @@
 ---
 title: "JSzymanska_VividGames"
-author: "Joanna SzymaÅ„ska"
+author: "Joanna SzymaÄ¹â€žska"
 date: "4 maja 2019"
 output: html_document
 ---
@@ -32,7 +32,7 @@ max=ts(dane2$Max,frequency=1)
 adftest=adf.test(max)
 adftest
 ```
-#Ró¿nicowanie szeregu
+#RÃ³Å¼nicowanie szeregu
 ```{r}
 max_r=diff(max)
 plot(max_r)
@@ -41,10 +41,10 @@ plot(max_r)
 adftest2=adf.test(max_r)
 adftest2
 ```
-Mo¿emy odrzuciæ hipotezê zerow¹ na korzyœæ hipotezy alternatywnej.
+MoÅ¼emy odrzuciÄ‡ hipotezÄ™ zerowÄ… na korzyÅ›Ä‡ hipotezy alternatywnej.
 
 
-#Wykresy ACF i PACF dla zró¿nicowanego szeregu
+#Wykresy ACF i PACF dla zrÃ³Å¼nicowanego szeregu
 ```{r}
 tsdisplay(max_r)
 ```
@@ -91,11 +91,11 @@ bladARIMA=mean((forecastARIMA$mean-test)^2)
 plot(forecastARIMA)
 ```
 
-Porównajmy teraz b³êdy œredniokwadratowe modeli:
+PorÃ³wnajmy teraz bÅ‚Ä™dy Å›redniokwadratowe modeli:
 ```{r}
 bladMA
 bladAR
 bladARIMA
 ```
 
-Wszystkie trzy modele s¹ porównywalne, jednak najlepszy wydaje siê byæ model ARIMA.
+Wszystkie trzy modele sÄ… porÃ³wnywalne, jednak najlepszy wydaje siÄ™ byÄ‡ model ARIMA.
