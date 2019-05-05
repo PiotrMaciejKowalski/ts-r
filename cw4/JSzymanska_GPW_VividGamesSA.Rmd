@@ -241,4 +241,5 @@ head(dane3)
 ```
 ```{r}
 plot(dane3$sredniaRoznicaOZ,dane3$SredniaRoznicaMaksMin, "p", xlab="Różnica pomiedzy cena otwarcia a zamkniecia", ylab="Różnica pomiedzy max a min wartoscia", col="purple")
+
 ```
