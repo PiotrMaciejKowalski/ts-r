@@ -1,0 +1,74 @@
+---
+title: "Zadanie4"
+author: "WLara"
+date: "30 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Wczytujemy dane z excela
+```{r}
+library(XLConnect)
+library(dplyr)
+library(tidyr)
+library(readxl)
+dane <- read_excel('Lara-dane2.xlsx', sheet = 1)
+dane$Godzina<-substr(dane$Godzina,12,16)
+dane$Data<-as.Date(dane$Data,)
+
+head(dane)
+```
+
+#Pierwszy proces
+Wyszukujemy cene otwarcia większą od 1281.Liczymy średnią, i wyszukujemy maksymalnych cen większych od średniej. 
+```{r}
+dane %>%
+  filter(Cena_otw>1281) %>%
+  mutate(srednia = (Min_cena + Max_cena)/2) %>%
+  filter(Max_cena>srednia) -> do_wykresu
+  do_wykresu
+```
+
+#Wykres
+```{r}
+plot(do_wykresu$Cena_otw,xlab="Zmiana", ylab="Cena otwarcia")
+
+```
+
+#Drugi proces 
+Przedstawimy r??nice ceny otwarcia i zamkni?cia z godziny 08:00
+```{r}
+dane %>%
+ filter(Godzina == "08:00") %>%
+ mutate(roznica = Cena_otw - Cena_Zamk) -> nowe
+nowe
+```
+
+#Wykres
+```{r}
+plot(nowe$roznica, xlab = "pomiar", ylab = "roznica", main = "Różnica między,ceną otwarcia, a zamknięcia z godziny 08:00")
+abline( h = -0.1)
+
+```
+
+#Trzeci proces
+Grupujemy maksymalne ceny z danej godziny. 
+```{r}
+dane %>%
+   group_by(Godzina)%>%
+  summarise(Max_zamkniecie = max(Max_cena, na.rm = FALSE)) -> final1
+final1
+ 
+
+
+
+```
+
+#Wykres
+```{r}
+plot(final1$Max_zamkniecie, xlab = "Godzina", ylab = "Najwyższe ceny")
+```
+
