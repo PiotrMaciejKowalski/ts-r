@@ -66,7 +66,7 @@ Możemy zauważyć podobieństwo wykresów z godziny 8:00, 12:00 oraz 16:00. Ró
 
 ## Wstęp do konstrukcji modeli
 
-** Pierwszy model **
+## Pierwszy model
 
 W pierwszym modelu predykcja na ostatnie 8 pomiarów tzn. danych dla 2 ostanich dni analizowanego okresu. Zostanie stworzona na podstawie zbioru uczącego składającego się ze wszystkich poprzednich danych.
 
@@ -109,7 +109,7 @@ Błąd średniokwadratowy wynosi `r blad1`. Wartość statystyki Theil'a w tym m
 
 Wartość tej statystyki jest mnijesza niz 1, zatem widać, że nasza prognoza jest skuteczniejsza niż prognoza naiwna.
 
-*Model drugi*
+##Model drugi
 
 W drugim modelu zosatnie przeprowadzona predykcja dla ostanich 40 pomiarów tzn. dla 10 ostanich dni, stworzona na podstawie zbioru uczącego składającego się ze wszystkich poprzednich danych. Znacząco zmniejszamy zbiór uczący.
 
