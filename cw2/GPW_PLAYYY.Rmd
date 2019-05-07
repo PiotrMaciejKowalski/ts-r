@@ -1,0 +1,31 @@
+---
+title: "GPW-Play"
+author: "Karolina Mruk"
+date: "26 marca 2019"
+output: html_document
+---
+Wczytujemy notowania Play z pliku csv i "okrajamy " je do interesuj?cych nas kolumn
+```{r}
+dane <- read.csv("GPW_PLAY.csv")[,1:5]
+
+head(dane)
+```
+
+
+```{r}
+summary(dane)
+```
+Poniżej przedstawię notowania spółki Play - maksimum i  minimum
+```{r}
+plot(dane$Maks, type="l", main="Wykres Maks ceny spółki Play",col="blue",xlab = "Data", ylab="Notowania Play")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+plot(dane$Min, type="l", main="Wykres Min ceny spółki Play",col="green",xlab = "Data", ylab="Notowania Play")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+Nanieśmy wszystkie krzywe na jeden wykres- Otwarcia, zamknięcia, max i min, w odniesieniu do daty.
+```{r}
+plot(dane$Otwarcie, type="l", main="Wykres notowania ceny spółki Play",col="red",xlab = "Data", ylab="Notowania Play")
+lines(dane$Min, type="l", col="green")
+lines(dane$Maks, type="l", col="blue")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```

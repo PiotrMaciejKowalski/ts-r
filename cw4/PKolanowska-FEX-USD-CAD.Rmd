@@ -1,0 +1,84 @@
+---
+title: "Filtrowanie potokowe"
+author: "Patrycja Kolanowska"
+date: "29 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Analizować będziemy ponownie dane pobrane ze strony Forex.pl dotyczące kursy dolara amerykańskiego do dolara kanadyjskiego. Interesuje nas bieżący rok (01.01.2019-22.03.2019) z godziny 8:00, 12:00, 16:00, 20:00. Interesować nas będzie kurs zamknięcia.
+
+```{r cars}
+dane <- read.csv2(file = 'pKolanowska-USDCAD.csv',colClasses = c('character', 'character' , 'numeric', 'numeric'), dec='.')
+Data <- as.Date(dane$Data, "%Y%m%d")
+ dane$Data=Data
+ Time <- strftime(strptime(dane$Godzina, format = '%H%M%S'), format = '%H')
+ dane$Godzina = Time
+ head(dane)
+```
+
+##Rozpoczęcie programowania funkcyjnego
+
+Zacznie od instalacji potrzebnego pakietu "dplyr".
+
+```{r biblioteka}
+library(dplyr)
+library(ggplot2)
+```
+
+## Pierwszy proces 
+Dane zostaną przefiltrowane po godzinie 16. Dla urozmaicenia analizy zostaną dodane dni tygdnia.
+```{r}
+dane %>%
+  filter(Godzina=='16') %>%
+    mutate(dzien = weekdays(Data)) -> data_plot
+
+data_plot %>%
+    group_by(dzien) %>% 
+    summarise(min = min(Zamkniecie), srednia = mean(Zamkniecie), max = max(Zamkniecie)) -> data1
+head(data1)
+```
+
+Wykres z podziałem na dni tygodnia
+
+```{r message = FALSE, warning = FALSE}
+boxplot(data_plot$Zamkniecie ~ data_plot$dzien, col = rainbow(5))
+```
+
+## Drugi proces
+W tym okresie średni kurs dla poszczególnych dni tygodnia
+
+```{r}
+dane %>%
+  filter(Godzina=='12') %>%
+    mutate(dzien = weekdays(Data)) -> data_plot
+
+data_plot %>%
+  group_by(dzien) %>%
+  summarise(max_zamkniecie=max(Zamkniecie,na.rm = TRUE),mean_zamkniecie = mean(Zamkniecie,na.rm=TRUE), std_zamkniecie = sd(Zamkniecie, na.rm = TRUE) ) %>%
+  arrange(-max_zamkniecie,-mean_zamkniecie) ->dane2
+
+```
+
+```{r echo=FALSE}
+barplot(dane2$mean_zamkniecie - min(dane2$mean_zamkniecie), names.arg = dane2$DzienTygodnia , offset = min(dane2$mean_zamkniecie),main="Średni kurs zamknięcia dla danego dnia",xlab = "Dni tygodnia",ylab = "Średnie", col = rainbow(5))
+```
+
+## Trzeci
+Zaprezentuje róznice pomiędzy kursem otwarcia a zamknięcia z godziny 16.
+
+```{r message = FALSE, warning = FALSE}
+dane %>% 
+  filter(Godzina=='16')%>%
+  select(Godzina,Zamkniecie,Otwarcie)%>%
+  mutate(roznica=Zamkniecie-Otwarcie) ->dane3
+```
+
+```{r echo=FALSE}
+plot(dane3$roznica,xlab = "Pomiar",ylab = "Różnica",main = " Różnica pomiędzy kursem otwarcia, a zamknięcia z godz. 16:00", col = 'red')
+abline(h=0, col = 'blue')
+```
+```

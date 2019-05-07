@@ -1,0 +1,83 @@
+---
+title: "soja-GPW-OCATAVASA"
+author: "Maria Soja"
+date: "9 04 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Zacznijmy od wczytania oraz odpowiedniego przygotowania danych.
+```{r}
+setwd('~/Desktop/ts-r/cw5')
+df <- read.csv("soja-data.csv")
+head(df)
+library(dplyr)
+library(forecast)
+```
+
+```{r}
+sc = ts(df$Otwarcie, frequency = 1)
+date = as.Date(df$Data, format='%Y-%m-%d')
+```
+Teraz możemy wygenerować wykresy ACF i PACF
+```{r}
+tsdisplay(sc)
+```
+
+Podzielmy nasz zbiór na część uczącą i część testową
+```{r}
+length(sc)
+```
+
+```{r}
+uczacy=window(sc,end=40)
+head(uczacy)
+testowy=window(sc,start=41)
+head(testowy)
+```
+## Model AR(1)
+```{r}
+modelar1=Arima(uczacy,order = c(1,0,0))
+summary(modelar1)
+```
+
+## Model MA
+```{r}
+modelma=Arima(uczacy, order=c(0,1,2))
+summary(modelma)
+```
+## Model ARIMA
+```{r}
+model3=Arima(uczacy, order=c(1,1,2))
+summary(model3)
+```
+## Prognoza
+
+```{r}
+prognozaar1=forecast(modelar1,h=length(testowy))
+prognozaar1
+```
+```{r}
+prognozama=forecast(modelma,h=length(testowy))
+prognozama
+```
+
+```{r}
+plot(sc)
+```
+```{r}
+plot(prognozaar1)
+plot(prognozama)
+```
+
+Policzmy teraz bład średniokwadratowy
+
+```{r}
+bladar1=mean((prognozaar1$mean-testowy)^2)
+bladar1
+bladma=mean((prognozama$mean-testowy)^2)
+bladma
+```
+Zatem pierwszy model jest lepszy

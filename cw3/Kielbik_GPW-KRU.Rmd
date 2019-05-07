@@ -1,0 +1,197 @@
+---
+title: "Prognozowanie przy użyciu modeli liniowych dla notowań cen akcji spółki Kruk S.A."
+author: "Natalia Kiełbik"
+date: "28 kwietnia 2019"
+output: html_document
+---
+#Zadanie 2 - Wykresy
+#O spółce
+Kruk S.A. to firma windykacyjna z siedzibą we Wrocławiu. 
+Grupa KRUK koncentruje swą działalność na rynku bankowym w oparciu o długoterminowe relacje z kluczowymi klientami. Zarządza m.in. wierzytelnościami banków, pośredników kredytowych, firm ubezpieczeniowych oraz firm leasingowych. Na Giełdzie Papierów Wartościowych notowana jest od 10 maja 2011 roku. 
+
+#Pobranie i wczytywanie danych
+Poniższy plik przedstawia notowania akcji spółki Kruk w dniach 2019-01-02 - 2019-03-18 z uwzględnieniem ceny otwarcia, zamknięcia, maksymalnej i minimalnej. 
+Dane pobrałam ze strony: https://stooq.pl/q/?s=kru&d=20190327.
+
+Rozpoczynam od pobrania potrzebnych bibliotek oraz przygotowania omawianaych danych.
+```{r}
+library(quantmod)
+library(xts)
+kruk.raw = read.csv("Kielbik-kru_d.csv", header = TRUE, sep = ",")
+kruk = xts(kruk.raw[, -1], order.by = as.Date(kruk.raw[, 1])) #zamiana danych w szereg czasowych
+KRU <- kruk
+names(KRU) = c("KRU.Open", "KRU.High", "KRU.Low", "KRU.Close", "KRU,Volume")
+```
+
+Następnie korzystam z funkcji *chartseries* w celu narysowania wykresów giełdowych dla omawianych notowań akcji spółki.
+
+Narysuję najpierw podstawowy wykres dla "obrotów-otwarcia-maks-min-zamknięcia" dla danych notowań.
+Na wykresie zostały wyszczególnione zieloną czcionką wartości zamknięcia oraz wolumenu w ostatnim omawianym dniu (czyli 2019-03-18). Dodatkowo dzięki parametrowi *theme* zastosowałam tutaj inny motyw kolorystyczny.
+```{r}
+chartSeries(KRU, theme = chartTheme(1))
+```
+
+Następny wykres przedstawia wartości maksymalne i minimalne z każdego dnia obserwacji, z uwzględnieniem ceny otwarcia.
+Typ wykresu, to wykres świecowy o zwężonych słupkach pomiedzy otwarciem i zamknięciem. 
+```{r}
+chartSeries(KRU, bar.type = "ohlc", TA = NULL, type = "matchsticks")
+```
+
+Na kolejnym wykresie przedstawiono maksimum oraz minimum z każdego dnia obserwacji, które są połączone odcinkiem, na którym oznaczona jest wartość zamknięcia sesji giełdowej. 
+Na tym wykresie nie jest przedstawiona cena otwarcia, a każda ze świec przyjmuje inny kolor, dzięki paramertrowi *muti.col*.
+```{r}
+chartSeries(KRU, multi.col = TRUE, bar.type = "hlc", TA = NULL, type = "bars")
+```
+
+Kolejny wykres przedstawia "otwarcie - maks - min - zamknięcie". Zastosowałam tutaj inny motyw kolorystyczny (czarno - biały).
+```{r}
+chartSeries(KRU,theme = chartTheme(2), TA = NULL)
+```
+
+Ostatni wykres przedstawia wolumen sprzedaży, a same wartości wolumenu są przedstawione na dodatkowym wykresie poniżej głównego.
+```{r}
+chartSeries(KRU, bar.type = "hlc", type = "bars")
+```
+
+Na ostatnim wykresie chciałam zaprezentować jak można zmieniać kolory poszczególnych elementów wykresu. Parametry, które podlegają zmianie, to: 
+*up.col* - kolor słupków dla których Close>Open, 
+*dn.col* - kolor w przeciwnej sytuacji
+```{r}
+chartSeries(KRU, theme = chartTheme(5), up.col = "darkolivegreen1", dn.col = "red")
+```
+
+
+
+#Zadanie 3 - Prognozowanie
+Rozpoczniemy od ponownego wprowadzenia i przygotowania danych potrzebnych do omówienia modeli predykcji. Bierzemy pod uwagę tylko jedną zmienną - cenę zamknięcia notowania.
+```{r}
+#Wczytanie dane
+dane = read.csv("Kielbik-kru_d.csv", header = TRUE, sep = ",")
+
+#Przygotowanie danych 
+Zam = dane$Zamkniecie
+Dni = as.numeric(1:length(dane$Data)) 
+dane_r=data.frame(cbind(Dni, Zam))
+head(dane_r)
+```
+
+Teraz podzielimy dane na zbiór uczący oraz testowy. Zbiór uczący będzie obejmował okres do "2019-03-01" (włącznie), a zbiór testowy od "2019-03-04" do końca rozpatrywanego okresu.
+```{r}
+czas <- which(dane$Data == "2019-03-04")
+obs <- nrow(dane)
+
+zb_ucz <- dane_r[1:(czas - 1), ]
+zb_test <- dane_r[czas:obs,]
+```
+
+#Model 1
+W pierwszej kolejności rozważymy model z trendem liniowym dla całych przeszłych danych. Następnie model ten zaprezentujemy na wykresie.
+```{r}
+model1 <- lm(Zam ~ Dni, data=zb_ucz)
+summary(model1)
+```
+
+Wykres:
+```{r}
+plot(dane_r$Zam,
+     type="l",
+     lwd = "2",
+     main = "Cena zamknięcia akcji z linią regresji",
+     xlab = "Czas", 
+     ylab = "Cena zamknięcia akcji",
+     xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+abline(model1, col = "red", lwd = "2")
+```
+
+Według naszego modelu, cena zamknięcia akcji, liczona od dnia *2019-03-04*, będzie miała wartości określone następującym wektorem:
+```{r}
+prognoza1=predict(model1,newdata=zb_test)
+prognoza1
+```
+
+Wykres prognozy dla danych od 2019-03-04 do końca rozpatrywanego okresu.
+```{r}
+plot(zb_test$Zam,
+     type="l",
+     lwd = "2",
+     main = "Prognoza ceny zamknięcia akcji",
+     xlab = "Czas", 
+     ylab = "Cena zamknięcia akcji KRU S.A.",
+     xaxt = "n")
+axis(1, at = dane$Data)
+lines(prognoza1, col = "red", lwd = "2")
+```
+
+Obliczymy teraz *błąd średniokwadratowy* oraz *statystykę Theil'a* dla tak skonstruowanego modelu.
+```{r}
+bl1=mean(((prognoza1 - zb_test$Zam)^2)) #błąd średniokwadratowy
+bl1
+
+th1=sum(((prognoza1 - zb_test$Zam)^2))/sum((zb_test$Zam^2)) #wartość statystyki Theil'a
+th1
+```
+
+#Model 2
+Będziemy teraz rozważać model z trendem liniowym korzystający zawsze ze stałej liczby bezpośrednio poprzedzających próbek **n**. 
+```{r}
+N <- length(dane$Zamkniecie)
+n <- 30
+model2 <- lm(Zam~Dni, data = zb_ucz[(N-n+1):N,])
+summary(model2)
+```
+
+Teraz zilustrujemy na wykresie trend liniowy dla tego modelu (w czasie od 2019-01-02 do 2019-03-18).
+```{r}
+plot(dane_r$Zam,
+     type = "l",
+     lwd = "2",
+     main="Model z trendem liniowym dla całych przeszłych danych",
+     xlab = "Czas",
+     ylab = "Cena zamknięcia akcji KRU",
+     xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+abline(model2, col = "blue", lwd="2")
+```
+
+Według tego modelu, cena zamknięcia akcji, liczona od dnia *2019-03-04*, będzie miała wartości określone następującym wektorem:
+```{r}
+prognoza2=predict(model2,newdata=zb_test)
+prognoza2
+```
+
+Zilustrujmy te wartości na wykresie:
+```{r}
+plot(zb_test$Zam,
+     type = "l",
+     lwd = "2",
+     main="Prognoza ceny zamknięcia",
+     xlab = "Czas",
+     ylab="Cena zamknięcia akcji KRU",
+     xaxt = "n")
+axis(1, at = dane$t, labels = levels(dane$t))
+lines(prognoza2, col="blue", type="l", lwd = "2")
+```
+
+Tutaj również wyznaczamy błąd średniokwadratowy oraz statystykę Theil'a.
+```{r}
+bl2=mean(((prognoza2 - zb_test$Zam)^2)) #błąd średniokwadratowy
+bl2
+th2=sum(((prognoza2- zb_test$Zam)^2))/sum((zb_test$Zam^2)) #wartość statystyki Theil'a
+th2
+```
+
+
+#Podsumowanie
+Przypomnijmy raz jeszcze *błędy średniokwadratowe* oraz *statystki Theil'a* dla obu modeli.
+```{r}
+#Model 1
+bl1
+th1
+
+#Model 2
+bl2
+th2
+```
+
+Na podstawie tych danych możemy wywnioskować, że model 2 lepiej przewiduje wartości kursu zamknięcia.

@@ -132,3 +132,52 @@ return(nowe_dane)
 ```
 
 Jest to również możliwe dzięki specyficznej konstrukcji tego operatora.
+
+# Reprodukcja konstrukcji programistycznej w operatorze potoku
+
+Przyjrzyjmy się próbie zaprezentowania sposobu działania tego wszystkie. Zacznijmy od własnej funkcji map
+
+```{r}
+myMap = function(data, func){
+  y = c();
+  for (item in data){
+    temp = func(item)
+    y = c(y,  temp)
+  }
+  return(y)
+}
+```
+
+Wtedy zadziałać powinno np.
+```{r}
+kwadraty = myMap(1:10, function(i){return(i*i)})
+kwadraty
+```
+
+Teraz powinna pojawić się druga funkcja 
+
+```{r}
+mymap = function(func){
+  # tu mozna zapisac dodatkowe pola
+  functor = function(data){ #functorowi będzie już brakowało tylko danych z parametrów
+    return(myMap(data, func))
+  }
+  return( functor )
+}
+```
+
+Pozostaje potrzeba zdefiniowania odpowiedniego operatora
+
+```{r}
+'%wlasny%' = function(data, functor) {
+  return (functor(data));
+}
+```
+
+Przetestujmy działanie powyższej składni
+
+```{r}
+1:20 %wlasny% mymap(function(i){return(2*i)}) -> result
+result
+```
+

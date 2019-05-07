@@ -1,0 +1,39 @@
+---
+title: "ćw2"
+author: "Ania Szczepaniak"
+date: "16 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wczytywanie
+
+Pobieramy i wczytujemy notowania od początku bierzącego roku dla spółki ALTA SA ze strony https://stooq.pl/q/d/?s=aat. 
+
+```{r}
+dane<-read.csv("aat_d.csv",header=TRUE)
+head(dane)
+```
+Zmieniam datę na prawidłowy format i dodaję do danych.
+```{r}
+df = as.Date(dane$Data, "%Y-%m-%d")
+dane2 = cbind(dane, df)
+head(dane2)
+```
+Generuję wykres wartości od czasu.
+```{r}
+plot(df, dane2$Wolumen)
+
+```
+Następnie tworzę wykres częstości dla Wolumen.
+```{r}
+barplot(table(dane2$Wolumen))
+```
+Wykres liniowy wartości od czasu
+```{r}
+plot(df, dane2$Wolumen, type="l")
+```
+

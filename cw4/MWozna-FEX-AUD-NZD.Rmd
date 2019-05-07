@@ -1,0 +1,95 @@
+---
+title: "AUD|NZD-FEX"
+author: "Małgorzata Woźna"
+date: "14 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Cel pracy
+
+Przeanalizaowanie ponownie zostaną dane ze strony HistData.com  (https://www.histdata.com/download-free-forex-historical-data/?/ascii/1-minute-bar-quotes/AUDNZD).
+Dla urozmaicenia analizy dodam dzień tygonia oraz dla ułatwienia pracy z danymi zmienie format daty.
+Dla walorów estetycznch zmieniony został format godziny.
+
+```{r dane}
+dane <- read.csv2("mwozna-dane.csv", colClasses = c('character', 'character' , 'numeric', 'numeric'), dec='.')
+dniTygodnia <- c("Środa","Czwartek","Piątek","Poniedziałek","Wtorek")
+ for(i in 1:nrow(dane)){
+   dane[i,5]<-dniTygodnia[(i-1)%%(length(dniTygodnia))+1]
+ }
+ colnames(dane)[5]  <- "DzienTygodnia"
+ dane$DzienTygodnia = as.factor(dane$DzienTygodnia)
+ Data <- as.Date(dane$Data, "%Y%m%d")
+ dane$Data=Data
+ Time <- strftime(strptime(dane$Godzina, format = '%H%M%S'), format = '%H')
+ dane$Godzina = Time
+ head(dane)
+ 
+```
+
+
+Dane dotyczą kursu zamnknięcia dolara australijskiego do dolara nowozelandzkiego od dnia 01.01.2019r. do dnia 14.03.2019r. Przeprowadzę 3 procesy filtrowania potokowego, a ich wyniki zaprezentuje na wykresach.
+
+##Rozpoczęcie programowania funkcyjnego
+
+Zacznie od instalacji potrzebnego pakietu "dplyr".
+
+```{r biblioteka}
+library(dplyr)
+library(ggplot2)
+```
+
+## Pierwszy proces 
+W pierwszym procesie użyte zostaną funkcje filter, group_by aby można było skupić się na danych z godziny 20:00 z całego okresu.
+
+```{r proces1}
+dane %>% 
+filter(Godzina == '20') %>%
+  group_by(DzienTygodnia) %>%
+    summarise(min_zamkniecie = min(Zamkniecie, na.rm = TRUE), min_otwarcie = min(Otwarcie, na.rm = TRUE))->dane1
+```
+Wykresy pudełkowe z podziałem na dni tygodnia: 
+
+```{r message = FALSE, warning = FALSE}
+boxplot(dane$Zamkniecie ~ dane$DzienTygodnia, col = rainbow(5))
+```
+
+
+
+## Drugi proces
+W drugim procesie użyte zosatną funkcję filter i mutate do zaprezentowania różnicy pomiędzy kursem zamknięcia, a otwarcia dla godziny 20:00.
+
+```{r proces2}
+dane %>% 
+  filter(Godzina=='20')%>%
+  select(Godzina,Otwarcie,Zamkniecie)%>%
+  mutate(roznica=Zamkniecie-Otwarcie) -> dane2
+```
+
+```{r echo=FALSE}
+plot(dane2$roznica,xlab = "Pomiar",ylab = "Różnica",main = " Różnica pomiędzy kursem otwarcia, a zamknięcia z godz. 20:00", col = 'red')
+abline(h=0, col = 'blue')
+```
+
+Wszytkie wartości pomiaru ulokowane są przy wartości 0. Na wykresie zauważyć możemy jeden punkt oddalony od reszty. Wynika z tego, że kursy otwarcia i zamknięcia dla opracowywanych walut jest mało zróżnicowany.
+
+## Trzeci proces 
+W ostanim procesie przedstawie średni kurs dla poszczególnych dni w tygodniu.
+
+```{r}
+dane %>%
+  filter(Godzina=='20') %>%
+   group_by(DzienTygodnia) %>% 
+   summarise(max_zamkniecie=max(Zamkniecie,na.rm = TRUE),mean_zamkniecie = mean(Zamkniecie,na.rm=TRUE), std_zamkniecie = sd(Zamkniecie, na.rm = TRUE) ) %>%
+  arrange(-max_zamkniecie,-mean_zamkniecie) ->dane3
+
+```
+
+
+```{r echo=FALSE}
+barplot(dane3$mean_zamkniecie - min(dane3$mean_zamkniecie), names.arg = dane3$DzienTygodnia , offset = min(dane3$mean_zamkniecie),main="Średni kurs zamknięcia dla danego dnia",xlab = "Dni tygodnia",ylab = "Średnie", col = rainbow(5))
+```

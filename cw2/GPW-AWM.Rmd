@@ -1,0 +1,81 @@
+---
+title: "GPW-AWM"
+author: "Marta Czarkowska"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Naglowki
+
+Airway Medix SA (AWM)
+Pobieram notowania akcji spółki Airway Medix SA (AWM) ze strony stooq.pl w formacie csv 
+z okresu 02.01.2019-22.03.2019. Notowania zawierają ceny: otwarcia,zamknięcia, najwyższe oraz najniższe. 
+Pomijam kolumnę "wolumen" ponieważ nie będzie ona odgrywała roli w wykresach.
+
+```{r}
+library(readxl)
+dane<- read_excel("dane_awm.xlsx", range="A1:E59")
+```
+  
+Wyświetlam 6 pierwszych wierszy danych (do szybkiego wglądu)
+```{r}
+head(dane)
+```
+wyświetlam najważniejsze charakterystyki poszczególnych kolumn danych
+```{r}
+summary(dane)
+```
+Charakterystyki wyznaczone przez funkcję"summary" moża przedstawić w formie graficznej posługując się wykresem
+pudełkowym (boxplot), dzięki któremu możemy łatwo porównać nasze dane. Na wykresie zobaczymy m.in: cenę minimalną
+pierwszy kwartyl, medianę, trzeci kwartyl, maksimum które dany atrybut osiąga. Pokaże on również wartości odstające
+```{r}
+otwarcie<-dane$Otwarcie
+zamkniecie<-dane$Zamkniecie
+najwyzszy<-dane$Najwyzszy
+najnizszy<-dane$Najnizszy
+data<-dane$Data
+boxplot(otwarcie,zamkniecie,najwyzszy,najnizszy, main="Wykres pude?kowy dla cen 
+AWM",col=c("yellowgreen","skyblue3","plum3","orange"),names=c("Otwarcie","Zamknięcie","Najwyższy","Najniszy"))
+```
+Rysuję wykresy liniowe dla każdego z atrybutów 
+
+```{r}
+par(mfrow = c(2, 2),pty="m",las = 2)
+matplot(otwarcie,type='l',col="blue",xlab = "Data",xaxt = "n")
+title(main = list("Wykres liniowy dla cen Otwarcia" , font = 7, cex = 1.5))
+axis(1, at = data, labels = levels(data),cex.axis = 0.6)
+grid(NULL, NULL, col = "grey")
+
+matplot(zamkniecie,type="l",col="red",xlab="Data",xaxt = "n",ylab="Cena AWM")
+title(main = list("Wykres liniowy dla cen Zamknięcia" , font = 7, cex = 1.5))
+axis(1, at = data, labels = levels(data),cex.axis = 0.6)
+grid(NULL, NULL, col = "grey")
+
+matplot(najnizszy,type='l',col="violet", xlab = "Data", xaxt = "n",ylab="Cena AWM")
+title(main = list("Wykres liniowy dla cen Najniższych" , font = 7, cex = 1.5))
+axis(1, at = data, labels = levels(data),cex.axis = 0.6)
+grid(NULL, NULL, col = "grey")
+
+matplot(najwyzszy,type='l',col="green",xlab = "Data",xaxt = "n",main="Wykres liniowy dla cen Najwyzszych",ylab="Cena AWM")
+title(main="Wykres liniowy dla cen Najwyższych", font=7, cex=1.5)
+axis(1, at = data, labels = levels(data),cex.axis = 0.6)
+grid(NULL, NULL, col = "grey")
+```
+w celu ułatwienia porównania wszytskich czterech wykresów liniowych można stworzyć wykres zbiorczy
+```{r}
+par(pty="m",las = 2)
+matplot(otwarcie,type="l",col="yellowgreen", ylim=c(0.62  , 0.835),xlab="data", ylab="Ceny AWM",xaxt = "n")
+title(main = list("wykres zbiorczy" , font = 7, cex = 1.5))
+axis(1, at = data, labels = levels(data),cex.axis = 0.6)
+lines(zamkniecie,col="skyblue3")
+lines(najnizszy,col="orange")
+lines(najwyzszy,col="plum3")
+legend("topright", legend=c("Otwarcie", "Zamknięcie ","Najniższe","Najwyższe
+                           "),
+       col=c("yellowgreen", "skyblue3","orange","plum3"), lwd=1)
+grid(NULL, NULL, col = "grey")
+```

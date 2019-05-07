@@ -1,0 +1,106 @@
+---
+title: "Ćw5"
+author: "OKowarik"
+date: "23 kwietnia 2019"
+output: html_document
+---
+
+
+Ponownie wczytujemy dane z excela wraz z potrzebnymi pakietami.
+```{r}
+library(XLConnect)
+library(dplyr)
+library(tidyr)
+library(forecast)
+library(tseries)
+dane <- readWorksheetFromFile('Akowarik-Amica-GPW.xlsx', sheet = 1)
+nowe <- separate(dane, col = Data, into = c("rok", "miesiac", "dzien"), sep = "-")
+nowe %>%
+  filter(rok == 2019) %>%
+  unite(data19, rok, miesiac, dzien, sep = "-") -> nowe1
+head(nowe1)
+```
+
+#Wykres danych
+```{r}
+plot(nowe1$Zamknięcie, type = 'l')
+```
+Badamy stacjonarność szeregu.
+```{r}
+sc = ts(nowe1$Zamknięcie, frequency = 1)
+adf=adf.test(sc)
+adf
+```
+
+Wartość p-value nie pozwala nam odrzucić hipotezy o słabej stacjonarności. Zróżnicujmy szereg i wykonajmy ponownie test.
+```{r}
+dsc <- diff(sc)
+adf.test(dsc)
+```
+
+Powtórzmy proces
+```{r}
+dsc2 <- diff(dsc)
+adf.test(dsc2)
+```
+
+
+#wykresy ACF i PACF dla szeregu zróżnicowanego
+```{r}
+date = as.Date(nowe1$data19, format='%Y-%m-%d')
+plot(dsc2)
+acf(dsc2)
+pacf(dsc2)
+```
+
+Tworzymy podział na zbiory treningowe i testowe
+```{r}
+treningowy = window(dsc2,end = 30)
+treningowy
+testowy = window(dsc2,start = 31)
+testowy 
+```
+
+#Model MA
+```{r}
+modelMA = Arima(treningowy, order = c(0,0,2))
+summary(modelMA)
+prognozaMA = forecast(modelMA, h = length(testowy))
+mseMA<- mean(((prognozaMA$mean-testowy)^2))
+```
+```{r}
+plot(prognozaMA)
+lines(testowy, col = 'red')
+```
+
+#Model AR
+```{r}
+modelAR = Arima(treningowy, order = c(1,0,2))
+summary(modelAR)
+prognozaAR = forecast(modelAR, h = length(testowy))
+mseAR<- mean(((prognozaAR$mean-testowy)^2))
+```
+```{r}
+plot(prognozaAR)
+lines(testowy, col = 'red')
+```
+
+#Model ARIMA
+```{r}
+modelARIMA = Arima(treningowy, order = c(1,2,2))
+summary(modelARIMA)
+prognozaARIMA = forecast(modelARIMA, h = length(testowy))
+mseARIMA<- mean(((prognozaARIMA$mean-testowy)^2))
+```
+```{r}
+plot(prognozaARIMA)
+lines(testowy, col = 'red')
+```
+
+#Porównanie błędów średniokwadratowych
+```{r}
+mseMA
+mseAR
+mseARIMA
+```
+

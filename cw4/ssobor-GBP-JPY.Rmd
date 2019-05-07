@@ -1,0 +1,90 @@
+---
+title: "Filtrowanie potokowe"
+author: "Sandra Sobór"
+date: "2 kwietnia 2019"
+output: html_document
+---
+
+Na początek standardowo zajmiemy się wczytaniem odpowiednich pakietów i danych z pliku csv.
+```{r message = FALSE, warning = FALSE}
+library(dplyr)
+library(ggplot2)
+data_all <- read.csv2("ssobor-data.csv")
+```
+
+Dla ułatwienia pracy zmienimy format w kolumnie data:
+
+```{r message = FALSE, warning = FALSE}
+new_data <- as.Date(as.character(data_all$data), format = "%Y%m%d")
+data_all$data = new_data
+head(data_all)
+```
+
+
+Proces 1: 
+W pierwszym procesie użyte zostaną funkcje filter, mutate oraz group_by aby można było skupić się na danych z godziny 8:00 z całego okresu, stworzyć kolumnę z dniami tygodnia, następnie będzie można pogrupowac dane po dniach tygodnia i wykonać podsumowanie.
+
+```{r message = FALSE, warning = FALSE}
+data_all %>%
+    filter(godzina == 80000) %>%
+    mutate(dzien = weekdays(data)) -> data_plot
+
+data_plot %>%
+    group_by(dzien) %>% 
+    summarise(min = min(zamkniecie), srednia = mean(zamkniecie), max = max(zamkniecie)) -> data1
+head(data1)
+```
+
+Wykresy pudełkowe z podziałem na dni tygodnia: 
+
+```{r message = FALSE, warning = FALSE}
+boxplot(data_plot$zamkniecie ~ data_plot$dzien, col = rainbow(5))
+```
+
+
+Proces 2:
+W drugim podejściu znów zostanie użyta funkcja filter aby pozosatwić tylko dane z roku 2018 a potem funkcja summarise aby policzyc srednia cene zamkniecia w roku 2018.
+
+```{r message = FALSE, warning = FALSE}
+data_all %>%
+    filter(data < "2019-01-01") %>%
+    summarise(srednia = mean(zamkniecie)) -> data2
+data2
+```
+
+Na wykresie zostaną przedstawione ceny zamknięcia w 2018 roku oraz narysowana zostanie linia pozioma wyznaczająca średnią dla całego okresu.
+
+```{r message = FALSE, warning = FALSE}
+data_g <- data_all[data_all$data < 20190000, ]
+ggplot(data_g, aes(x = X, y = zamkniecie)) + 
+    geom_point() +
+    geom_hline(yintercept = data2$srednia, col = "red") +
+    ggtitle("Dane z zaznaczoną medianą") +
+    xlab("Dzień") +
+    ylab("Zamknięcie")
+```
+
+
+Proces 3: 
+Funkcja filter zostanie w tym podejściu użyta do wyciągnięcia danych tylko z roku 2019 z godziny 16:00, dzieki funkcji mutate zostanie stworzona kolumna, w której podane będą róznice w kursie w poszczególnych dniach.
+
+```{r message = FALSE, warning = FALSE}
+data_all %>% 
+    filter(data > "2019-01-01") %>%
+    filter(godzina == 160000) %>%
+    mutate(roznica = zamkniecie - lag(zamkniecie)) -> data3
+head(data3)
+```
+
+Wykres różnic w kursach oraz linia regresji. 
+
+```{r message = FALSE, warning = FALSE}
+ggplot(data3, aes(x = X - 854, y = roznica)) + 
+    geom_point(col = "blue") + 
+    geom_smooth(model = "lm") +
+    ggtitle("Różnice w kursach") + 
+    xlab("Dzień") +
+    ylab("Różnica")
+    
+```
+

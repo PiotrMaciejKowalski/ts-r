@@ -1,0 +1,196 @@
+---
+title: "GPW-4FUNMEDIA"
+author: "Anita Księżak"
+date: "15 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Wczytywanie danych i wstępna obróbka.
+
+Przedmiotem analizy będą dane pobrane ze strony money.pl (https://www.money.pl/gielda/spolki-gpw/PL4FNMD00013,archiwum.html) dotyczące notowań spółki akcyjnej 4fun Media na Giełdzie Papierów Wartościowych w Warszawie. Dane pochodzą z okresu 02.01.2019-15.03.2019 (notowania z dnia 01.01.2019 nie są dostępne).
+
+```{r wczytywanie}
+d4FM <- read.csv2("GPW-4FUNMEDIA-csv2.csv")
+head(d4FM)
+```
+Zanim zaczniemy analizować dane, "obetnijmy" je do interesujących nas kolumn zawierających zmienne ilościowe.
+```{r obróbka}
+d4FM <- d4FM[,2:5]
+head(d4FM)
+```
+Warto zwrócić uwagę na to, że dla zmiennych ilościowych (przed rozpoczęciem analizy) wyświetlić możemy najważniejsze charakterystyki zmiennych. Używamy do tego funkcji summary.
+
+```{r podstawowe_charakterystyki}
+summary(d4FM)
+```
+##Podstawowe wykresy.
+Jednym z podstawowych wykresów dostępnym w R jest histogram. Tworzymy go za pomocą funkcji hist. Jest jednym z najbardziej popularnych wykresów statystycznych. Służy on do przedstawienia liczebności obserwacji, danych w zadanych przedziałach badanej zmiennej.
+Zanim narysujemy wykres, przygotujmy odpowiednio dane.
+
+```{r histogramy}
+par(mfrow = c(2, 2), pty = "m")
+macierzO <- as.matrix(d4FM[,1])
+hist(macierzO, main = "Otwarcie-Częstotliwość",xlab = "Otwarcie" ,ylab = "Częstotliwość", col = grey.colors(11))
+macierzZ <- as.matrix(d4FM[,2])
+hist(macierzZ, main = "Zamknięcie-Częstotliwość",xlab = "Zamknięcie" ,ylab = "Częstotliwość", col = grey.colors(11))
+macierzMa <- as.matrix(d4FM[,3])
+hist(macierzMa, main = "Max.-Częstotliwość",xlab = "Max." ,ylab = "Częstotliwość", col = grey.colors(11))
+macierzMi <- as.matrix(d4FM[,4])
+hist(macierzMi, main = "Min.-Częstotliwość",xlab = "Min" ,ylab = "Częstotliwość", col = grey.colors(11))
+mtext("Histogramy notowań spółki akcyjnej 4FUNMEDIA na GPW", side = 3, line = -1.5, outer = TRUE)
+```
+
+##Wykresy a statystyki.
+Wyżej obliczone (za pomocą funkcji summary(d4FM)) statystyki (dokładniej: medianę, kwantyle, minimum i maksimum) możemy przedstawić za pomocą wykresu pudełkowego. Służy do tego funkcja boxplot. Aby analiza była bardziej szczegółowa dodajmy kolumnę odpowiedzialną za dzień tygodnia(notowania nie pojawiają się w soboty i niedziele).
+```{r dni_tygodnia}
+dniTygodnia <- c("Śr","Czw","Pią","Pon","Wt")
+for(i in 1:nrow(d4FM)){
+  d4FM[i,5]<-dniTygodnia[(i-1)%%(length(dniTygodnia))+1]
+  
+}
+```
+W celu ułatwienia analizy wykresów pudełkowych, uporządkujmy dane ze względu na medianę. Następnie narysujmy pożądane wykresy.
+
+```{r boxplot}
+par(mfrow = c(2, 2), pty = "m")
+bpmO <- with(d4FM, reorder(d4FM$V5, -d4FM$Otwarcie, FUN = median))
+boxplot(d4FM$Otwarcie ~ bpmO, data = d4FM,col = rainbow(7) , main= "Otwarcie ~ DniTygodnia", ylab = "Otwarcie", xlab = "DniTygodnia")
+
+bpmZ <- with(d4FM, reorder(d4FM$V5, -d4FM$Zamkniecie, FUN = median))
+boxplot(d4FM$Zamkniecie ~ bpmZ, data = d4FM,col = rainbow(7) , main= "Zamknięcie ~ DniTygodnia", ylab = "Zamknięcie", xlab = "DniTygodnia")
+
+bpmMa <- with(d4FM, reorder(d4FM$V5, -d4FM$Maks., FUN = median))
+boxplot(d4FM$Maks. ~ bpmMa, data = d4FM,col = rainbow(7) , main= "Max. ~ DniTygodnia", ylab = "Max.", xlab = "DniTygodnia")
+
+bpmMi <- with(d4FM, reorder(d4FM$V5, -d4FM$Min., FUN = median))
+boxplot(d4FM$Min. ~ bpmMi, data = d4FM,col = rainbow(7) , main= "Min. ~ DniTygodnia", ylab = "Min.", xlab = "DniTygodnia")
+mtext("Wykresy pudełkowe notowań spółki akcyjnej 4FUNMEDIA na GPW", side = 3, line = -1.5, outer = TRUE)
+par(mfrow = c(1,1))
+
+```
+Narysujmy wykresy jeden po drugim. Przy okazji przypomnijmy w jaki sposób możemy odczytać z nich statystyki.
+
+##Wykresy a statystyki cd.. Jak odczytywać dane z wykresów pudełkowych?
+W dalszej analizie skupimy się na zmiennej **zamknięcie**. Narysujmy dla niej osobny wykres pudełkowy.
+```{r boxplot_2}
+boxplot(d4FM$Zamkniecie ~ bpmZ, data = d4FM,col = rainbow(7) , main= "Zamknięcie ~ DniTygodnia", ylab = "Zamknięcie", xlab = "DniTygodnia")
+```
+
+Idąc od dołu odczytujemy następujące wartości: wartość minimalna (dolny wąs), pierwszy kwartyl (dolna krawędź pudełka), mediana (gruba linia na środku pudełka), trzeci kwartyl (górna krawędź pudełka) oraz wartość maksymalna (górny wąs). Kółeczka oznaczają marginalne wartości, odrzucane przy wyliczaniu podstawowych statystyk.
+
+##Wykres ogólny
+Narysujmy wykres przedstawiający ceny zamknięcia w dniach 2.01.2019 - 15.03.2019.
+```{r wykres}
+dane <- read.csv2("GPW-4FUNMEDIA-csv2.csv")
+N <- length(dane$Zamkniecie)
+plot(dane$Zamkniecie, type="l", main="Zamknięcie 4FM",col="red", xlab = "Data", ylab="Cena zamknięcia 4FM", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+
+Dalsza analiza odbywać się będzie na danych w postaci ramki danych, przygotujmy odpowiednio dane.
+```{r ramkaD}
+zamkniecie<- dane$Zamkniecie
+dniWektor <- as.numeric(1:length(dane$Data))
+daneRamka<- data.frame(cbind(dniWektor, zamkniecie))
+head(daneRamka)
+```
+
+
+##Model z trendem liniowym wbudowany w R
+Skorzystajmy z podstawowej funckji odpowiedzialej za obliczanie związku między dniami a ceną zamknięcia. Podsumujmy regesję za pomocą funkcji summary.
+```{r}
+reglin <- lm(zamkniecie~dniWektor)
+summary(reglin)
+```
+Nanieśmy linię regresji na wykres zamknięcia, który został narysowany powyżej.
+```{r wykres&reglin}
+plot(dane$Zamkniecie, type="l", main="Zamknięcie 4FM & Linia regresji",col="red", xlab = "Data", ylab="Cena zamknięcia 4FM", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+abline(reglin)
+```
+
+##Model z trendem liniowym dla całych przeszłych danych dla zmiennej zamknięcie
+
+Naszym zadaniem jest stworzenie algorytmu, który na podstawie danych wykorzystywanych w uczeniu klasyfikatora (zbiór uczący), będzie w stanie efektywnie rozpoznawać wzorce nieznane. Jego skuteczność sprawdzimy na zbiorze testowym. Rozdzielmy więc posiadane dane na zbiór uczący(dane:styczeń-luty) i zbiór testowy(dane:marzec).
+```{r podzial}
+zakres <- as.integer(which(dane$Data == "2019-03-01"))
+zbiorUczacy <- data.frame(cbind(dniWektor=dniWektor[1:(zakres-1)],zamkniecie=zamkniecie[1:(zakres-1)]))
+head(zbiorUczacy)
+zbiorTestowy<- data.frame(cbind(dniWektor=dniWektor[zakres:length(dniWektor)],zamkniecie=zamkniecie[zakres:length(dniWektor)]))
+head(zbiorTestowy)
+
+```
+Przeprowadźmy analizę, następnie przedstawmy trend na wykresie.
+```{r model1}
+reglin1 <- lm(zamkniecie~dniWektor,data=zbiorUczacy)
+summary(reglin1)
+plot(daneRamka$zamkniecie, type="l", main="Model z trendem liniowym dla całych przeszłych danych",col="red", xlab = "Data", ylab="Cena zamknięcia 4FM", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+abline(reglin1, col="blue", lwd="2")
+```
+
+##Model z trendem liniowym korzystającym zawsze ze stałej liczby bezpośrednio poprzedzających próbek dla zmiennej zamknięcie
+
+W kolejnym modelu stworzymy model regresji liniowej, korzystając zawsze ze stałej liczby bezpośrednio poprzedzających próbek. Niech n=45. Przeprowadźmy analizę, następnie przedstawmy trend na wykresie.
+```{r model2}
+n <- 45
+reglin2 <- lm(zamkniecie~dniWektor,data<-zbiorUczacy[(N-n):N,])
+summary(reglin2)
+plot(daneRamka$zamkniecie, type="l", main="Model z trendem liniowym",col="red", xlab = "Data", ylab="Cena zamknięcia 4FM", xaxt = "n")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+abline(reglin2, col="green", lwd="2")
+```
+
+##Błąd średniokwadratowy na jedna chwilę czasu & Wartość statystyki Theil'a dla opracowanej prognozy - dla średniej zamknięcie
+
+Obliczmy błąd średniokwadratowy na jedna chwilę czasu i wartość statystyki Theil'a dla opracowanych prognoz.
+
+Dla modelu z trendem liniowym dla całych przeszłych danych dla zmiennej zamknięcie:
+```{r prognoza1}
+prognoza1 <- predict(reglin1,newdata=zbiorTestowy)
+prognoza1
+MSE1 <- (sum((zbiorTestowy$zamkniecie-prognoza1)^2))/length(zbiorTestowy$zamkniecie)
+wTheila1 <- ((length(zbiorTestowy$zamkniecie))*MSE1)/(sum((zbiorTestowy$zamkniecie)^2))
+wTheila1
+```
+Dla modelu z trendem liniowym korzystającym zawsze ze stałej liczby bezpośrednio poprzedzających próbek:
+```{r prognoza2}
+prognoza2 <- predict(reglin2,newdata=zbiorTestowy)
+prognoza2
+MSE2 <- (sum((zbiorTestowy$zamkniecie-prognoza2)^2))/length(zbiorTestowy$zamkniecie)
+wTheila2 <- ((length(zbiorTestowy$zamkniecie))*MSE2)/(sum((zbiorTestowy$zamkniecie)^2))
+wTheila2
+```
+
+Narysujmy obydwie predykcje na wykresie w celu znalezienia lepszej. 
+
+```{r prognozyAll}
+plot(zbiorTestowy$zamkniecie, type="l", main="Prognoza ceny zamkniecia okres od 1-03-2019 do 15-03-2019",col="black", xlab = "Dni predykcji", ylab="Cena 4FM", xaxt = "n")
+axis(1, at = dane$Data)
+lines(prognoza1, col="blue", type="l", lwd="2")
+lines(prognoza2, col="green", type="l", lwd="2")
+labels <- c("Model1","Model2")
+colors <- c("blue", "green")
+legend("topright", labels, lwd ="2", col=colors)
+```
+
+
+Dla obecnych danych Model 2 wydaje się być lepszym. A jak od strony formalnej?- jeżeli współczynnik Theil'a jest równy zeru, prognozy są idealnie trafne. Przeanalizujmy dane, mamy więc:
+```{r porownanie}
+if (wTheila1==0 || wTheila2==0){
+  print("Znaleziono model idelany")
+} else{
+  if (wTheila1<wTheila2){
+  print("Model 1 jest lepszy")
+} else if (wTheila1>wTheila2){
+  print("Model 2 jest lepszy")
+} else{
+  print("Nie można wybrać lepszego z modeli")
+} 
+}
+
+```
