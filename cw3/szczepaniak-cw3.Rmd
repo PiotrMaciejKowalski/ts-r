@@ -73,7 +73,7 @@ Model z trendem liniowym dla zbioru trenigowego.
 model=lm(Zamkniecie~Ilosc_Dni,data=Treningowy)
 summary(model)
 ```
-Przedstawmy ten trend liniowy na wykresie
+Przedstawimy ten trend liniowy na wykresie
 ```{r}
 plot(dane2$Zamkniecie, type="l",col='red'[1], xlab = "Data", ylab="Cena")
 axis(1, at = dane$Data, labels = levels(dane$Data))
@@ -93,11 +93,11 @@ Prognoza
 
 Poniżej przedstawię wykres prognozy
 ```{r}
-plot(Testowy$Ilosc_Dni, Testowy$Zamkniecie,type="l", col='blue', xlab = "Data", ylab="Cena")
+plot(Testowy$Ilosc_Dni, Testowy$Zamkniecie,type="l", col='blue', xlab = "Data", ylab="Cena", ylim=c(2.5,3.0))
 lines(Testowy$Ilosc_Dni, Prognoza, col = 'red')
 
 ```
-
+Prognoza jest zdecydowanie niedobra.
 
 Wyznaczymy teraz błąd średniokwadratowy oraz wartość statystyki Theil'a dla mojego modelu. 
 ```{r}
