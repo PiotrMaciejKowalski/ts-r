@@ -22,6 +22,14 @@ dane$Data<-as.Date(dane$Data,)
 head(dane)
 ```
 
+```{r}
+dane %>%
+  filter(Godzina != "10:00") %>% ##
+  filter(Godzina != "18:00") -> dane
+dane
+```
+
+
 #Pierwszy proces
 Wyszukujemy cene otwarcia większą od 1281.Liczymy średnią, i wyszukujemy maksymalnych cen większych od średniej. 
 ```{r}
@@ -69,6 +77,6 @@ final1
 
 #Wykres
 ```{r}
-plot(final1$Max_zamkniecie, xlab = "Godzina", ylab = "Najwyższe ceny")
+barplot(final1$Max_zamkniecie-1340, names.arg = c('8', '12','16','20'), offset = +1340, xlab = "Godzina", ylab = "Najwyższe ceny")
 ```
 
