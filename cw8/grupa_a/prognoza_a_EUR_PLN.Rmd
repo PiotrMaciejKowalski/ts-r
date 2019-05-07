@@ -1,0 +1,222 @@
+---
+title: "Prognoza kursu EUR/PLN."
+author: 'Grupa A: Izabela Stobiecka, Anita Księżak, Sandra Sobór, Jakub Bujnowicz'
+date: "07 maja 2019"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r pakiety, include = FALSE}
+library(dplyr)
+library(RColorBrewer)
+library(forecast)
+library(tseries)
+
+source("ocena_prognozy.R", encoding = "UTF8")
+```
+
+Celem poniższego dokumentu jest analiza danych dotyczących kursu EUR/PLN oraz
+wykonanie prognozy na najbliższy tydzień.  
+
+## Wczytanie danych
+Dane pochodzą ze [strony](https://stooq.pl/q/d/?s=eurpln&c=0&d1=20180507&d2=20190507)
+i zostały pobrane w formacie `csv`.
+
+Nasza ramka danych zawiera zarówno dane dotyczące otwarcia (Otwarcie), zamknięcia 
+(Zamkniecie) jak i najniższego (Najnizszy) i najwyższego (Najwyzszy) notowania w 
+ciągu dnia . Ustalmy zmienną `typ` aby móc wybrać pożądaną zmienną oraz zmienną 
+`data_start` aby określić zakres danych wykorzystanych do utworzenia modelu.
+
+Dodatkowo za pomocą funckji `complete` usupełnimy dane o brakujące dni.
+
+```{r , warning = FALSE, message = FALSE}
+typ <- "Otwarcie"
+data_start <- as.Date("2019-01-01")
+
+dane_p <- read.csv("dane_EUR_PLN.csv") %>%
+    mutate(Data = as.Date(Data)) %>%
+    complete(Data = seq.Date(min(Data), 
+                                 max(Data), 
+                                 by = "day"))
+
+dane <- dane_p[dane_p$Data >= data_start, c("Data", typ)]
+```
+
+## Podstawowe wykresy
+
+Ustalmy zmienną frequency - liczbę obserwacji na jednostkę czasu.
+
+```{r}
+f <- 7
+```
+
+Przekształćmy odpowienio dane, definiując szereg czasowy opisujący nasze 
+zjawisko.  Dodatkowo wyczyścimy go za pomocą funkcji `tsclean`. Następnie 
+narysujmy dla niego podstawowe wykresy. 
+
+```{r , warning = FALSE, message = FALSE}
+kurs <- ts(dane[ , 2],
+           start = c(1, 1),
+           frequency = f) %>%
+    tsclean()
+head(kurs)
+```
+
+
+```{r}
+tsdisplay(kurs, main = "Kurs EUR/PLN", 
+          col = brewer.pal(n = 4, name = "PRGn")[1])
+```
+
+Za pomocą ` r adf.test` sprawdzimy czy możemy traktować nasz szereg jako szereg 
+stacjonarny.
+
+```{r}
+adf.test(kurs)
+```
+
+Komentarz
+
+Narysujmy wykres (za pomocą `stl()`) z którego wprost odczytamy oryginalne 
+dane, trend, sezonowość i resztę.
+
+```{r}
+kurs_stl <- stl(kurs, s.window = "periodic")
+plot(kurs_stl, col = brewer.pal(n = 4, name = "PRGn")[1])
+```
+
+```{r}
+nsc <- diff(kurs)
+head(nsc)
+```
+
+```{r}
+tsdisplay(nsc, 
+          col = brewer.pal(n = 4, name = "PRGn")[1],
+          main = "Zróżnicowany szereg")
+```
+Przeprowadźmy zatem test aby sprawdzić cechy słabej stacjonarności szeregu 
+zróżnicowanego.
+
+```{r}
+adf.test(nsc)
+```
+
+Zróżnicowany szereg wykazuje cechy słabej stajonarności. Zatem nasze modele 
+predykcyjne stworzymy w oparciu o szereg zróżnicowany. Wprowadzimy zatem parametr 
+`d`, który będzie odpowiadał za zróżnicowanie szerego. 
+
+```{r}
+d <- 1
+```
+
+
+Narysujmy ponownie wykres (za pomocą `stl()`) z którego wprost odczytamy oryginalne 
+dane, trend, sezonowość i resztę.
+
+```{r}
+nsc_stl <- stl(nsc, s.window = "periodic")
+plot(nsc_stl, col = brewer.pal(n = 4, name = "PRGn")[1])
+```
+
+Na podstawie powyższych wykresów jesteśmy w stanie odszukać potencjalne trendy 
+i sezonowość. Dodatkowo możemy wyciągnąć wnioski dotyczące stacjonarności danych. 
+
+Wykres pokazuje, że brak jest wyraźnego trendu rosnącego czy malejącego ( występuje
+tzw. trend boczny).
+
+Znając podstawowe własności analizowanego szeregu przejdźmy do dalszej - 
+dokładniejszej analizy.
+
+Wprowadźmy parametr q, który odpowiada wartościom istotnie róznym od zera na 
+wykresie ACF oraz parametr p, który odpowiada wartościom istotnie róznym od 
+zera na wykresie PACF. Potrkatujmy je chwilowo jako "czarną skrzynkę". Okażą 
+się one przydatne na dalszym etapie analizy.
+
+```{r}
+q <- 1
+p <- 1
+```
+
+
+## AR, MA, ARMA, ARIMA
+
+Przeanalizujmy dane korzystając z grupy modeli AR, MA, ARMA, ARIMA. Opisy 
+dotyczące modeli pochodzą bezpośrednio ze 
+[skryptu](https://github.com/PiotrMaciejKowalski/ts-r/tree/master/skrypt) 
+dla przedmiotu Szeregi czasowe i prognozowanie w biznesie 2018/19.
+
+Modele **MA** są wyraźnie obserwowalne na wykresach ACF. Wykazują na nich 
+szybą zbieżność do wartości nieistotnie różnych od 0. Wystepowanie 
+q-pierwszych zmiennych na wykresie ACF jako istotnie róznych od zera
+sugeruje rozwazenie modelu MA(q), zatem na podstawie wykresu ACF dla 
+niezróżnicowanych danych wnioskujemy, że q = `r q`.
+
+```{r ma}
+ma <- Arima(kurs, order = c(0, d, q))
+summary(ma)
+```
+
+W modelach **AR**(p) funkcja PACF przyjmuje wartości istotnie różne od 0 
+wyłącznie dla $k \leq p$. Stąd to właśnie
+tę funkcję stosujemy przy badaniu zasadnosci modelu. 
+
+```{r ar}
+ar <- Arima(kurs, order = c(p, d, 0))
+summary(ar)
+```
+
+W badaniu procesów **ARMA** wykresy ACF oraz PACF nie wnoszą 
+istotnych informacji. Brak informacji płynącej z wykresów ACF i PACF przy 
+jednoczesnym przekonaniu o stacjonarności jest sygnałem do rozważenia modelu
+ARMA. Zajmijmy się więc analizą modelu **ARIMA** (ang. Autoregressive 
+integrated moving average - autoregresyjny (**AR**) (AR zintegrowany (**I**) 
+model średniej ruchomej (**MA**)). W celu analizy danych skorzystamy z funkcji 
+`auto.arima()` z pakietu `forecast`.
+
+```{r arima}
+arima <- auto.arima(kurs, 
+                    d = d,
+                    stepwise = FALSE,
+                    approximation = FALSE)
+summary(arima)
+```
+
+Dodatkowo stworzony zostanie czwarty model, który wykorzysta 
+**transformację Boxa-Coxa** z samodzielnie wygenerowanym parametrem lambda. 
+Będziemy mogli zweryfikować czy wniesie ona znaczącą poprawę do predykcji.
+
+```{r arima_box_cox}
+arima_bc <- auto.arima(kurs, 
+                       d = d, 
+                       lambda = "auto",
+                       stepwise = FALSE,
+                       approximation = FALSE)
+summary(arima_bc)
+```
+
+Dokonajmy teraz predykcji na zbiorze testowym, aby móc potem rozstrzygnąć, 
+który z modeli najlepiej radzi sobie z naszymi danymi.
+
+```{r}
+
+```
+
+Zobaczmy jak nasze predykcje wyglądają na wykresach:
+
+```{r, fig.height = 10}
+
+```
+
+
+Porównajmy teraz pierwiastki z błędów średniokwadratowych (RMSE) oraz statystykę
+Theila.
+
+```{r}
+
+```
+
+[comment]: <> (Wnioski z predykcji)
