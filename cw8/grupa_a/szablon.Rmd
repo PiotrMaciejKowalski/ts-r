@@ -1,0 +1,267 @@
+---
+title: "Prognoza stopy bezrobobocia w Polsce na podstawie danych GUS"
+author: 'Grupa A: Izabela Stobiecka, Anita Księżak, Sandra Sobór, Jakub Bujnowicz'
+date: "21 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r pakiety, include = FALSE}
+library(dplyr)
+library(RColorBrewer)
+library(forecast)
+
+source("R/ocena_prognozy.R", encoding = "UTF8")
+```
+
+Celem poniższego dokumentu jest analiza danych dotyczących stopy bezrobocia w 
+Polsce na podstawie danych GUS i prognoza wysokości tej stopy.
+
+## Wczytanie danych
+Dane zostały wczytane i odpowiednio zmodyfikowane w oddzielnym R skrypcie. 
+Tabela została wyodrębniona ze strony z usunięciem niepotrzebnych znaków, 
+ujednoliceniem separatora dziesiętnego i dodaniem możliwości wyboru 
+wariantu w roku 2002:
+
+w wariancie "a"- dane według wyników z Powszechnego Spisu Rolnego 1996,
+
+w wariancie "b"- dane według wyników z Narodowego Spisu Powszechnego Ludności 
+i Mieszkań oraz Powszechnego Spisu Rolnego 2002
+
+Ustalmy wariant, który weźmiemy pod uwagę oraz zakres lat, dla których 
+przeprowadzimy analizę.
+
+```{r}
+bezrobocie_typ <- "b"
+rokStart <- 1990
+rokStop <- 2019
+
+sciezka_pliku <- paste0("dane/bezrobocie_",
+                       bezrobocie_typ,
+                       ".rds")
+```
+
+```{r generowanie_danych, include = FALSE}
+if (!file.exists(sciezka_pliku)) {
+    source("pobieranie_danych.R", encoding = "UTF8")
+}
+```
+
+
+Tabela została również przekształcona do postaci długiej. W ten sposób 
+otrzymaliśmy ramkę danych złożoną z czterech kolumn - Rok, Miesiac, Wartosc 
+i MiesiacInt (miesiąc w postaci liczby całkowitej).
+
+```{r, message = FALSE}
+dane <- readRDS(sciezka_pliku) %>%
+    filter(Rok <= rokStop,
+           Rok >= rokStart)
+tail(dane)
+```
+
+
+## Podstawowe wykresy
+
+Ustalmy zmienną frequency - liczbę obserwacji na jednostkę czasu.
+
+```{r}
+f <- 12
+```
+
+Ponieważ analizować będziemy dane z okresu `r rokStart` do `r rokStop` 
+przekształćmy odpowienio dane, definiując szereg czasowy opisujący nasze 
+zjawisko. Następnie narysujmy dla niego podstawowe wykresy. 
+
+```{r}
+bezrobocie <- ts(dane$Wartosc, 
+                 start = c(rokStart, 1), 
+                 frequency = f)
+head(bezrobocie)
+```
+```{r}
+tsdisplay(bezrobocie, main = "Bezrobocie w badanym okresie", 
+          col = brewer.pal(n = 4, name = "PRGn")[1])
+```
+
+Narysujmy wykres (za pomocą `stl()`) z którego wprost odczytamy oryginalne 
+dane, trend, sezonowość i resztę.
+
+```{r}
+bezrobocie_stl <- stl(bezrobocie, s.window = "periodic")
+plot(bezrobocie_stl, col = brewer.pal(n = 4, name = "PRGn")[1])
+```
+
+Na podstawie powyższych wykresów jesteśmy w stanie odszukać potencjalne trendy 
+i sezonowość. Dodatkowo możemy wyciągnąć wnioski dotyczące stacjonarności danych. 
+
+[comment]: <> (Tutaj wnioski o trendach, sezonowości, stacjonarności)
+
+Znając podstawowe własności analizowanego szeregu przejdźmy do dalszej - 
+dokładniejszej analizy.
+
+Aby analiza była dokładniejsza (szereg posiadał cechy słabej stacjonarności) 
+zróżnicujmy eksplorowane dane.
+
+```{r}
+nsc <- diff(bezrobocie)
+head(nsc)
+```
+
+Narysujmy wykresy przestawiające zróżnicowane dane.
+
+```{r}
+tsdisplay(nsc, col = brewer.pal(n = 4, name = "PRGn")[1])
+```
+
+Wprowadźmy parametr q, który odpowiada wartościom istotnie róznym od zera na 
+wykresie ACF oraz parametr p, który odpowiada wartościom istotnie róznym od 
+zera na wykresie PACF. Potrkatujmy je chwilowo jako "czarną skrzynkę". Okażą 
+się one przydatne na dalszym etapie analizy.
+
+```{r}
+q <- 3
+p <- 2
+```
+
+
+
+## Podział na zbiór treningowy i testowy.
+
+Tworzymy prognozę na rok `r rokStop`. Z tego powodu, dane z tego roku zostaną 
+naszym zbiorem testowym. Wcześniejsze dane będą zbiorem treningowym.
+
+```{r}
+uczacy <- window(bezrobocie, 
+                 end = c(rokStop - 1, f))
+testowy <- window(bezrobocie,
+                     start = c(rokStop, 1))
+```
+
+Wspólny wykres:
+```{r}
+ts.plot(uczacy, testowy, col = c(brewer.pal(n = 4, name = "PRGn")[1], "red"))
+```
+
+
+
+## AR, MA, ARMA, ARIMA
+
+Przeanalizujmy dane korzystając z grupy modeli AR, MA, ARMA, ARIMA. Opisy 
+dotyczące modeli pochodzą bezpośrednio ze 
+[skryptu](https://github.com/PiotrMaciejKowalski/ts-r/tree/master/skrypt) 
+dla przedmiotu Szeregi czasowe i prognozowanie w biznesie 2018/19.
+
+Z faktu, że analiza będzie przeprowadzona na szeregu zróżnicowanym, 
+wprowadźmy parametr d, który wykorzystamy przy tworzeniu modeli.
+
+```{r}
+d <- 1
+```
+
+Modele **MA** są wyraźnie obserwowalne na wykresach ACF. Wykazują na nich 
+szybą zbieżność do wartości nieistotnie różnych od 0. Wystepowanie 
+q-pierwszych zmiennych na wykresie ACF jako istotnie róznych od zera
+sugeruje rozwazenie modelu MA(q), zatem na podstawie wykresu ACF dla 
+niezróżnicowanych danych wnioskujemy, że q = `r q`.
+
+```{r ma}
+ma <- Arima(uczacy, order = c(0, d, q))
+summary(ma)
+```
+
+W modelach **AR**(p) funkcja PACF przyjmuje wartości istotnie różne od 0 
+wyłącznie dla $k \leq p$. Stąd to właśnie
+tę funkcję stosujemy przy badaniu zasadnosci modelu. 
+
+```{r ar}
+ar <- Arima(uczacy, order = c(p, d, 0))
+summary(ar)
+```
+
+W badaniu procesów **ARMA** wykresy ACF oraz PACF nie wnoszą 
+istotnych informacji. Brak informacji płynącej z wykresów ACF i PACF przy 
+jednoczesnym przekonaniu o stacjonarności jest sygnałem do rozważenia modelu
+ARMA. Zajmijmy się więc analizą modelu **ARIMA** (ang. Autoregressive 
+integrated moving average - autoregresyjny (**AR**) (AR zintegrowany (**I**) 
+model średniej ruchomej (**MA**)). W celu analizy danych skorzystamy z funkcji 
+`auto.arima()` z pakietu `forecast`.
+
+```{r arima}
+arima <- auto.arima(uczacy, 
+                    d = d,
+                    stepwise = FALSE,
+                    approximation = FALSE)
+summary(arima)
+```
+
+Dodatkowo stworzony zostanie czwarty model, który wykorzysta 
+**transformację Boxa-Coxa** z samodzielnie wygenerowanym parametrem lambda. 
+Będziemy mogli zweryfikować czy wniesie ona znaczącą poprawę do predykcji.
+
+```{r arima_box_cox}
+arima_bc <- auto.arima(uczacy, 
+                       d = d, 
+                       lambda = "auto",
+                       stepwise = FALSE,
+                       approximation = FALSE)
+summary(arima_bc)
+```
+
+Dokonajmy teraz predykcji na zbiorze testowym, aby móc potem rozstrzygnąć, 
+który z modeli najlepiej radzi sobie z naszymi danymi.
+
+```{r}
+modele <- list(ma = ma,
+               ar = ar,
+               arima = arima,
+               box_cox = arima_bc)
+
+predykcje <- lapply(modele, function(x) forecast(x, h = length(testowy)))
+
+```
+
+Zobaczmy jak nasze predykcje wyglądają na wykresach:
+
+```{r, fig.height = 10}
+par(mfrow = c(4, 1))
+for (i in 1:4) {
+    plot(predykcje[[i]], col = c(brewer.pal(n = 4, name = "PRGn")[1]))
+    lines(testowy, col = "red")
+}
+par(mfrow = c(1, 1))
+```
+
+Trudno dostrzec na powyższych wykresach jak działają nasze modele, 
+zanim zweryfikujemy je na podstawie generowanych przez nie błędów, 
+narysujmy wykresy jedynie dla predykowanego okresu
+
+```{r, fig.height = 10}
+par(mfrow = c(4, 1))
+for (i in 1:4) {
+    plot(predykcje[[i]][["mean"]], 
+         col = c(brewer.pal(n = 4, name = "PRGn")[1]), 
+         ylab = paste("predykcja", i), 
+         ylim = c(min(min(predykcje[[i]][["mean"]], testowy)), 
+                  max(predykcje[[i]][["mean"]], max(testowy))))
+    lines(testowy, 
+          col = "red")
+}
+par(mfrow = c(1, 1))
+```
+
+Porównajmy teraz pierwiastki z błędów średniokwadratowych (RMSE) oraz statystykę
+Theila.
+
+```{r}
+bledy <- sapply(predykcje, function(x) rmse(testowy, x$mean))
+wyniki_theil <- sapply(predykcje, function(x) theil(testowy, x$mean))
+podsumowanie <- data.frame(bledy = bledy, 
+                           theil = wyniki_theil)
+podsumowanie
+
+```
+
+[comment]: <> (Wnioski z predykcji)
