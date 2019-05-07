@@ -1,0 +1,92 @@
+---
+title: "zadanie3"
+author: "WLara"
+date: "7 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Wczytujemy dane z excela
+```{r}
+library(XLConnect)
+library(dplyr)
+library(tidyr)
+library(readxl)
+dane <- read_excel('Lara-dane2.xlsx', sheet = 1)
+dane$Godzina<-substr(dane$Godzina,12,16)
+dane$Data<-as.Date(dane$Data,)
+
+head(dane)
+
+```
+
+```{r}
+dane %>%
+  filter(dane$Godzina == "08:00") -> dane3
+head(dane3)
+```
+
+```{r}
+Data_co <- dane$Data
+cenaa <- dane$Cena_otw
+cena_otw <- data.frame(Data_co,cenaa)
+plot(cena_otw, type ="l", main="Ceny otwarcia z godziny 08:00", xlab="Data", ylab="Cena ", )
+```
+
+```{r}
+regresja <- lm(cena_otw$cenaa ~ cena_otw$Data_co)
+summary(regresja)
+```
+Sprawdzamy dopasowanie modelu:
+```{r}
+plot(cena_otw$Data_co, cena_otw$cenaa,"l",pch = 20, cex = 1.5)
+abline(regresja, col = "pink", lwd = 2)
+text(mean(cena_otw$Data_co), mean(cena_otw$cenaa), round(summary(regresja)$r.squared, 3), pos = 4)
+```
+
+Widać, że dopasowanie modelu w tym przypadku jest nienajgorsze o czym świadczy duża wartość 'r.squared'.
+
+Rozważmy teraz model liniowy korzystający zawsze ze stałej liczby bezpośrednio poprzedzających próbek ('stala').
+```{r}
+chwila <- 60
+stala <-  30
+uczacy <- cena_otw[(chwila-stala):(chwila-1),]
+testowy <- cena_otw[chwila:nrow(dane3),]
+uczacy
+
+```
+
+Funkcja progronozy wyznaczona przez współczynnik regresji (wyznaczam regresje na uczacym)
+```{r}
+czas2 <- as.numeric(cena_otw$Data_co)
+regresja2 <- lm(cena_otw$cenaa ~ czas2)
+##summary(regresja2)
+wspolczynnik <- coef(regresja2)
+czas <- as.numeric(testowy$Data_co)
+prognoza1 <- wspolczynnik[2]*czas+wspolczynnik[1]
+prognoza1
+```
+
+Przedstawiamy wykres regresji z danymi rzeczywistymi wraz z wartością 'r.squared'.
+```{r}
+plot(uczacy$Data_co, uczacy$cenaa,"p", main = "Regresja w okresie z dowolnie wybranymi wartościami")
+abline(regresja2, col = "red", lwd = 2)
+text(mean(uczacy$Data_co), mean(uczacy$cenaa), round(summary(regresja2)$r.squared, 3), pos = 4)
+```
+
+Jak widac model jest słabo dopasowany.Rysujemy wykres prognozy dla zbioru testowego.
+```{r}
+plot(testowy$Data_co, testowy$cenaa, "p", col = "brown", main = "Prognoza")
+t<-as.numeric(testowy$Data_co) 
+lines(t, prognoza1)
+```
+
+Wyliczamy błąd średniokwadratowy i statystykę Theil'a.
+```{r}
+Theil <- sum(((prognoza1-testowy$cenaa)^2))/sum((testowy$cenaa^2))
+bsk<- mean(((prognoza1-testowy$cenaa)^2))
+Theil
+bsk
+```
