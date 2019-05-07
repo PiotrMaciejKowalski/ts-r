@@ -1,0 +1,65 @@
+---
+title: "FEX-EUR-NZD"
+author: "DChoińska"
+date: "23 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Dane zostały pobrane ze strony HistData.com i dotyczą kursu euro do dolara nowozelandzkiego.
+Wczytujemy je
+```{r}
+library(dplyr)
+library(tidyr)
+dane <- read.table(file = 'Choińska_Dane.csv',col.names =c('Data','Godzina','Kurs'), sep =";")
+head(dane)
+
+```
+
+#Godzina 8 
+```{r}
+dane %>%
+  filter(Godzina == '08:00') -> dane8
+head(dane8)
+wykres8 <- data.frame(dane8$Data,dane8$Kurs)
+plot(wykres8)
+```
+
+#Godzina 16
+```{r}
+dane %>%
+  filter(Godzina == '16:00') -> dane16
+head(dane8)
+wykres16 <- data.frame(dane16$Data,dane16$Kurs)
+plot(wykres16)
+```
+
+#Godzina 12
+```{r}
+dane %>%
+  filter(Godzina == '12:00') -> dane12
+head(dane12)
+wykres12 <- data.frame(dane12$Data,dane12$Kurs)
+plot(wykres12)
+```
+
+#Godzina 20
+```{r}
+dane %>%
+  filter(Godzina == '20:00') -> dane20
+head(dane20)
+wykres20 <- data.frame(dane20$Data,dane20$Kurs)
+plot(wykres20)
+```
+
+```{r}
+curve(dane8$Kurs[x], from = 1, to = length(dane8$Data), type = "l", xlab = "Dzień", ylab = "Cena", col = "blue")
+curve(dane12$Kurs[x], from = 1, to = length(dane12$Data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Cena", col = "red")
+curve(dane16$Kurs[x], from = 1, to = length(dane16$Data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Cena", col = "green")
+curve(dane20$Kurs[x], from = 1, to = length(dane20$Data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Cena")
+legend("bottomleft", legend = c("Godzina 8:00", "Godzina 12:00", "Godzina 16:00", "Godzina 20:00"), col = c("blue", "red", "green", "black"), lwd = 2)
+```
+
