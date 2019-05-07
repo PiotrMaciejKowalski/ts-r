@@ -1,0 +1,39 @@
+---
+title: "Zadanie5"
+author: "WLara"
+date: "7 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Wczytujemy dane z excela
+```{r}
+library(XLConnect)
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(forecast)
+df <- read_excel('Lara-dane2.xlsx', sheet = 1)
+df$Godzina<-substr(df$Godzina,12,16)
+df$Data<-as.Date(df$Data,)
+
+head(df)
+```
+
+
+```{r}
+
+sc = ts(df$Cena_otw, frequency = 1)
+dates = as.Date(df$Data, format='%Y-%m-%d')
+sessional_sc = ts(df$Cena_otw, frequency = 1)
+sc
+```
+
+Wykres danych
+```{r}
+plot(df$Cena_otw, type = 'l')
+```
+
