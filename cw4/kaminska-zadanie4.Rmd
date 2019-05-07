@@ -1,0 +1,68 @@
+---
+title: "Zadanie 4"
+author: "Joanna Kamińska"
+date: "28 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Wczytywanie danych
+```{r dane}
+dane<- read.csv2("akaminska-data.csv", sep=";", dec=".")
+dni_Tygodnia<-c("Środa","Czwartek","Piątek","Poniedziałek","Wtorek")
+for (i in 1:nrow(dane)) {
+  dane[i,7]<-dni_Tygodnia[(i-1)%%(length(dni_Tygodnia))+1]
+}
+colnames(dane)[7]<-"DzienTygodnia"
+head(dane)
+```
+
+## Wczytanie pakietu
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+```
+
+## Proces 1
+Zaprezentuje różnicę między najwyższą wartością, a najmniejszą o godzinie 16:00.
+```{r message=FALSE, warning=FALSE}
+dane %>%
+  filter(godzina==160000)%>%
+  select(godzina,najwyzszy,najnizszy)%>%
+  mutate(roznica=najwyzszy-najnizszy)-> wynik1
+head(wynik1)
+
+```
+
+```{r}
+plot(wynik1$roznica, typ="b", col="blue", xlab="Pomiar", ylab="Różnica", main="Różnica między wartością najmniejszą a największą")
+```
+## Proces 2
+W tym procesie zaprezentuje wartości mniejsze od średniej w chwili zamknięcia, do tego będą mi potrzebne funkcje: filter i select.
+
+```{r}
+srednia<-mean(dane$otwarcie)
+dane %>%
+  filter(godzina==120000,zamkniecie<=srednia, otwarcie<=srednia)%>%
+  select(godzina, otwarcie, zamkniecie)->wynik2
+head(wynik2)
+```
+```{r echo=FALSE}
+plot(wynik2$otwarcie, xlab="Pomiar", ylab="Kurs otwarcia", main="Kursy mniejsze od średniego pomiaru", bg="pink")
+```
+
+## Proces 3:
+Użyję w tym procesie funkcji filter, aby otrzymać dane tylko z godziny 8:00, a także funkcji group_by aby w późniejszym działaniu podsumuwującym zostały odnalezione wartości minimalne, maksymalne oraz odchylenie w każdym dniu tygodnia.
+```{r}
+dane %>%
+  filter(godzina==80000)%>%
+  group_by(DzienTygodnia)%>%
+  summarise(min = min(zamkniecie),max = max(zamkniecie),std_price = sd(zamkniecie, na.rm = T)) -> wynik3
+head(wynik2)
+```
+```{r echo=FALSE}
+par(mfrow= c(1,2))
+plot(wynik3$max, type= "b",xlab="Dni tygodnia", ylab="Pomiar", col="blue")
+plot(wynik3$min, type="b",xlab="Dni tygodnia", ylab="Pomiar",col="green")
+```
