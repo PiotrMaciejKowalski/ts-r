@@ -9,7 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Wczytujemy dane z excela
+Wczytujemy dane z excela 
+
 ```{r}
 library(XLConnect)
 library(dplyr)
@@ -22,6 +23,8 @@ dane$Data<-as.Date(dane$Data,)
 head(dane)
 ```
 
+Interesują nas do analizy jedynie dane z godzin innych niż 10 oraz 18ta.
+
 ```{r}
 dane %>%
   filter(Godzina != "10:00") %>% ##
@@ -31,7 +34,9 @@ dane
 
 
 #Pierwszy proces
+
 Wyszukujemy cene otwarcia większą od 1281.Liczymy średnią, i wyszukujemy maksymalnych cen większych od średniej. 
+
 ```{r}
 dane %>%
   filter(Cena_otw>1281) %>%
@@ -47,7 +52,9 @@ plot(do_wykresu$Cena_otw,xlab="Zmiana", ylab="Cena otwarcia")
 ```
 
 #Drugi proces 
-Przedstawimy r??nice ceny otwarcia i zamkni?cia z godziny 08:00
+
+Przedstawimy różnice ceny otwarcia i zamknięcia z godziny 08:00
+
 ```{r}
 dane %>%
  filter(Godzina == "08:00") %>%
@@ -56,6 +63,7 @@ nowe
 ```
 
 #Wykres
+
 ```{r}
 plot(nowe$roznica, xlab = "pomiar", ylab = "roznica", main = "Różnica między,ceną otwarcia, a zamknięcia z godziny 08:00")
 abline( h = -0.1)
@@ -63,19 +71,18 @@ abline( h = -0.1)
 ```
 
 #Trzeci proces
+
 Grupujemy maksymalne ceny z danej godziny. 
+
 ```{r}
 dane %>%
    group_by(Godzina)%>%
   summarise(Max_zamkniecie = max(Max_cena, na.rm = FALSE)) -> final1
 final1
- 
-
-
-
 ```
 
 #Wykres
+
 ```{r}
 barplot(final1$Max_zamkniecie-1340, names.arg = c('8', '12','16','20'), offset = +1340, xlab = "Godzina", ylab = "Najwyższe ceny")
 ```
