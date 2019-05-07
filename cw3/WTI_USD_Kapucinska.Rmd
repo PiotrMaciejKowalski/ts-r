@@ -1,0 +1,117 @@
+---
+title: "Zadanie 3"
+author: "Justyna Kapucińska"
+date: "22 kwietnia 2019"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Raport dotyczy analizy ceny WTI/USD w dniach 2019-01-02 - 2019-03-15 z uwzględnieniem ceny otwarcia, zamknięcia, maksymalnej i minimalnej. 
+## Pobranie i wczytanie danych
+Dane pochodzą ze strony histdata.com. 
+
+```{r}
+dane=read.csv2("Kapucinska_WTI_USD.csv")
+godz8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Otwarcie.[dane$Godzina.=="08:00"]),53,2)
+godz12=matrix(c(sort(dane$Data[dane$Godzina.=="12:00"]),dane$Otwarcie.[dane$Godzina.=="12:00"]),53,2)
+godz16=matrix(c(sort(dane$Data[dane$Godzina.=="16:00"]),dane$Otwarcie.[dane$Godzina.=="16:00"]),47,2)
+godz20=matrix(c(sort(dane$Data[dane$Godzina.=="20:00"]),dane$Otwarcie.[dane$Godzina.=="20:00"]),51,2)
+```
+
+
+## Wykres otwarcia 
+Poniższe wykresy zostały sporządzone w oparciu o kurs otwarcia. 
+```{r}
+wyk8=plot(godz8,type="l",xlab="Dzień", ylab="Watrość",main="Otwarcie godziny")
+wyk12=lines(godz12,col="2", lty=2)
+wyk16=lines(godz16,col="3", lty=3)
+wyk20=lines(godz20,col="4", lty=4)
+legend("bottomright", c("godzina 8:00", "godzina 12:00", "godzina 16:00","godzina 20:00"), col = 1:4, lty=1:4)
+```
+
+
+## Wykres zamknięcia
+Poniższe wykresy zostały sporządzone w oparciu o kurs zamknięcia.
+```{r}
+godz8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Zamknięcie.[dane$Godzina.=="08:00"]),53,2)
+godz12=matrix(c(sort(dane$Data[dane$Godzina.=="12:00"]),dane$Zamknięcie.[dane$Godzina.=="12:00"]),53,2)
+godz16=matrix(c(sort(dane$Data[dane$Godzina.=="16:00"]),dane$Zamknięcie.[dane$Godzina.=="16:00"]),47,2)
+godz20=matrix(c(sort(dane$Data[dane$Godzina.=="20:00"]),dane$Zamknięcie.[dane$Godzina.=="20:00"]),51,2)
+
+wyk8=plot(godz8,type="l",xlab="Dzień", ylab="Watrość",main="Zamknięcie godziny")
+wyk12=lines(godz12,col="2", lty=2)
+wyk16=lines(godz16,col="3", lty=3)
+wyk20=lines(godz20,col="4", lty=4)
+legend("bottomright", c("godzina 8:00", "godzina 12:00", "godzina 16:00","godzina 20:00"), col = 1:4, lty=1:4)
+```
+
+
+## Wykres porównania 
+Poniższy wykres przedstawia porównanie otwarcia i zamknięcia godziny.
+```{r}
+otw8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Otwarcie.[dane$Godzina.=="08:00"]),53,2)
+zam8=matrix(c(sort(dane$Data[dane$Godzina.=="08:00"]),dane$Zamknięcie.[dane$Godzina.=="08:00"]),53,2)
+wyko8=plot(otw8,type="l",xlab="Dzień", ylab="Wartość", main="Porównanie zamknięcia i otwarcia godziny 8:00")
+wykz8=lines(zam8,col="2",lty=2)
+legend("bottomright",c("otwarcie","zamknięcie"), col= 1:2, lty=1:2)
+```
+
+## Zadanie 3
+Wybieram potrzebne zmiennę 
+```{r}
+dane1=dane[,1:3]
+head(dane1)
+Dni=as.numeric(row.names(dane1))
+```
+
+Model z trendem liniowym dla wszystkich danych
+```{r}
+model=lm(Otwarcie.[dane1$Godzina.=="08:00"]~Dni[dane1$Godzina.=="08:00"],data=dane1)
+summary(model)
+plot(dane1$Data[dane1$Godzina.=="08:00"],dane1$Otwarcie.[dane1$Godzina.=="08:00"],pch=20, xlab="Data",ylab="Wartość", main="Otwarcie godziny 8:00")
+abline(model, col = "red", lwd = 2)
+summary(model)
+```
+
+Rozdzielam model na dwa zbiory: uczący i testujący
+```{r}
+Dni=dane$Data[dane$Godzina.=="08:00"]
+Otwarcie=dane$Otwarcie.[dane$Godzina.=="08:00"]
+dane2=data.frame(Dni,Otwarcie)
+
+N=35
+uczący= data.frame(cbind(data=1:(N-1),otwarcie=dane2$Otwarcie[1:(N-1)]))
+testowy=data.frame(cbind(data=N:length(dane2$Dni),otwarcie=dane2$Otwarcie[N:length(dane2$Otwarcie)]))
+```
+
+Funkcja prognozy
+
+```{r}
+modeld=lm(otwarcie~data, data = uczący)
+summary(modeld)
+współczynnik=coef(modeld)
+prognoza= współczynnik[2]*testowy$data+współczynnik[1]
+
+plot(uczący$data, uczący$otwarcie, xlab="Data", ylab="Otwarcie", main="Regresja")
+abline(modeld, col="red", lwd= 1)
+text(mean(uczący$data),mean(uczący$otwarcie),round(summary(modeld)$r.squared,3),pos=4)
+```
+
+Wykres prognozy
+```{r}
+plot(testowy$data, testowy$otwarcie, ylim=c(min(prognoza),max(testowy$otwarcie)),xlab="Data", ylab="Otwarcie", main = "Prognoza")
+lines(testowy$data, prognoza,col="red")
+```
+
+Błąd średniokwadratowy
+```{r}
+mean(((prognoza-testowy$otwarcie)^2))
+```
+Statystyka Theil'a
+```{r}
+sum(((prognoza-testowy$otwarcie)^2))/sum((testowy$otwarcie^2))
+```
+
