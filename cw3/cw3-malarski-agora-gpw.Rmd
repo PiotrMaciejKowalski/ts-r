@@ -38,8 +38,11 @@ summary(regresja)
 ```
 Dane dzielę na dwa zbióry uczący i testowy
 ```{r}
-zb_uczacy<-data.frame(Data1[1:45],Otwarcie[1:45])
-zb_testowy<-data.frame(Data1[46:56],Otwarcie[46:56])
+moment <- 46
+stala <- 30
+n <- length(Data1)
+zb_uczacy<-data.frame(Data1[(moment-stala):(moment-1)],Otwarcie[(moment-stala):(moment-1)])
+zb_testowy<-data.frame(Data1[moment:n],Otwarcie[moment:n])
 ```
 Wykonuję model regresji dla zbioru uczącego
 ```{r}
@@ -53,18 +56,18 @@ Wykonuję model regresji dla zbioru testowego
 wspolczynnik=coef(regresja_u)
 a=wspolczynnik[2]
 b=wspolczynnik[1]
-pr=a*zb_testowy$Data1.46.56. +b
+pr=a*zb_testowy$Data1.moment.n. +b
 pr
 ```
 
 ```{r}
-plot(zb_testowy$Data1.46.56.,zb_testowy$Otwarcie.46.56., main = "Prognozowanie", ylab = "Otwarcie", xlab = "Dzień notowań w 2019 roku: od 46 do 56")
-lines(zb_testowy$Data1.46.56., pr, col="blue")
+plot(zb_testowy$Data1.moment.n.,zb_testowy$Otwarcie.moment.n., main = "Prognozowanie", ylab = "Otwarcie", xlab = "Dzień notowań w 2019 roku")
+lines(zb_testowy$Data1.moment.n., pr, col="blue")
 ```
 
 Wyznaczam błąd średniokwadratowy
 ```{r}
-bsk <-mean((pr-zb_testowy$Otwarcie.46.56.)^2)
+bsk <-mean((pr-zb_testowy$Otwarcie.moment.n.)^2)
 bsk
 ```
 i wartość statystyki Theil'a
