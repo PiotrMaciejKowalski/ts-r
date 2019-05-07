@@ -1,0 +1,108 @@
+---
+title: "Ćwiczenie 3"
+author: "Ania Szczepaniak"
+date: "30 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wczytywanie
+
+Pobieramy i wczytujemy notowania od początku bierzącego roku dla spółki ALTA SA ze strony https://stooq.pl/q/d/?s=aat. 
+
+```{r}
+dane<-read.csv("aszczepaniak-data.csv",header=TRUE)
+head(dane)
+```
+
+Zmieniam datę na prawidłowy format i dodaję do danych.
+
+```{r}
+df = as.Date(dane$Data, "%Y-%m-%d")
+dane2 = cbind(dane, df)
+head(dane2)
+```
+
+Generuję wykres wartości od czasu.
+
+```{r}
+plot(df, dane2$Wolumen)
+
+```
+Następnie tworzę wykres częstości dla Wolumen.
+
+```{r}
+barplot(table(dane2$Wolumen))
+```
+
+Wykres liniowy wartości od czasu
+
+```{r}
+plot(df, dane2$Wolumen, type="l")
+```
+
+# Prognozowanie
+Do prognozowania weźmiemy pod uwagę tylko cenę zamknięcia.
+```{r}
+Zamkniecie=dane$Zamkniecie
+Ilosc_Dni=as.numeric(row.names(dane))
+dane2=data.frame(cbind(Ilosc_Dni,Zamkniecie))
+head(dane2)
+
+```
+Podzielimy nasze dane na dwa zbiory- jeden treningowy i drugi testowy 
+```{r}
+p=60
+Treningowy=data.frame(cbind(Ilosc_Dni=Ilosc_Dni[1:(p)],Zamkniecie=Zamkniecie[1:(p)]))
+Testowy=data.frame(cbind(Ilosc_Dni=Ilosc_Dni[p:length(Ilosc_Dni)],Zamkniecie=Zamkniecie[p:length(Zamkniecie)]))
+Testowy
+```
+Regresja liniowa dla całego zbioru
+```{r}
+regresja = lm(Zamkniecie~Ilosc_Dni)
+plot(regresja)
+abline(regresja)
+summary(regresja)
+```
+
+Model z trendem liniowym dla zbioru trenigowego.
+```{r}
+model=lm(Zamkniecie~Ilosc_Dni,data=Treningowy)
+summary(model)
+```
+Przedstawmy ten trend liniowy na wykresie
+```{r}
+plot(dane2$Zamkniecie, type="l",col='red'[1], xlab = "Data", ylab="Cena")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+abline(model)
+abline(v=p,lty=2,col='blue')
+```
+
+Predykcja
+```{r}
+model$coefficients
+a<-model$coefficients[2]
+b<-model$coefficients[1]
+Prognoza<-a*Testowy$Ilosc_Dni + b
+Prognoza
+
+```
+
+Poniżej przedstawię wykres prognozy
+```{r}
+plot(Testowy$Ilosc_Dni, Testowy$Zamkniecie,type="l", col='blue', xlab = "Data", ylab="Cena")
+lines(Testowy$Ilosc_Dni, Prognoza, col = 'red')
+
+```
+
+
+Wyznaczymy teraz błąd średniokwadratowy oraz wartość statystyki Theil'a dla mojego modelu. 
+```{r}
+blad=mean(((Prognoza-Testowy$Zamkniecie)^2))
+theil=sum(((Prognoza-Testowy$Zamkniecie)^2))/sum((Testowy$Zamkniecie^2))
+blad
+theil
+```
