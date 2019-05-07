@@ -1,0 +1,127 @@
+---
+title: "Zadanie3_choińska"
+author: "Choińska Daria"
+date: "5 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Wczytuję dane dotyczące kursu euro do dolara nowozelandzkiego, które pochodzą ze strony Histdata.com
+
+```{r}
+dane <- read.csv2(file = "Choińska_Dane.csv",header = TRUE, sep =";",dec = ".")
+```
+```{r}
+dane8 <- dane[dane$Godzina == 80000,]
+dane12 <- dane[dane$Godzina == 120000,]
+dane16 <- dane[dane$Godzina == 160000,]
+dane20 <- dane[dane$Godzina == 200000,]
+```
+
+Charakterystyka kursu otwarcia
+```{r}
+summary(dane$Kurs.otwarcia)
+
+```
+Charakterystyka kursu zamknięcia
+```{r}
+summary(dane$Kurs.zamknięcia)
+```
+
+Wykresy, które poniżej przedstawie będa sporządzone w oparciu o kurs otwarcia
+
+##Wykresy
+
+```{r echo=FALSE}
+plot(1:nrow(dane8),dane8$Kurs.otwarcia,type = "l",xlab = "Dzień",ylab = "Kurs",main = "Kursy z godziny 8:00",col="red")
+abline(h=mean(dane$Kurs.otwarcia),lty=1, col="blue")
+abline(h=mean(dane8$Kurs.otwarcia),lty=2, col="grey")
+abline(h=median(dane$Kurs.otwarcia),lty=1, col="brown")
+abline(h=median(dane8$Kurs.otwarcia),lty=2, col="yellow")
+legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 8:00","średni kurs dla 8:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='black')
+
+```{r echo=FALSE}
+plot(1:nrow(dane12),dane12$Kurs.otwarcia,type = "l",xlab = "Dzień",ylab = "Kurs",main = "Kursy z godziny 12:00",col="red")
+abline(h=mean(dane$Kurs.otwarcia),lty=1, col="blue")
+abline(h=mean(dane12$Kurs.otwarcia),lty=2, col="grey")
+abline(h=median(dane$Kurs.otwarcia),lty=1, col="brown")
+abline(h=median(dane12$Kurs.otwarcia),lty=2, col="yellow")
+legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 12:00","średni kurs dla 12:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='black')
+
+```
+```{r echo=FALSE}
+plot(1:nrow(dane16),dane16$Kurs.otwarcia,type = "l",xlab = "Dzień",ylab = "Kurs",main = "Kursy z godziny 16:00",col="red")
+abline(h=mean(dane$Kurs.otwarcia),lty=1, col="blue")
+abline(h=mean(dane16$Kurs.otwarcia),lty=2, col="grey")
+abline(h=median(dane$Kurs.otwarcia),lty=1, col="brown")
+abline(h=median(dane16$Kurs.otwarcia),lty=2, col="yellow")
+legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 16:00","średni kurs dla 16:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='black')
+
+```
+```{r echo=FALSE}
+plot(1:nrow(dane20),dane20$Kurs.otwarcia,type = "l",xlab = "Dzień",ylab = "Kurs",main = "Kursy z godziny 20:00",col="red")
+abline(h=mean(dane$Kurs.otwarcia),lty=1, col="blue")
+abline(h=mean(dane20$Kurs.otwarcia),lty=2, col="grey")
+abline(h=median(dane$Kurs.otwarcia),lty=1, col="brown")
+abline(h=median(dane20$Kurs.otwarcia),lty=2, col="yellow")
+legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 20:00","średni kurs dla 20:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='black')
+
+```
+```{r  echo=FALSE}
+
+hist(dane$Kurs.otwarcia, 
+     main="Histogram kursu otwarcia", 
+     xlab="Kursy", 
+     col="purple")
+```
+
+##Prognozy
+
+wykonam prognozę modelem regresji liniowej dla calych przeszlych danych
+dane podzielimy na zbiór uczący i testowy
+
+```{r}
+N<-length(dane$Kurs.otwarcia)
+t<-15 
+alldata <- data.frame(seq(1:N),dane$Kurs.otwarcia)
+names(alldata)<-c("nr","Kurs.otwarcia")
+uczacy <- alldata[1:(N-t),]
+testowy<-alldata[N-t+1:t,]
+
+```
+Do predykcji danych zastosuje regresje liniowa, gdzie zmienna objasniana to kurs a objasniajaca to numer pomiaru, ktorych bedzie 15
+
+```{r echo=FALSE}
+plot(uczacy,main="Model 1",xlab="Pomiar",ylab="Kurs")
+reg <- lm(Kurs.otwarcia~nr,data=uczacy)
+abline(reg, col="blue")
+```
+
+Podsumujmy 
+```{r}
+summary(reg)
+```
+#podsumuję teraz pozostałe wartości
+
+```{r}
+a<-coef(reg)[2]
+b<-coef(reg)[1]
+plot(testowy, main="Predykcja",xlab="Pomiar",ylab="Kurs")
+lines(testowy$nr,a*testowy$nr+b,col="pink")
+```
+
+Dopasowanie nie jest dobre co widać na wykresie
+
+##wyznaczę teraz bład średniokwadratowy
+
+```{r echo=FALSE}
+s<-mean( (testowy$Kurs.otwarcia - a*testowy$nr+b)^2, na.rm = TRUE)
+z<-sum((a*testowy$nr+b-testowy$Kurs.otwarcia)^2)/sum((testowy$Kurs.otwarcia)^2)
+```
+
+
+Błąd średniokwadratowy wynosi `r s` , natomiast Statystyka Theil'a wynosi `r z`
+Ponieważ wartość tej statystyki< 1 to należy stwierdzić iż prognoza jest bardziej skuteczna niż prognoza naiwna.
