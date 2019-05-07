@@ -29,8 +29,8 @@ head(dane3)
 ```
 
 ```{r}
-Data_co <- dane$Data
-cenaa <- dane$Cena_otw
+Data_co <- dane3$Data
+cenaa <- dane3$Cena_otw
 cena_otw <- data.frame(Data_co,cenaa)
 plot(cena_otw, type ="l", main="Ceny otwarcia z godziny 08:00", xlab="Data", ylab="Cena ", )
 ```
