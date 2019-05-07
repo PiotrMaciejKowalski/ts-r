@@ -82,7 +82,7 @@ testowy <- newdane[(N - n + 1):n, ]
 Rozważmy następujący model i zobaczmy jak wygląda wykres dla danych i predykcji na zbiorze uczącym. 
 
 ```{r echo=FALSE}
-model1<-lm(newdane$zamkniecie~newdane$nr,data=uczacy)
+model1<-lm(zamkniecie~nr,data=uczacy)
 summary(model1)
 plot(uczacy$nr, uczacy$zamkniecie, main = "Model pierwszy", xlab = "Pomiary", ylab = "Kurs zamknięcia")
 abline(model1, col = "red")
@@ -124,7 +124,7 @@ testowy <- newdane[(N - n + 1):n, ]
 Rozważmy następujący model i zobaczmy jak wygląda wykres dla danych i predykcji na zbiorze uczącym. 
 
 ```{r echo=FALSE}
-model2<-lm(newdane$zamkniecie~newdane$nr,data=uczacy)
+model2<-lm(zamkniecie~nr,data=uczacy)
 summary(model1)
 plot(uczacy$nr, uczacy$zamkniecie, main = "Model drugi", xlab = "Pomiary", ylab = "Kurs zamknięcia")
 abline(model2, col = "blue")
