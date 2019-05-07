@@ -1,4 +1,5 @@
-Jakub Bujnowicz
-Anita Księżak
-Sandra Sobór
-Izabela Stobiecka
+# GRUPA A
+Jakub Bujnowicz,
+Anita Księżak,
+Sandra Sobór,
+Izabela Stobiecka.
