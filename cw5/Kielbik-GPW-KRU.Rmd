@@ -1,0 +1,177 @@
+---
+title: "Modele ARIMA - GPW-KRU"
+author: "Natalia Kiełbik"
+date: "8 maja 2019"
+output: html_document
+---
+#Pobranie i wczytywanie danych
+Rozpoczynamy od pobrania potrzebnych bibliotek oraz przygotowania omawianych danych. Następnie zamienimy format danych z data.frame na taki, który jest przystosowany do szeregów czasowych. 
+W zadaniu tym, weźmiemy pod uwagę **cenę zamknięcia**. 
+```{r, message = FALSE}
+#Wczytanie blibiotek
+library(tseries)
+library(forecast)
+library(dplyr)
+```
+```{r}
+#Wczytanie danych
+dane <- read.csv("Kielbik-kru_d.csv")[,1:5]
+head(dane)
+
+#Zamiana danych w szereg czasowy
+szer_czas <- ts(dane$Zamkniecie , frequency = 1)
+head(szer_czas)
+```
+
+Rozpatrywane dane zilustrowane na wykresie: 
+```{r}
+plot(dane$Zamkniecie, 
+     type = 'l', 
+     lwd = "2",
+     main = "Wykres dla ceny zamknięcia akcji spółki KRU S.A.",
+     xlab = "Dni",
+     ylab = "Cena zamknięcia")
+```
+
+**Badamy stacjonarność szeregu przy użyciu testu Dickeya-Fullera**
+```{r}
+adf1=adf.test(szer_czas)
+adf1
+```
+Ponieważ nasze `p-value` wynosi 0.357, to nie mamy podstaw do odrzucenia hipotezy dot. słabej stacjonarności.
+Zróżnicujemy nasz szereg i ponownie wykonamy test.
+```{r}
+adf2=adf.test(diff(szer_czas))
+adf2
+```
+Nasze `p-value` wynosi 0.188, czyli powtarza się sytuacja z poprzedniego kroku. 
+Raz jeszcze wykonamy test.
+```{r}
+df3=diff(diff(szer_czas))
+adf3=adf.test(df3)
+adf3
+```
+Widzimy teraz, że nasze `p-value` wynosi 0.01. To oznacza, że zróżnicowany szereg jest teraz stacjonarny.
+
+#Wykresy ACF i PACF
+Zaczniemy od wykresu dla zróżnicowanego powyżej szeregu czasowego.
+```{r, message = FALSE}
+plot(df3,
+     type = "l",
+     lwd = "2",
+     main = "Wykres dla zróżnicowanego szeregu czasowego",
+     col = "green",
+     xlab = "Czas",
+     ylab = "  ")
+```
+
+Następnie narysujemy wykresy **ACF** i **PACF**.
+```{r}
+#Wykres ACF
+acf(df3,
+    main = "Wykres ACF dla ceny zamknięcia",
+    xlab = "Przesunięcie, dla którego obliczana jest korelacja",
+    ylab = "Wartość korelacji")
+
+#Wykres PACF
+pacf(df3,
+     main = "Wykres  PACF dla ceny zamknięcia",
+     xlab = "Przesunięcie, dla którego obliczana jest korelacja",
+     ylab = "Wartość korelacji")
+```
+
+Z wykresu **ACF** możemy odczytać, że wartość parametru q=2, natomiast z **PACF**: p=2.
+Ponadto, szereg różnicowaliśmy dwa razy, dlatego parametr d=2.
+Wartości te będą nam potrzebne w dalszej części rozwiązania do rozważenia modeli AR, MA, ARMA.
+
+Dokonamy teraz podziału na zbiory: uczący i testowy.
+
+**Podział na zbiór uczący i testowy**
+```{r}
+#Zbiór uczący
+zb_ucz = window(df3,end = 34)
+
+#Zbiór testowy
+zb_test = window(df3, start = 35)
+```
+
+
+#Model MA
+```{r}
+MA <- arima(zb_ucz, order = c(0,0,2))
+summary(MA)
+```
+
+
+**Predykcja dla modelu MA**
+```{r}
+prognoza_MA = forecast(MA,h=length(zb_test))
+prognoza_MA
+```
+
+Przedstawimy prognozę na wykresie:
+```{r}
+plot(prognoza_MA,
+     main= "Wykres prognozy dla modelu MA",
+     xlab= "Dni")
+lines(zb_test, col="purple")
+```
+
+#Model AR
+```{r}
+AR <- arima(zb_ucz, order = c(2,0,0))
+summary(AR)
+```
+
+**Predykcja dla modelu AR**
+```{r}
+prognoza_AR = forecast(AR,h=length(zb_test))
+prognoza_AR
+```
+
+Tą prognozę różnież zilustrujemy odpowiednim wykresem.
+```{r}
+plot(prognoza_AR,
+     main= "Wykres prognozy dla modelu AR",
+     xlab= "Dni")
+lines(zb_test, col="dark blue")
+```
+
+#Model ARMA/ARIMA
+```{r}
+ARIMA <- arima(zb_ucz, order = c(2,2,2))
+summary(ARIMA)
+```
+
+**Predykcja dla modelu ARIMA**
+```{r}
+prognoza_ARIMA = forecast(ARIMA,h=length(zb_test))
+prognoza_ARIMA
+```
+
+Wykres dla tej prognozy:
+```{r}
+plot(prognoza_ARIMA,
+     xlab= "Dni")
+lines(zb_test, col="red")
+```
+
+
+#Podsumowanie
+Na tym etapie policzymy błędy średniokwadratowe dla modeli MA, AR i ARIMA. Na podstawie tych obliczeń będziemy mogli wybrać lepszy model do prognozy.
+```{r}
+#Model MA
+bl_MA=mean(((prognoza_MA$mean - zb_test)^2))
+bl_MA
+
+#Model AR
+bl_AR=mean(((prognoza_AR$mean - zb_test)^2))
+bl_AR
+
+#Model ARIMA
+bl_ARIMA=mean(((prognoza_ARIMA$mean - zb_test)^2))
+bl_ARIMA
+```
+
+Widzimy, że model AR wydaje się być lepszym od modelu MA i ARIMA.
+
