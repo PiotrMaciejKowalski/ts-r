@@ -107,7 +107,7 @@ summary(modelARIMA)
 
 ```
 
-**Predykcja dla modelu AR**
+**Predykcja dla modelu ARIMA**
 ```{r}
 prognozaARIMA = forecast(modelARIMA, h = length(test))
 plot(prognozaARIMA)
