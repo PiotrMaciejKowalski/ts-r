@@ -14,6 +14,7 @@ library(dplyr)
 library(RColorBrewer)
 library(forecast)
 library(tseries)
+library(tidyr)
 
 source("ocena_prognozy.R", encoding = "UTF8")
 ```
@@ -34,7 +35,7 @@ Dodatkowo za pomocą funckji `complete` usupełnimy dane o brakujące dni.
 
 ```{r , warning = FALSE, message = FALSE}
 typ <- "Otwarcie"
-data_start <- as.Date("2019-01-01")
+data_start <- as.Date("2019-02-01")
 
 dane_p <- read.csv("dane_EUR_PLN.csv") %>%
     mutate(Data = as.Date(Data)) %>%
@@ -43,6 +44,7 @@ dane_p <- read.csv("dane_EUR_PLN.csv") %>%
                                  by = "day"))
 
 dane <- dane_p[dane_p$Data >= data_start, c("Data", typ)]
+head(dane)
 ```
 
 ## Podstawowe wykresy
@@ -75,10 +77,12 @@ Za pomocą ` r adf.test` sprawdzimy czy możemy traktować nasz szereg jako szer
 stacjonarny.
 
 ```{r}
-adf.test(kurs)
+test <- adf.test(kurs)
+test
 ```
 
-Komentarz
+Ponieważ p-value=`r test$p.value` to nie mamy podstaw do odrzucenia hipotezy o 
+słabej stacjonarności naszego szeregu.
 
 Narysujmy wykres (za pomocą `stl()`) z którego wprost odczytamy oryginalne 
 dane, trend, sezonowość i resztę.
@@ -88,36 +92,36 @@ kurs_stl <- stl(kurs, s.window = "periodic")
 plot(kurs_stl, col = brewer.pal(n = 4, name = "PRGn")[1])
 ```
 
-```{r}
+```{r include=FALSE}
 nsc <- diff(kurs)
 head(nsc)
 ```
 
-```{r}
+```{r include = FALSE}
 tsdisplay(nsc, 
           col = brewer.pal(n = 4, name = "PRGn")[1],
           main = "Zróżnicowany szereg")
 ```
-Przeprowadźmy zatem test aby sprawdzić cechy słabej stacjonarności szeregu 
-zróżnicowanego.
+<!-- Przeprowadźmy zatem test aby sprawdzić cechy słabej stacjonarności szeregu  -->
+<!-- zróżnicowanego. -->
 
-```{r}
+```{r include = FALSE}
 adf.test(nsc)
 ```
 
-Zróżnicowany szereg wykazuje cechy słabej stajonarności. Zatem nasze modele 
-predykcyjne stworzymy w oparciu o szereg zróżnicowany. Wprowadzimy zatem parametr 
-`d`, który będzie odpowiadał za zróżnicowanie szerego. 
+<!-- Zróżnicowany szereg wykazuje cechy słabej stajonarności. Zatem nasze modele  -->
+<!-- predykcyjne stworzymy w oparciu o szereg zróżnicowany. Wprowadzimy zatem parametr  -->
+<!-- `d`, który będzie odpowiadał za zróżnicowanie szerego.  -->
 
-```{r}
-d <- 1
+```{r include = FALSE}
+d <- 0
 ```
 
 
-Narysujmy ponownie wykres (za pomocą `stl()`) z którego wprost odczytamy oryginalne 
-dane, trend, sezonowość i resztę.
+<!-- Narysujmy ponownie wykres (za pomocą `stl()`) z którego wprost odczytamy oryginalne  -->
+<!-- dane, trend, sezonowość i resztę. -->
 
-```{r}
+```{r include = FALSE}
 nsc_stl <- stl(nsc, s.window = "periodic")
 plot(nsc_stl, col = brewer.pal(n = 4, name = "PRGn")[1])
 ```
@@ -137,8 +141,8 @@ zera na wykresie PACF. Potrkatujmy je chwilowo jako "czarną skrzynkę". Okażą
 się one przydatne na dalszym etapie analizy.
 
 ```{r}
-q <- 1
-p <- 1
+q <- 12
+p <- 2
 ```
 
 
@@ -198,25 +202,49 @@ arima_bc <- auto.arima(kurs,
 summary(arima_bc)
 ```
 
-Dokonajmy teraz predykcji na zbiorze testowym, aby móc potem rozstrzygnąć, 
-który z modeli najlepiej radzi sobie z naszymi danymi.
+## Predykcja
+Sprawdzimy teraz jaką prognozę na najbliższe 7 dni zaproponuje każdy z modeli. 
 
 ```{r}
-
+modele <- list(ma = ma,
+               ar = ar,
+               arima = arima,
+               box_cox = arima_bc)
+predykcje <- lapply(modele, function(x) forecast(x, h = 7))
 ```
 
 Zobaczmy jak nasze predykcje wyglądają na wykresach:
 
 ```{r, fig.height = 10}
-
+par(mfrow = c(4, 1))
+for (i in 1:4) {
+    plot(predykcje[[i]], col = c(brewer.pal(n = 4, name = "PRGn")[1]))
+}
+par(mfrow = c(1, 1))
 ```
 
-
-Porównajmy teraz pierwiastki z błędów średniokwadratowych (RMSE) oraz statystykę
-Theila.
+Utwórzmy nowy wektor z przewidywanym kursem za 7 dni
 
 ```{r}
-
+pkurs <- rep(NULL,4)
+for (i in 1:4) { pkurs[i] <- predykcje[[i]]$mean[7]}
+pkurs
 ```
 
-[comment]: <> (Wnioski z predykcji)
+## Decyzja
+Załóżmy, że posiadamy 1€. Decyzję czy wymienimy je na złotówki, czy nie, 
+podejmiemy porównując obecny kurs z przewidywanym kursem.
+
+Stwórzmy wektor, który będzie zawierał wartości TRUE jeżeli dany model 
+przewiduje, że zyskamy na sprzedaży euro. W przeciwnym wypadku przypisze
+wartość FALSE
+
+```{r}
+decyzja <- pkurs < kurs[length(kurs)]
+decyzja
+```
+
+
+
+
+
