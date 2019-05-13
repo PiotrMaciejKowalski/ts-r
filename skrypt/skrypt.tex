@@ -9,7 +9,7 @@
 \usepackage{graphicx}
 \usepackage{makeidx}
 \usepackage{ifthen}
-\usepackage[polish]{dyschemist}
+\usepackage[polish, section]{dyschemist}
 %\makeindex
 \usepackage[hidelinks]{hyperref}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
@@ -17,6 +17,8 @@
 
 \newcommand{\tsAutoCovariance}[3][\gamma]{\operatorname{#1}_{#2} \left({#3}\right)}
 \newcommand{\tsAutoCorellation}[3][\rho]{\operatorname{#1}_{#2} \left({#3}\right)}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+
 \usepackage{dyschemist}
 \author{dr, mgr inż. Piotr Kowalski}
 \title{Skrypt do wykładu z Szeregów czasowych i prognozowanie w biznesie}
@@ -49,6 +51,9 @@ Wersja & Autor & Data & Opis\\\hline
 1.5 & P. Kowalski & 21.06.18 & Poprawki Przepióra, Margielewski  \\\hline
 1.6 & P. Kowalski & 03.04.19 & Pierwsze poprawki w kolejnym roku edycji \\\hline
 1.7 & P. Kowalski & 10.04.19 & Dodanie elementów do modeli GARCH \\\hline
+1.8 & P. Kowalski & 24.04.19 & Dodanie wprowadzenia do procesów decyzyjnych Markowa, oraz predykcji opartej o sieci neuronowe \\\hline
+1.9 & P. Kowalski & 28.04.19 & Dodanie elementów dotyczących zastosowania teorii spektralnej do predykcji \\\hline
+1.10 & P. Kowalski & 8.05.19 & Rozszerzenie elementów związanych z modelami decyzyjnymi Markowa oraz Q-learningiem \\\hline
 \end{tabular}
 \caption{Wersje dokumentu.}
 \end{table}
@@ -1871,7 +1876,266 @@ $$
 
 \chapter{Analiza spektralna w predykcji szeregów czasowych}
 
-%TODO uzupełniamy o teorię sygnałów oraz analizę spektralną
+Spróbujmy umieścić kolejną z technik w predykcji w odniesieniu do znanych nam już technik. Pomoże nam to zrozumieć jej przeznaczenie oraz ograniczenia.
+
+\section{Wokół transformaty Fouriera}
+
+Najbardziej podstawowa z technik predykcji to regresja liniowa. Jednak u podstaw tej metody leży numeryczne zadanie aproksymacji. Oczywiście jest ona rozszerzona o pewne elementy analizy statystycznej, ale u podstaw leży aproksymacja. Trzeba dowiedzieć się, że w metodach numerycznych występuje wiele różnych aproksymacji. Niezwykle istotną grupą aproksymacji jest ta oparta o bazy ortogonalne przestrzeni i sławne twierdzenie Fouriera.
+
+\begin{theorem}[Twierdzenie Fouriera dla przestrzeni Hilberta]
+Rozważmy pewną przestrzeń funkcyjną $H$ - przestrzeń Hilberta. Oznaczmy przez $\scalar{\cdot}{\cdot}$ iloczyn skalarny tej przestrzeni. Niech $(h_1, h_2, \ldots, h_n, \ldots)$ będzie bazą ortogonalna tej przestrzeni. Wtedy dowolną funkcję $f \in H$ można zapisać za pomocą wzoru
+$$
+f = \sum_{i=0}^{\infty} \frac{\scalar{f}{h_i} }{\scalar{h_i}{h_i}} h_i.
+$$
+\end{theorem}
+
+Najsłynniejsza przestrzeń funkcyjna stosowana wraz z powyższym twierdzeniem tworzy tzw. transformację Fouriera. Z uwagi na jej zastosowanie do analizy sygnałów (głównie fal elektromagnetycznych), często spotyka się nazewnictwo, że transformacja ta powoduje zmianę dziedziny z czasu na dziedzinę częstotliwości. 
+
+Twierdzenie dokładnie orzeka, że
+
+\begin{theorem}[Twierdzenie Fouriera-Eulera]
+Niech dana będzie funkcja okresowa $F: \setR \to \setR$ o okresie $T \in \setR^+$, bezwzględnia całkowalna w przedziale $[ \frac{-T}{2}, \frac{T}{2}]$. Wtedy
+$$
+S(x) = \frac{a_0}{2} + \sum_{n=1}^{\infty} \bracket{a_n \function{\cos}{\frac{2n\pi}{T}x} + b_n \function{\sin}{\frac{2n\pi}{T}x}},
+$$
+gdzie
+$$
+a_n = \frac{2}{T} \int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) \function{\cos}{\frac{2 n \pi}{T} x} \dt[x], n = 0,1,\ldots ,
+$$
+$$
+b_n = \frac{2}{T} \int_{-\frac{T}{2}}^{\frac{T}{2}} f(x) \function{\sin}{\frac{2 n \pi}{T} x} \dt[x], n = 1,2,\ldots.
+$$
+mamy zależność mówiącą, że jeśli szereg $S(x)$ jest zbieżny jednostajnie do funkcji $f$ to współczynniki wyrażają się wzorami jak powyżej. Ponadto jeśli $f(x) $ jest różniczkowalna w punkcie $x_0$, to jej szereg Fouriera jest zbieżny do wartości funkcji w tym punkcie.
+\end{theorem}
+
+Twierdzenie o rozwijaniu w szereg cosinusów i sinusów stanowi jednak punkt wyjścia do bardzo ciekawych rozważań. Oznacza on bowiem dualizm form wyrażania funkcji za pomocą zarówno czasu jak i częstotliwości. Pozwala ono na zdefiniowanie tzw. Transformaty Fouriera.
+
+\begin{definition}[Transformata Fouriera]
+Rozważmy funkcję dla $f \in \Lp{1}{\setR}$. Wtedy funkcję $\hat{f}$ daną wzorem
+$$
+\function{\hat{f}}{\omega} = \int_{\setR } f(t) e^{-i\omega t} \dt [t],
+$$
+nazywa się transformatą Fouriera funkcji $f$ (sama operacja nazywa się transformacja Fouriera) z dziedziny czasu do dziedziny częstotliwości. 
+Ponadto zachodzi wtedy zależność:
+$$
+f(t) = \frac{1}{2\pi} \int_{\setR } \hat{f}(\omega) e^{i\omega t}  \dt[\omega],
+$$
+nazywana transformacja odwrotną.
+\end{definition}
+
+Sama transformacja Fouriera jest nam nieprzydatna do analizy szeregów czasowych. Pamiętamy bowiem, że nasze czasowe występują w zasadzie wyłącznie w postaci realizacji czyli spróbkowanej. Aby uzyskać postać częstościową należało by wygenerować aproksymację naszej próbkowanej funkcji, a potem samą funkcję przenieść do dziedziny częstości. Na nasze szczęście jest matematyczna transformacja, która potrafi wykonać obie te operacje jednocześnie. Jest to dyskretna transformata Fouriera
+
+\begin{definition}[DFT]
+Niech dany będzie skończony ciąg próbek $a_0, a_1, \ldots, a_{N-1}$, że $a_i \in \setR $. Wtedy istnieje skończony ciąg $A_0, A_1, \ldots, A_{N-1}$, że $A_i \in \setC $ opisany wzorem
+$$
+A_k = \sum_{n=0}^{N-1} a_n e^{-kn i \frac{2\pi}{N}}, o \leq k \leq N-1.
+$$
+Ponadto dane jest przekształcenie odwrotne (IDFT) postaci
+$$
+a_n = \frac{1}{N} \sum_{k=0}^{N-1} A_k e^{kn i \frac{2\pi}{N}}, 0 \leq n \leq N-1.
+$$
+\end{definition}
+
+Słyszać o DFT być może ktoś również słyszał o FFT czyli szybkiej transformacji Fouriera. Ogólnie wyliczenie dyskretnej transformaty Fouriera jest dość obciążające - jej złożoność obliczeniowa to $O(N^2)$. Tymczasem FFT jest algortmem, który przy pewnych warunkach potrafi skrócić wykonywanie obliczeń do $O(N \log N)$.
+
+Najczęstszym zastosowaniem teorii transformacji Fouriera szeregu czasowego jest transformacja do postaci częstości celem przeprowadzenie filtracji - to jest odrzucenia wysokich częstotliwości (zmiany losowe) a pozostawienie niskich częstości (zmiany regularne, sezonowości). Procedura postępowania jest tutaj bardzo prosta:
+
+\begin{itemize}
+\item Transformujemy sygnał do postaci częstości.
+\item Odrzucamy częstości niższe od pewnego progu.
+\item Dokonujemy odwrotnej transformaty Fouriera uzyskując ponownie sygnał początkowy, ale o mniejszej ilości szumu.
+\end{itemize}
+
+Powyższy algorytm można by nazwać nowym sposobem przeprowadzenia wygladzania wykresu.
+
+\begin{remark*}
+Pamiętajmy o podstawowej cesze tej transformacji. Wszystko o czym tu piszemy zaczyna się od aproksymowania funkcji okresowej. Aby stosować skutecznie zawarte tu teorie, należałoby mieć realne przesłanki, że funkcja ta ma szanse bycia okresową. Szereg czasowy powinien zatem posiadać przynajmnie stałą wartość przeciętną oraz stałą wariancję.
+\end{remark*} 
+
+\begin{remark*}
+DFT nie jest jedyną transformacją, która posiada podobne zastosowanie w analizie ciągów. Wyróżnić warto jeszcze
+\begin{itemize}
+\item DCT, DST (DFT ale tylko dla $\cos$ lub $\sin$,
+\item Transformacje falkowe (oraz DWT),
+\item Transformację Laplace'a (oraz transformację Z).
+\end{itemize}
+Ponadto nawet dla transformaty Fouriera, występuje różne sposoby jej zadania. Co sprawia, że dla analityka dostępna jest liczna rodzina przekształceń.
+\end{remark*}
+
+Dostrzegamy iż teoria związana z analizowanie zjawisk na wykresach częstościowych posiada wiele potencjalnych możliwości do dalszego badania. W dalszej części omówimy jednak już tylko uznane teorie, które wyewoluowały z tej koncepcji:
+
+\section{Teoria widmowa dla szeregów czasowych}
+
+Przejście do dziedziny częstości pozwoliło na wytworzenie dość szczególnej teorii dotyczącej szeregów czasowych, którą nazywać można teorią widmową lub teorią spektralną - w zależności od ulubionego tłumaczenia.
+
+\begin{definition}[Widmo szeregu czasowego]
+Niech $\ts{X_t}{t}$ będzię szeregiem czasowym o zerowej wartości średniej. Wtedy
+$$
+\tsAutoCovariance{X}{h} = \Ex{X_t X_{t-h}}.
+$$
+Postać funkcji autokowariancji pozwala na konstruowanie najbardziej podstawowych tez o postaci generującego próbę modelu. Jako takowa powoduje możliwość definiowania charakterystyk dla danego szeregu czasowego. Widmem (spektrum) danego szeregu czasowego nazywamy transformatę Fouriera funkcji $\tsAutoCovariance{X}{h}$, czyli
+$$
+S_X(\omega) = \frac{1}{2\pi} \sum_{h=-\infty}^{+\infty} e^{-ih\omega} \tsAutoCovariance{X}{h}.
+$$
+\end{definition}
+
+\begin{definition}[Funkcja generująca ciągu]
+Niech $a = \ldots, a_{-n}, \ldots, a_0, a_1, \ldots, a_n, \ldots \subset \setR $ będzie ciągiem liczb rzeczywistych. Funkcję określoną wzorem funkcję $g_a : \setC \to \setC$ opisaną formułą:
+$$
+g_a(x) = \sum_{h= -\infty}^{+\infty} a_h x^{h},
+$$
+nazywamy funkcją generującą ciągu.
+\end{definition}
+
+\begin{remark*}
+Widmo szeregu czasowego jest zatem przeskalowaną funkcją generującą dla ciągu utworzonego przez funkcję autokowariancji. 
+\end{remark*}
+
+\begin{corollary}[]
+Pomiędzy widmem a funkcją autokorelacji występuje następująca zależność:
+$$
+\sum_{h=-\infty}^{h=\infty} \tsAutoCovariance{X}{h} = 2\pi S_X(0).
+$$
+\end{corollary}
+
+\begin{proof}
+W definicji widma weźmy częstotliwość $\omega = 0$. Stąd teza.
+\end{proof}
+
+\begin{corollary}[Jawny wzór na widmo]
+Można posługiwać się alternatywną formułą do obliczania widma danego szeregu czasowego, postaci
+$$
+S_X(\omega) = \frac{1}{2\pi} \bracket{\gamma_0 + 2 \sum_{h=1}^{\infty} \tsAutoCovariance{X}{h} \cos(h\omega)}.
+$$
+\end{corollary}
+
+\begin{proof}
+Wykorzystajmy z rozwinięcia $e^{i\phi} = \cos \phi + i \sin \phi$, oraz warunków symetrycznych $\cos(-x) = \cos(x)$ i $\tsAutoCovariance{X}{-h} = \tsAutoCovariance{X}{h}$, natychmiast otrzymujemy postać z tezy.
+\end{proof}
+
+\begin{corollary}[Zależność odwrotna funkcji auokowariancji i widma]
+$$
+\tsAutoCovariance{X}{h} = \int_{-\pi}^{\pi} e^{i\omega h} S_X(\omega) \dt[\omega] 
+$$
+\end{corollary}
+
+\begin{corollary}[Związek widma i wariancji szeregu czasowe]
+$$
+\Variance{X_t} = \int_{-\pi }^{\pi} S_X(\omega) \dt[\omega].
+$$
+\end{corollary}
+
+Oznacza to, że widmo opisuje rozproszenie wariancji wzdłuż wszystkich dostępnych częstotliwości.
+
+\begin{definition}[Gęstość widmowa]
+Transformatę Fouriera funkcji ACF , tj. 
+$$
+f(\omega) = \frac{1}{2\pi} \sum_{h=-\infty}^{\infty} e^{-i h \omega} \tsAutoCorellation{X}{h},
+$$
+nazywamy gęstością widmową.
+\end{definition}
+
+\begin{theorem}[Poprawność definicji gęstości widmowej.]
+Gęstość widmowa jest gęstością pewnego rozkładu prawdopodobieństwa.
+\end{theorem}
+
+\begin{proof}
+Stosująć odwrotną transformatę Fouriera otrzymujemy
+$$
+\tsAutoCorellation{X}{h}= \int_{-\pi}^{\pi} e^{i \omega h} f_x(\omega) \dt[\omega].
+$$
+W powyższym przejdźmy do $h=0$. Wtedy
+$$
+1= \int_{-\pi}^{\pi} f_x(\omega) \dt[\omega].
+$$
+\end{proof}
+
+Gęstość widmowa jest zatem gęstością rozkładu prawdopodobieństwa opisującą wylosowanie poszczególnych częstości w funkcji autokorelacji. 
+
+Podstawowe pytanie, które się tu pojawia - to sposób w jaki możemy używać spektrum do analizowania szeregów czasowych. Okazuje się, że różne modele szeregów czasowych (a tych już kilka poznaliśmy) posiadają różne kształty widma. W sumie to dzięki temu - mająć wyliczone numerycznie z realizacji szeregu czasowego przybliżenie postaci widma - możemy naprawdę dobrze dobrać model zjawiska.
+
+\begin{remark*}
+W przypadku dziedziny czasu realizacja zawiera tylko jedna wartość. W dziedzinie częstotliwości próba losowa dana częstotliwość może być opisana znacznie większą ilością wartości.
+\end{remark*} 
+
+\begin{theorem}[Widmo szumu białego]
+Niech $\epsilon \sim WN(0,\sigma^2)$. Wtedy 
+$$
+S_X (\omega) = \frac{1}{2\pi} \sigma^2,
+$$
+oraz 
+$$
+f_X (\omega) = \frac{1}{2\pi}.
+$$
+Czyli widmo szumu białego jest stałe.
+\end{theorem}
+
+\begin{theorem}[Widmo filtru liniowego (Model MA($\infty$)]
+Niech dany będzie szereg czasowy zgodny z modelem 
+$$
+Y = \sum_{h=-\infty}^{\infty} \theta_h \epsilon_{t-h} = g_{\theta} (L) \epsilon_t.
+$$
+Wtedy jeśli tylko $\theta$ jest sumowalna w module to 
+$$
+S_{Y} (\omega) = \abs{g_{\theta} e^{-i \omega}}^2 S_\epsilon(\omega).
+$$
+\end{theorem}
+
+\begin{theorem}[Widmo procesu MA(1)]
+Rozważmy $X$ zgodne z procesem MA(1), tj.
+$$
+X_t = \epsilon_t + \theta \epsilon_{t-1}.
+$$
+Wtedy widmo tego procesu wyraża sie formułą
+$$
+S_X(\omega) = \frac{1}{2\pi} \bracket{1 + \theta^2 + \theta (e^{-i \omega} + e^{i \omega}} \sigma_\epsilon^2.
+$$
+\end{theorem}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.6]{images/spectrumMA1.png}
+\caption{Widmo procesu MA(1), dla $\theta = 0.5$ oraz $\theta= -0.5$.} \label{fig-spectrum-ma1}
+\end{figure}
+
+Widmo procesu MA(1) możemy obserwować na wykresie \ref{fig-spectrum-ma1}.
+
+\begin{theorem}[Widmo procesu ARMA(p,q)]
+Niech $X_t$ będzie procesem stochastycznym opisanym ARMA(p,q), tj
+$$
+g_\phi(L) x_t = g_\theta(L) \epsilon_t.
+$$
+Załóżmy, że proces ten jest stacjonarny, czyli wszystkie pierwiastki wielomianu $g_\phi$ leżą w kole jednostkowym. Wtedy widmem procesu $X_t$ jest
+$$
+S_X (\omega) = \frac{1}{2 \pi} \frac{\abs{g_\theta (e^{-i\omega})}^2}{ \abs{ \function{g_\phi}{ e^{-i \omega} }^2} }\sigma^2_\epsilon.
+$$
+\end{theorem}
+
+\begin{theorem}[Widmo procesu AR(1)]
+Rozważmy $X$ zgodne z procesem AR(1), tj.
+$$
+X_t = \epsilon_t + \phi X_{t-1}.
+$$
+Wtedy widmo tego procesu wyraża sie formułą
+$$
+S_X(\omega) = \frac{1}{2\pi} \bracket{1 + \phi^2 - 2 \phi \cos \omega}^{-1} \sigma_\epsilon^2.
+$$
+\end{theorem}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.6]{images/spectrumAR1.png}
+\caption{Widmo procesu AR(1), dla $\phi = 0.5$ oraz $\phi= -0.5$.} \label{fig-spectrum-ar1}
+\end{figure}
+
+Widmo procesu AR(1) możemy obserwować na wykresie \ref{fig-spectrum-ar1}.
+
+\begin{theorem}[O reprezentacji widmowej]
+Niech $X_t$ będzie szeregiem czasowym stacjonarnym z zerową wartością oczekiwaną oraz sumowalną w module funkcją autokowariancji. Wtedy istnieją zmienne losowe $\alpha(\omega)$ oraz $\beta(\omega)$ takie, że
+$$
+x_t = \int_{0}^\pi \bracket{\alpha(\omega) \cos (\omega t) + \beta(\omega) \sin(\omega t) } \dt[\omega].
+$$ 
+\end{theorem}
 
 \chapter{Prognozowanie wielowymiarowych szeregów czasowych}
 
@@ -2505,15 +2769,1052 @@ Każdy proces zgodny z modelem $ARIMA(p,1,q)$ można rozłożyć na dwie składo
 \end{itemize}
 \end{theorem}
 
+\chapter{Inne modele prognostyczne}
+
+Rozdział opracowany na podstawie następującej literatury \citep{geron2018uczenie}.
+
+W niniejszej części wprowadzimy podstawowe pojęcia dotyczące uczenia maszynowego. Choć dla wielu może się on wydawać odległą i skrajnie różną od stanu obecnego przyszłością - to już obecnie obszary stosujące uczenie maszynowe są powszechne i wykazują się skutecznością zdolną pozostawać niezauważonym dla ludzkich oczu. Przykładami takich obszarów są techniki rozpoznawania obrazów, pisma czy też powszechnie spotykane filtry spamu. Środowiska naukowe oraz przedsiębiorstwa szeroko korzystające ze współczesnych rozwiązań IT są niezmiennie przez ostatnie lata głęboko zafascynowane rozwojem uczenia maszynowego. Powod jest jeden i prozaiczny. Każdy dowolny kolejny dzień, może przynieść przełom wywracający całą strukturę naszego świata. Ostatnim znaczącym przełomem była przełomowa praca z zakresu głębokich sieci neuronowych opublikowana w 2006 roku \cite{hinton2006fast}, która wskazała ogrom zastosowań tych sieci. Jednym z najbardziej jaskrawych przykładów ich zastosowania jest opracowany przez firmę DeepMind (Grupa Google) algorytm AlphaGo. Jest to komputerowy gracz w japońskiej grze Go, uznawanej za jedną z najtrudniejszych gier logicznych w historii człowieka. Opracowany algorytm w roku 2016 pokonał mistrzów europy, mistrzów świata, a ostatecznie całą czołówkę graczy - dodatkowo wygrywając wszystkie partie. Co więcej strategie używane przez algorytm są niezrozumiałe dla zwykłych graczy, całkowicie niwilując efekty wszelkich obecnie znanych człowiekowi strategii. 
+
+W zakresie definicji uczenia maszynowe wymieniane są dwie wiodące definicje
+
+\begin{definition}[Uczenie maszynowe wg. Arthura Samuela, 1959 {\citep[Rozdział 1]{geron2018uczenie}}]
+Uczenie maszynowe to dziedzina nauki dająca komputerom możliwość uczenia się bez konieczności ich jawnego programowania. 
+\end{definition}
+
+\begin{definition}[Uczenie maszynowe wg. Toma Mitchella, 1997 {\citep{geron2018uczenie, szeliga2017data}}]
+Mówimy, że program komputerowy uczy się na podstawie doświadczenia E w odniesieniu do zadania T i pewnej miary wydajności P, jeśli jego wydajność (mierzona przez P) wobec zadania T wzrasta wraz z nabywaniem doświadczenia E.
+\end{definition}
+
+Powyżej przedstawiana koncepcja ogranicza uczenie maszynowe do komputerów, jednak nie musi być tak koniecznie. Ucząc się o uczeniu maszynowym poznajemy całe grupy matematycznych koncepcji, które podlegając procesowi uczenia mogą adaptować się do wielu zadań. Tym właśnie sposobem możemy zdefiniować
+
+\begin{definition}[Maszyna ucząca]
+Maszyną uczącą nazwiemy matematyczny model składający się z parametrów oraz transformacji, wyposażony w proces modyfikacji swoich parametrów na podstawie danych w procesie nazywanym uczeniem, na potrzeby adaptacji do realizacji wybranego zadania.
+\end{definition} 
+
+Powinniśmy umówić dodatkowo przyczyny dla których samo pojęcie uczenia maszynowego pojawiło się we współczesnej wiedzy. Aby mogły zaistnieć warunki do przeprowadzania dowolnego doświadczenia z uczeniem maszyn potrzebne są dwa elementy:
+
+\begin{itemize}
+\item Odpowiednio szybkie komputery do przetwarzania informacji,
+\item odpowiednio duże zbiory danych, aby uzyskiwać wiarygodny opis zjawisk.
+\end{itemize}
+
+Wraz ze wzrostem obu tych cech następują kolejne postępy w rozwoju dziedziny. Pierwszy ze znaczących wzrostów popularności uczenia maszynowego wiąże się z pojawieniem się baz SQL oraz szybkich procesorów wielordzeniowych. Kolejny, który miał miejsce nie więcej niż 15 lat temu wiążę się z pojawiem się baz NoSQL, BIG DATA oraz rozwiązań w postaci chmur oraz potężnych klastrów obliczeniowych, przeprowadzających równoległe obliczenia. 
+
+Omówmy dalej najważniejsze klasy i pojęcia związane z uczeniem maszynowym. 
+
+\section{Dane w uczeniu maszynowym}
+
+Dane są tak bardzo niezbędne w uczeniu maszynowym, że aż w samej definicji maszyny uczącej musieliśmy podkreślić ich niezbędność. Co można powiedzieć o danych?
+\begin{itemize}
+\item Ilość - musi ich być dużo. Pracując z uczeniem maszynowym przyjmuje się, że im większą ilość danych dostarczymy naszemu modelowi, tym lepiej musi on rozwiązywać zadanie przed nim postawione. Nie zakłada się tempa tego wzrostu, ani nawet mając chwilowe pogorszenie modelu - nie będzie powodowało pochopnego odrzucenia modelu. Określa to jedynie długofalow efekt działania lub uczenia danego modelu.
+\item Dane muszą być uporządkowane, uformowane i uzupełnione. Aby dane były dostępne w przetwarzaniu komputerowym muszą bowiem posiadać odpowiednie ustrukturyzowanie.
+\item Dane powinny być wielowymiarowe. Albo analizowane w długiej osi czasu.Nie ma sensu analizować danych, które nie mają do siebie odniesienia. Tym co może być zaskakujące jest zastosowanie tych metod do np. obrazów. Jednak w tym wszystkim można dostrzec, że teoretycznie pojedynczy obraz jest tak naprawdę zbiorem kilku tysięcy (lub większej) pikseli różnych kolorów, dodatkowo często silnie ze sobą skorelowanych.  
+\item Dane powinny być reprezentatywne. To znaczy przedstawiać pełny przekrój (często nawet zgodny co do proporcji) zjawiska, które ma badać. Znane są historycznie przypadki, kiedy takie zaniedbanie posiadało haniebne skutki. Jednym z najbardziej znanych jest algorytm, który został opracowany celem rozpoznawania twarzy na obrazach cyfrowych. Z uwagi na niefrasobliwy dobór zbioru uczącego, algorytm ten nie był w stanie poprawnie oznaczyć twarzy osób rasy afrykańskiej oraz o wyjątkowo ciemnej karnacji. 
+\item W znacznej większości naszych doświadczeń (uczenie nadzorowane, o którym za chwilę) nasze dane będą podlegać podziałowi na dwa podzbiory
+\begin{itemize}
+\item Podzbiór uczący - nazywany także zbiorem treningowym. Określającym dane, które służą do strojenia parametrów modelu. 
+\item Podzbiór weryfikujący - nazywany także zbiorem testowym. Określa podzbiór danych, które służą do oceny jakości modelu.
+\end{itemize}
+Z uwagi na powszechność takiego podziału, nazewnictwo zostało również zaadaptowane na potrzeby problemów, które takowe podziału faktycznie nie potrzebują. Co do samego sposobu podziału danych jest wiele różnych koncepcji. Ogólnie zbiory testowe powinny być istotnie mniejsze od treningowych i w miarę wzrostu całości zbioru danych dysproporcja ta powinna jeszcze rozrosnąć się. 
+\end{itemize}
+
+Wyszczególniamy również następujący podział danych:
+\begin{itemize}
+\item Strukturyzowane - gdy dane są powiązane relacjami z bazy danych,
+\item Pół-strukturyzowane - dane reprezentowane w postaci tabeli, ale bez powiązań relacyjnych,
+\item Nieustrukturyzowane - dane multimedialne, teksty, dźwięki.
+\end{itemize}
+
+\section{Proces nauki w uczeniu maszynowym}
+
+Kolejnym istotnym sposobem dokonania podziału modeli uczenia maszynowego jest z uwagi na sposób prowadzenia uczenia. Wyróżniamy tu:
+
+\begin{itemize}
+\item Uczenie nadzorowane - w którym uczenie wykorzystuje znane wartości poprawnych odpowiedzi. Uczenie to przypomina matematycznie następujące zadanie - Dla równania postaci:
+$$
+Y= F(X)
+$$
+dla znanych wartości wektora $X$ oraz znanych wartości $Y$ opracuj skuteczne przybliżenie $\overline{F}$ przekształcenia $F$, tzn.
+$$
+Error(\overline{F}(X) - y) \to \min.
+$$
+\item Uczenie nienadzorowane - w którym uczenie odbywa się przy braku znajomości poprawnych odpowiedzi (lub ich ogólnego braku w problemie). Najczęściej celem eksplorowania nowych własności i zależności w zbiorze danych. Przypomina to matematycznie następujące zadanie - Dla równania postaci :
+$$
+Y = F(X)
+$$
+dla znanych wartości wektora $X$ oraz nieznanych wartości $Y$ opracuj przyblżenie przekształcenia $F$ posiadające pewne własności.
+\item Uczenie semi-nadzorowane - kiedy część danych nie posiada wartości poprawnych odpowiedzi.
+\item Uczenie ze wzmacnianiem - w którym również nie są znane wartości poprawnych odpowiedzi, ale jest określony szczególny cel optymalizacyjny.Uczenie to przypomina matematycznie następujące zadanie - Dla równania postaci:
+$$
+Y = F(X)
+$$
+dla znanych wartości wektora $X$ opracuj skuteczne przybliżenie przekształcenia $F$ tzn. takie, że dla znanej funkcji nagrody $R$ uzyskuje się największą wartość nagrody $R(F(X))$. W procesie tym wzmacniane są decyzje powodujące powiększenie wartości nagrody.
+\end{itemize}
+
+\section{Uczenie wsadowe i przyrostowe}
+
+Wystepuje również podział procesów uczenia w zależności od przeprowadzenia uczenia w odniesieniu do etapu wdrożenia. Wyróżniamy:
+
+\begin{itemize}
+\item Uczenie wsadowe - w tym trybie cały proces uczenia odbywa się w okresie poprzedzającym wdrożenie. Uczenie to nazywa się również uczeniem offline. Projekty stosujące takie uczenie, najlepiej jest okresowo zastępować nowym - douczonym nowymi wartościami systemem. Uczenie w tym trybie jest również długie czasowo. Przy pewnym rozmiarze danych może się również okazać, że ten model uczenia nie jest do zrealizowania.
+\item Uczenie przyrostowe - w tym trybie uczenie odbywa się w małych grupach i może być kontynuowane dalej po wdrożeniu. W tym trybie wymagane jest aby algorytm uczący mógł przeprowadzić szybką poprawkę dla nowych danych. Ten tryb uczenia nazywany jest również uczeniem online.
+\end{itemize}
+
+\section{Problemy procesu uczenia}
+
+Uczenie maszynowe okazuje się być jednym z najskuteczniejszych narzędzi współczesnego IT. Oczywiście o ile proces nauczania zakończy się sukcesem. Tymczasem okazuje się, że wiele elementów tego procesu może nie zakończyć się sukcesem i to z wielu różnych przyczyn. Omówmy najistotniejsze z nich
+\begin{itemize}
+\item Niedobór danych - jest pierwszym z problemów - choć nie zawsze dotyczącym obecnych czasów. Jeśli mamy zbyt mało danych, algorytm nie będzie w stanie odpowiednio zrozumieć ukrytych w danych informacji, aby realizować swoje zadanie.
+\item Dane nie są reprezentatywne - powód częściowo omówiony już wcześniej - jeśli dane nie reprezentują całej przestrzeni danych, nie będą w stanie odpowiednio aproksymować problemu na nieznanym regionie wielowymiarowej przestrzeni.
+\item Dane niskiej jakości - jeśli dane są niedokładne i posiadają w sobie wiele przypadkowego szumu, może on wydatnie wpłynąć na strojenie parametrów modelu. 
+\item Nieistotne cechy - jeśli w zbiorze danych znajduje się znaczna liczba składowych, które ostatecznie nie wnoszą informacji o badanym zjawisku, to stanowią one szum rozstrajający parametry modelu.
+\item Przetrenowanie modelu - nazywane również overfittingiem. Oznacza on sytuację w której model tak dobrze dopasowywuje się do danych uczących, że traci zdolność generalizowania rozwiązania na inne obszary danych. Efektem tego jest spadek wydajności rozpoznania na zbiorze testowym. Problem ten jest prawdziwą zmorą wszystkich osób zajmujących się uczeniem maszynowym. Z reguły określa on moment kiedy, nie da się już uzyskać poprawy za pomocą danych i należy rozważyć istotniejszą zmianę w modelu, inną ilość parametrów, inne funkcje lub przekształcenie danych.
+\end{itemize}
+
+\section{Podział modeli uczeniu maszynowego}
+
+Modele uczenia maszynowego dzielimy na:
+\begin{itemize}
+\item Modele geometryczne - gdzie do analizy wykorzystywane są kształty, obiekty i figury geometryczne opisane w przestrzeniach wielowymiarowych,
+\item Modele probabilistyczne - gdzie do analizy wykorzystywane są powiązania zmiennych za pomocą rozkładów prawdopodobieństwa,
+\item Modele logiczne - gdzie powiązania pomiędzy zmiennymi są reprezentowane poprzez 0-1 wartości oznaczające powiązanie lub jego brak.
+\item Modele hybrydowe - posiadające cechy conajmniej dwóch powyżej opisanych grup.
+\end{itemize}
+
+\section{Predykcja z użyciem sieci neuronowych}
+
+Jednym z najpopularniejszych narzędzi uczenia maszynowego w modelach predykcyjnych, jest wykorzystanie sztucznych sieci neuronowych. W tej części rozdziału omówimy sobie ogólnie działanie tego modelu.
+
+\subsection{Wprowadzenie do sieci neuronowych}
+
+Inspiracją do stworzenia sztucznych sieci neuronowych, podobnie jak w przypadku wielu innych wynalazów, były prawdziwe neurony. A tak naprawdzę do pojawiania się tych pojęć przyczyniły się w znacznej mierze prace badawcze z zakresu działania komórek neuronowych. Nie można bowiem czegoś naśladować jeśli nie ma się pojęcia o jego działaniu. Również trudno odmówić zasadności próbie stworzenia narzędzi obdarzonych ludzką inteligencją, jeśli narzędzia te powstają wg modelu opisującego źródła naszej własnej inteligencji. W każdym razie prowadzone działania pozwoliły poznać strukturę kómórki nerwowej na tyle dobrze, że możliwe stało się opisanie procesu jej działania wg poniższego schematu:
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.5]{images/neuron.png}
+\caption{Model neuronu}
+\end{figure}
+
+\begin{enumerate}
+\item Komórka nerwowa wyposażona jest jądro komorkowego, wiele końcówek komórki nazywane dendrytami oraz pojedynczą końcówekę nazywaną aksonem.
+\item Neurony komunikują się ze sobą wysyłając do siebie elektrochemiczne (elektryczne w komórce, chemicznie na łączeniu) sygnały.
+\item Neuron w trybie gotowości prowadzi nasłuchiwanie i czeka na pobudzenie elektryczne na dowolnym z jego dendrytów . 
+\item Kiedy zostanień pobudzony poprzez dowolny z dendrytów, wyznaczana jest wartość wewnętrznego stanu neuronu.
+\item Jeśli stan te przekracza pewien poziom progowy, neuron przechodzi w tryb aktywności i otrzymywaną energię zaczyna w postaci wzmocnnionej przekazywać.
+\item Jeśli neuron przechodzi w stan aktywności, to za pomocą jego aksonu przekazywane jest do sąsiadów rozważanego neuronu - sygnał w stanie pobudzenia.
+\item Połączenia prowadzące do aktywacji neuonów powodują wzmacnianie ich wpływu na końcowy egekt działania kodu.
+\end{enumerate}
+
+\begin{figure}
+\centering 
+\includegraphics[scale=0.5]{images/model_neuronu.png}
+\caption{Model neuronu McCullocha i Pittsa.} \label{fig.chapter.predictions.neuron.model}
+\end{figure}
+
+W roku 1943 opracowany został matematyczny model neuronu autorstwa  McCullocha i Pittsa opisane np. na grafice \ref{fig.chapter.predictions.neuron.model}. Wyszczególniam on pojęcia takie jak:
+\begin{itemize}
+\item Funkcja aktywacji - transformacja, której poddawany jest łączny sygnał z wejść, przed oceną przekroczenia progu aktywacji.  
+\item Wagi - parametry opisujące początkową ocenę sygnału odczytanego przez dendryty.
+\item Bias - opisujący przesunięcie poziomu aktywacji,
+\item Wejścia/ wyjścia opisujące początek i koniec przetwarzania.
+\item Wartwa ukryta czyli grupy neuronów nie stanowiących ani początkowego, ani końcowego etapu przekształcania. 
+\end{itemize}
+
+\subsubsection{Rodzaje sieci neuronowych}
+
+Najbardziej podstawowy podział neuronów odbywa się z uwagi na funkcję aktywacji:
+\begin{itemize}
+\item Adaline - funkcja aktywacji jest identycznością
+\item Perceptron - funkcja aktywacji jest signum lub podobną funkcją
+\item Sigmoidalny - funkcja aktywacji jest funkcja podobna do signum, ale różniczkowalna
+\begin{itemize}
+\item unipolarna $ f(x) = \frac{1}{1+e^{-\beta x}}$
+\item bipolarna $ f(x) = \frac{2}{1+e^{-\beta x}} -1$
+\end{itemize}
+\end{itemize}
+
+Znacząca siła sieci neuronowych (ANN) płynie z łączenia neuronów w duże struktury.
+
+Wyróżniamy:
+\begin{itemize}
+\item (FNN) Sieci gdzie neurony są połączone w warstwy i przetwarzane kolejno. Sieci w których nie ma cykli pomiędzy neuronami nazywamy sieciami jednokierunkowymi.
+\item (RNN)Sieci gdzie występują cykle nazywamy rekurencyjnymi. Lub sieciami z pamięcią, gdyż wtedy w sieciach ukrywają się informacje z przekształceń dla poprzednich danych.
+\item Dopasowane do zadań o szczególnej specyfikacji.
+\item (CNN) Sieci splotowe.
+\item Sieci głębokie.
+\end{itemize}
+
+\begin{remark*}
+Dla większości sieci neuronowych nie zostały opracowane matematyczne dowody zbieżności procesu uczenia. Zbieżność danego rodzaju sieci do danego problemu są z reguły potwierdzane na kanwie eksperymentów numerycznych.Rozwiązania za pomocą sieci neuronowych są zatem heurystykami.
+\end{remark*}
+
+\subsection{Sieci jednokierunkowe}
+W niniejszej części skupimy się na sieciach jednokierunkowych - sieciach najprostszych - i nie oszukując się - dogłębnie już przebadanych.
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{images/siec_neuronowa.jpg}
+\caption{Jednokierunkowa sieć neuronowa.} \label{fig.chapter.predictions.FNN.schemat}
+\end{figure}
+
+Nasze sieci neuronowe w większości przypadków działają w trybie uczenia nadzorowanego. Dysponujemy zatem zbiorem treningowym postaci $ Tren = \set{ (x,y), x \in \setR^n, y \in \setR^m}$, gdzie $x$ są wektorami cech objaśniających, a $y$ są wektorami cech objaśnianych. Przez $w$ oznaczmy wektor wektorów współczynników sieci (niekoniecznie macierz bo warstwy mogą być różnoliczne). Przez $F$ oznaczmy natomiast całe przekształcenie związane z siecią.
+
+Chcąc wyjaśnić zależność pomiędzy cechami $X$ a cechami $Y$ przypuszczamy istnienie funkcji $G$ takiej, że 
+\begin{equation*}
+y = G(x),
+\end{equation*}
+spełnionej dla każdego $x$ i każdego $y$. Następnie przypuszczamy, że funkcję $G$ daje sie aproksymować za pomocą funkcji z klasy $x \mapsto F(w,x)$. 
+
+Poszukujemy naszej odpowiedniej aproksymacji w następujący sposób:
+\begin{enumerate}
+\item Losujemy początkowy stan wektora wag.
+\item Bierzemy element ze zbioru treningowego $(x,y) \in Tren$ i przekształcamy go przez naszą sieć.
+\begin{equation*}
+\hat{y} = F(w,x).
+\end{equation*}
+\item Wyznaczamy błąd naszego układu wag, z reguły zdefiniowany jako błąd średniokwadratowy na wyjściu
+\begin{equation*}
+Error = \sum_{i = 1}^{m} (y_i - \hat{y}_i)^2
+\end{equation*}
+\item Poprawiamy układ wag celem zmiejszenia błędu sieci.
+\end{enumerate}
+
+\subsubsection{Algorytm wstecznej propagacji błędu}
+
+Wzór na błąd dla elementu zbioru treningowego $(x,y) \in Tren$ można zapisać jeszcze inaczej
+\begin{equation*}
+Error(w) = \sum_{i =1 }^{m} (y_i - F(w,x)_i)^2.
+\end{equation*}
+Zauważmy, że wszystkie wagi sieci mają aktywny udział w popełnianiu błędu. Widzimy również, że błąd popełniany przez kolejne neurony wpływa na błąd popełniany przez neurony kolejnych warstw. Jednak tylko dla wektorów ostatnich warstw możemy łatwo policzyć błąd
+\begin{enumerate}
+\item Błąd popełniony przez $i$-ty neuron ostatniej warstwy to $(y_i - \hat{y}_i)^2$,
+\item Błąd popełniany przez $j$-tą wagę tego neuronu powinien być proporcjonalny do jej udziału w utworzeniu $\hat{y}_i$,
+\item Błędy popełniane przez poprzedzające warstwy wyznaczane są jako sumy błędów popełnionych przez wagi dla danego wejścia w warstwie wyżej.
+\item Błąd popełniony przez $i$-ty neuron ostatniej warstwy to $(y_i - \hat{y}_i)^2$,
+\item Błąd popełniany przez $j$-tą wagę tego neuronu powinien być proporcjonalny do jej udziału w utworzeniu $\hat{y}_i$,
+\item Błędy popełniane przez poprzedzające warstwy wyznaczane są jako sumy błędów popełnionych przez wagi dla danego wejścia w warstwie wyżej.
+\end{enumerate}
+
+Wprowadzanie poprawki w wektorach wag jest zadaniem z zakresu optymalizacji wielowymiarowej. Najczęściej do jej rozwiązywania stosujemy algorytm najszybszego spadku wprowadzający poprawki wg. zasady (oznaczmy $w^{i,j}_k(t)$ jako $k$-tą wagę w $j$-tym neuronie $i$-tej warstwy w $t$-tej iteracji)
+
+\begin{equation*}
+w^{i,j}_k(t+1) = w^{i,j}_k (t) - \eta \ddx{w^{i,j}_k(t)} Error(w)
+\end{equation*}
+
+Współczynnik $-\eta$ jest parametrem danego procesu uczenia, $\eta \in (0,1)$. Zapewnia wykonanie przesunięcie wektora wag danego neuronu w kierunki przeciwnym do gradientu funkcji w tym punkcie (czyli przesunięcie ku największemu spadkowi).  Wprowadźmy następujące oznaczenia:
+\begin{description}
+\item[$M$] - ilość warstw sieci
+\item[$i$] - licznik warstw sieci
+\item[$N_i$] - ilość neuronów w i-tej warstwie
+\item[$j$] - licznik neuronów w danej warstwie
+\item[$k$] - licznik wejścia w danym neuronie. Ograniczony przez ilość neuronów warstwy poprzedniej
+\item[$x$] - wektor na wejściu sieci
+\item[$y$] - wektor na wyjściu sieci
+\item[$\hat{y}$] - odpowiedź sieci na wektor $x$
+\item[$x_i$] - wektor na wejściu i-tej warstwy sieci $x_1 = x$
+\item[$y_i$] - wektor na wyjściu i-tej warstwy sieci $y_i = x_{i+1}$ oraz $y_M = \hat{y}$.
+\item[$f$] - funkcja aktywacji neuronu
+\item[$F$] - funkcja odpowiadająca całości sieci
+\item[$s^{i,j}$] - wartość iloczynu skalarnego wag $j$-tego neuronu $i$ tej warstwy przez wektor wejścia $i$-tej warstwy
+\item[$w^{i,j}$] - wektor wag $j$-tego neuronu $i$ tej warstwy
+\item[$w^{i,j}_k$] - $k$-ta waga $j$-tego neuronu $i$-tej warstwy
+\item[$w^{i,j}_k(t)$] - $k$-ta waga $j$-tego neuronu $i$-tej warstwy w $t$-tej iteracji.
+\end{description}
+
+Wtedy 
+\begin{equation*}
+w^{i,j}_k (t+1) = w^{i,j}_k(t) - \eta \delta^{i,j} x^{i}_k
+\end{equation*}
+gdzie
+\begin{eqnarray*}
+\delta^{M,j} &= -( y_j - f(s^{M,j} ))  f'(s^{M,j}), \\
+\delta^{i,j} &= f'(s^{i,j}) \sum_{l=1}^{N_{i+1}} \delta^{i+1,l} w^{i+1,l}_j.
+\end{eqnarray*}
+
+\subsubsection{Czemu sieci działają}
+
+Aby zrozumieć motywację za działaniem sieci przypomnijmy sobie zasadę działania klasyfikatora liniowego (obrazek 
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{images/klasyfikator_liniowy.png}
+\caption{Schemat klasyfikatora liniowego}
+\label{fig.chapter.predictions.linear.ann}
+\end{figure}
+
+Natomiast w przypadku gdy dane są nieseparowalne liniowo:
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{images/nieseparowalne_dane.png}
+\caption{Przykład danych nie separowalnych}
+\label{fig.chapter.predictions.linear.ann.not.separable}
+\end{figure}
+
+Sieci neuronowe uzyskują wyraźną przewagę nad klasyfikatorem liniowym.
+\begin{itemize}
+\item Funkcje działającej w neuronach są ciągłe, różniczkowalne, odwracalne etc.
+\item Sieć całościowo dokonuje dyfeomorficznego przekształcenia wielowymiarowej przestrzeni $\setR^n$
+\item Prowadzi to transformacji danych do postaci liniowo separowalnej
+\item Dzieje sie w przestrzeniach o takiej ilości wymiarów, że nie są w stanie pokazać tego żadnego wykresy
+\end{itemize}
+
+Nie każda sieć potrafi wytworzyć odpowiedni rodzaj dyfeomorfizmu. Najważniejszym uczestnikiem jest funkcja aktywacji oraz sposób w jaki $x$ jest wprowadzany do niej. Przyjrzyjmy się \ref{fig.chapter.predicition.separability.2} oraz temu jak po wzroście ilości wymiarów nasze zadanie staje wydatnie separowalne \ref{fig.chapter.predicition.separability.3}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{images/nieseparowalne_dane2.png}
+\caption{Przykład braku separowalności danych} \label{fig.chapter.predicition.separability.2}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.15]{images/jednak_separowalne.png}
+\caption{Przykład jednak separowalnych danych} \label{fig.chapter.predicition.separability.3}
+\end{figure}
+
+\subsection{Sieci rekurencyjne}
+
+Wszystkie sieci, które nie są jednokierunkowymi - są sieciami rekurencyjnymi. W sieciach tych występują tzw. sprzężenia zwrotne, a więc informacje wychodzące z pewnego neuronu mogą jeszcze do niego powrócić. Sieci takiej postaci okazują się dobrze modelować zjawiska z pamięcią - czyli np. szeregi czasowe, w których predykcja zależy silnie od wcześniejszych informacji o zjawisku. Innym obszarem zastosowań tego rodzaju sieci są problemy optymalizacyjne. Najpopularnieszym rodzajem sieci tego typu są Sieci Hopfielda
+
+\subsubsection{Sieci Hopfielda}
+
+%TODO uzupełnić
+
+\subsection{Sieci splotowe}
+
+%TODO uzupełnić
+
+\subsection{Sieci głębokie}
+
+Głebokie sieci neuronowe stanowią jeden z najbardziej (jeśli nie najbardziej) obiecujących postępów technologicznych naszych czasów. Sieci tego rodzaju pozwoliły na uzyskanie znakomitych komputerowych rozwiązań dla bardzo trudnych problemów komputerowych.
+
+Rozważmy kilka problemów, z którymi można spotkać się w codziennym życiu, lub pracy zawodowej.
+
+\begin{problem*}
+Jednym z najprężniej rozwijanym działów komputerowych, i jednocześnie posiadającym bardzo znaczne fundusze, jest sektor gier komputerowych. Wiele z tych opiera się w swoim działaniu o rywalizację pomiędzy graczem, a komputerowo wygenerowanym przeciwnikiem. Jednym z podstawowych wskazań postępu rozwoju danej gry jest określenie stopnia inteligencji jaką wykazują się cyfrowi przeciwnicy. Biorąc pod uwagę, że człowiek jest istotą uczącą się - jednego można być pewnym. Wraz ze wzrostem umiejętności gry człowieka - jego oczekiwania w zakresie cyfrowych przeciwnków rosną jednakowo.
+\end{problem*}
+
+\begin{problem*}
+Rozważmy inny problem. Gry są pewnego rodzajami symulacji, w których znajdujemy się w sytuacjach dla siebie nietypowych.
+\begin{itemize}
+\item Wojna, walka - choć gry tego dotyczące są bardzo popularne, niewiele z nas ma życzenie wziąć udział w prawdziwym konflikcie zbrojnym,
+\item Zarządzanie dużym przedsiębiorstwem - tu często chętnie byśmy znaleźli w sytuacji pewnego bogatego człowieka, zmuszonego do zarządzania przedsiębiorstwem. Choć znaczna część nas by łatwo pogodziła sie z dodatkowymi pieniędzmi, już mniej chętnie podjęłaby się obowiązków pełnionych przez tego człowieka.
+\item Wyścigi sporty -  podobnie pozwala nam to sprawdzać się w sytuacjach, które normalnie wymagałyby od nas tytanicznej pracy, i jeszcze zostawiały nas mocno zmęczonymi.
+\end{itemize}
+Wirtualne symulacje mogą jednak dotyczyć nie naszej rozrywki, ale naszego szkolenia. Wyobraźmy sobie, żołnierzy ćwiczących na symulatorach, manewry samolotem, czołgiem, łodzią podwodną lub bezpośrednią walką, strzelanie. Jeśli symulacje treningowe okażą się wysokiej jakości - być może ocalą później życie żołnierza w boju. Zapewnią mu rutynę, którą potrzebuje by uzyskać wysoki stopień skuteczności. Co ze szkoleniami dla policji, straży pożarnej?
+\end{problem*}
+
+\begin{problem*}
+Kolejnym popularnym ostatnio problemem jest powracający temat pojazdów autonomicznych. Badania statystyków pokazały, że przeciętny amerykanin w czasie swoje życia spędza ponad 2 lata w samochodzie, przemieszczając się. Automatyczne sterowane pojazdy to nie tylko oszczędność czasu, bo człowiek ten zamiast prowadzić samochód mógłby realizować inne cele 
+\begin{itemize}
+\item wykonać pewne zadania w swojej pracy,
+\item poczytać książkę,
+\item monitorować swoje życie społeczne (?! na to akurat szkoda czasu),
+\item porozmawiać z rodziną (prowadząc samochód mamy ograniczone pole do takich akcji).
+\end{itemize}
+To poza tym wzrost bezpieczeństwa podróży (zawodny człowiek, zastąpiony przez niezawodne maszyny), ale oszczędność paliwa 
+\begin{itemize}
+\item Samochód może ograniczyć prędkość wiedząc, że zbliża się do czerwonego światła (choćby ono samo się jeszcze nie zapaliło),
+\item Samochód może zmienić trasę na podstawie danych o ruchu, czy deklarowanej trasy innych pojazdów.
+\item Może roztropnieć zarządzać przyśpieszeniem redukując skoki mocy silnika.
+\end{itemize}
+Wszystkie te rzeczy są do osiągnięcia wraz z konstrukcją takiego pojazdu. Podstawowym celem poprzedzającym jego powstanie - jest powstanie algorytmów pozwalającym samochodowi widzieć. Widzenie to bowiem coś więcej niż patrzenie. Patrzeć potrafi kamera, czy oko. Jednak dopiero umysł człowieka jest w stanie uporządkować te informacje by dostrzec przeszkodę, możliwość czy zagrożenie. Algorytmy automatycznego rozpoznawania na obrazach są tu nieodzowne.  
+\end{problem*}
+
+\begin{problem*}
+A może komputer który wspiera proces leczania, poprzez asystowanie lekarzowi w zakresie diagnostyki, lub wczesnego pogorszenia stanu zdrowia.
+\end{problem*}
+
+\begin{problem*}
+A może komputer komponujący nową muzykę? Albo muzykę podobną do danej. Może program, który próbuje zinterpretować dany utwór tak jakby jego cover wykonywał zespół Queen, czy Elvis Presley lub Frank Sinatra.
+\end{problem*}
+
+\begin{problem*}
+A może algorytm, który rozpoznaje trendy na rynkach finansowych? Algorytm, który znajduje tę jedną prostą sztuczkę przez którą maklerzy z całego świata zaczynają Ciebie nienawidzić. Kto by nie chciał czegoś takiego.
+\end{problem*}
+
+Na całym świecie poszukiwane są obecnie różne konfiguracje głębokich sieci neuronowych i rozpoznawane w zakresie ich zastosowania do rozwiązania między innymi problemów wylistowanych powyżej.
+
+Rodzi się pytanie czego potrzeba aby stosować głębokie uczenie i głębokie sieci. Odnosząc sie do omówionych juz jednokierunokowych sieci neuronowych - w sieciach głębokich mamy doczynienia z 
+\begin{enumerate}
+\item Dużo większej liczby neuronów,
+\item Dużo większej liczby warstw (miały być głębokie),
+\item Bardziej skomplikowanych połączeń między warstwami (nie wszystko ze wszystkim bez przekształceń),
+\item Większa moc obliczeniowa,
+\item Zaufanie strukturom sieci na wyznaczenie istotnych cech.
+\end{enumerate}
+
+Do przeprowadzania analizy tymi metodami niezbędne jest zatem kilka elementów:
+\begin{itemize}
+\item Posiadanie komputera (lub odpowiedniego dostępu) do komputera o znacznej mocy obliczeniowej,
+\item Przydatna jest wiedza z zakresu algebry liniowej i przekształceń wektorów macierzy - w żaden bowiem sposób nie umiemy uciec od zagadnień wstępnego preprocessingu danych,
+\item Podstawowa wiedza z zakresu rachunku prawdopodobieństwa - gdyż proces uczenia jest w taki właśnie sposób rozumiany,
+\item Solidna wiedza z zakresu technik uczenia maszyn. Poprzez ten punkt przydatna jest również wiedza z zakresu matematycznej optymalizacji wielowymiarowej.
+\item Przydaje się wiedza z programowania w Pythonie, biorąc pod uwagę, że Tensorflow jest głównym narzędziem uczenia głębokiego.
+\end{itemize}
+
+W niniejszej pozycji nie będziemy skupiać się na rozpisaniu całego uczenia głębokiego - postaramy się skupić na wyjaśnieniu ogólnego konceptu ich użycia, oraz omówić istniejące zastosowania ich w tematyce analizy danych wielowymiarowych - w tym i analizy np. obrazów - które są szczególną postacią danych wielowymiarowych.
+
+\chapter{Modele decyzyjne Markowa}
+
+\section{Podejmowanie decyzji w warunkach niepewności}
+
+W dalszej części niniejszego skrytpu zastanawiamy się nad szerszą perspektywą związaną z predykcją. Wszystko to zaczyna się od istotnego pytania:
+
+\textit{Do czego potrzebujemy predykcji?.}
+
+Predykcja przecież czemuś musi służyć, jakiemuś szerszemu celowi.
+Co możę być celem predykcji?
+
+\begin{itemize}
+\item W przypadku prognozy pogody może to podpowiedzieć czy należy wziąć parason, rozpocząć żniwa, czy też zakupić wycieczkę nad polskie morze,
+\item W przypadku wartości giełdowej, pozwoli nam to na odpowiedzenie na pytanie czy kupić jakiś produkt, sprzedać lub przechować,
+\item W przypadku dobowej sprzedaży w jakimś sklepie, pozwoli nam to okreslić ilości wymaganych zapasów i w efekcie zminimalizować koszty składowania i psucia się produktów. 
+\end{itemize}
+
+Podsumowująć powyższą listę można dojść do prostego wniosku. Dzięki predykcji, podstawową umiejętność którą zdobywamy jest możliwość podejmowania decyzji dotyczących przyszłości. Biorąc pod uwagę to, że predykcja jest obarczona modelami probabilistycznymi należy nazwać to podejmowaniem decyzji w warunkach niepewności. Powiedzmy sobie zatem co nie co o modelach podejmowania decyzji.
+
+\subsection{Najprostszy modele podejmowania decyzji}
+
+W najprostszym modelu podejmowania decyzji można wyszczególnić jedynie kilka elementów:
+\begin{itemize}
+\item Pojedynczy model predykcyjny, generujący predykcję przyszłej wartości zjawiska, oraz
+\item Funkcje przypisującą do konkretnych przedziałów wartości możliwe decyzje. Funkcje takie najczęściej mają konstrukcje progową. Jeśli przekroczona jest wartość prognowa należy wykonać pewną akcję. Jeśli przeciwnie, wykonać drugą akcję. 
+\end{itemize}
+
+Istotnie nie ma tu wielkiego poziomu skomplikowania. I mogłoby się wydawać, że prostota ta zapewnia nam wszystko co jest na potrzebne. Zapewne tak by właśnie było w idealnym wszechświecie, gdzie odnajdujemy jeden najwłaściwszy model predykcyjny, gdzie estymujemy właściwe statystyki, a dane testowe są doskonale reprezentatywne dla zjawiska. Jak łatwo się domyslić - w praktyce - nie mamy możliwości pracowania z tak dobrymi modelami predykcyjnymi, by ten najprostszy model podejmowania decyzji okazał się trafionym.
+
+Trzeba rozpocząć ogólniejsze rozważania.
+
+\subsection{Nie tak już proste modele podejmowania decyzji} 
+
+Aby dostrzeć inne rodzaje sposobu podejmowania decyzji trzeba się zastanowić. By dostrzec model, trzeba zauważyć jego wdrożenia i stworzyć uogólnienie. To z kolei rodzi pytanie:
+
+\textit{Czy my już kiedyś podejmowaliśmy decyzje w warunkach niepewności?.}
+
+Jesteśmy w stanie wymienić przynajmniej jeden przypadek. W ramach tego skryptu już wielokrotnie podejmowaliśmy decyzję dotyczącą wyboru danego modelu predykcyjnego. Teraz drugie pytanie:
+
+\textit{Na jakiej podstawie podjęliśmy decyzje co do wyboru modelu?}
+
+Na różnych etapach były to różne przesłanki. Można je zgrupować w następujące podgrupy:
+
+\begin{itemize}
+\item Wybieraliśmy funkcję błędu i znajdowaliśmy dla nich optymalne parametry modelu (minimalizacja funkcjonału błędu). Potencjalnie rozważać możemy różne jej postacie.
+\item Ocenialiśmy jakość modeli na podstawie np. wykresów diagnostycznych, czy cech statystycznych ($R^2$),
+\item Rozważaliśmy różne stopnie modeli i stosowaliśmy funkcjonały błędu z poprawkami na kształt modelu (AIC, AICC, BIS),
+\item W reszcie testowaliśmy efekty predykcji na zbiorze testowym, chcąc porównać różne modele o zupełnie różnych konstrukcjach.
+\end{itemize}
+
+Jakie stąd można wysnuć wnioski? Do podjęcia decyzji wykorzystaliśmy wiele informacji, o różnym charakterze, wyliczonych na podstawie różnych formuł. Podobny algorytm możemy zastosować w kontekście podejmowania decyzji na podstawie naszych modeli predykcyjnych. 
+
+\begin{problem*}
+Rozważmy przypadek w którym mamy zespół, który ma wesprzeć podjęcie decyzji biznesowej w firmie. Zespoł dzieli się i wytwarza kilka modeli - które ocenia jako obiecujące. Wsród nich można oczywiścia wskazać model najlepszy. Jaką podjąć decyzje na podstawie tych informacji.
+\end{problem*}
+
+Jeszcze chwilę temu podjęlibyśmy decyzję wskazaną przez najlepszy model, sposród tych wytworzonych przez różne podzespoły. Obecnie jednak dostrzegamy już w tym, że wszelkie informacje ozyskane przez nieco gorsze modele byłyby odrzucone. Zatem obecnie już decyzję podjęlibyśmy patrząc na informacje zwrócone przez wszystkie modele predykcyjne i na tej podstawie podjęlibyśmy łączną decyzję.
+
+\begin{problem*}
+Przyjmijmy, że mamy 7 modeli predykcyjnych. Na tej podstawie musimy podjąć decyzję biznesową. Model wykazujący się w testach najniższym błędem każde podjać decyzję A. Pozostałe 6 modeli wskazuje że należy podjąć decyzję B. Czy podjęcie ostatecznie decyzji B jest bezzasadne?
+\end{problem*}
+
+\begin{definition}[Prosty model podejmowania decyzji]
+Rozważmy model podejmowania decyzji składający się z 
+\begin{itemize}
+\item Rodziny modeli predykujących jedną zmienną,
+\item Rodziny funkcji przypisujących akcję do wartosci zmiennej z danego modelu predykującego, oraz
+\item Funkcji tworzącej łączną decyzję na podstawie decyzji płynących z pojedynczych modeli (syntezator).
+\end{itemize}
+\end{definition}
+
+W dalszej części omówimy zupełnią inną metodą podchodzenia do tematu modeli decyzyjnych, opartą o teorię Łańcuchów Markowa.
+
+\section{Preliminaria do modeli decyzycjnych Markowa}
+
+\subsection{Łańcuchy Markowa, Własność Markowa}
+
+Zanim przejdziemy do samych procesów decyzyjnych przypomnijmy czym są Procesy Markova lub inaczej nazywane Łańcuchy Markowa. 
+
+Rozpatrzmy ciąg zmiennych losowych $\sequence{X_n}{n\in \setN }{}$ określonych na tej samej przestrzeni probabilistycznej $(\Omega, \sigmaalgebra{F},P)$. Zmienne te niech mogą przyjmować jedynie skończoną liczbę wartości (nazywane stanami).
+
+\begin{definition}[Własność Markowa]
+Powiemy, że ciąg zmiennych losowych (takich jak wyżej) ma własność Markowa (jest łańcuchem Markowa) gdy dla każdego $n \in \setN$ oraz każdego ciągu stanów $s_0, s_1, \ldots, s_n \in S$ mamy
+$$
+P(X_n = s_n | X_{n-1} = s_{n-1}, X_{n-2} = s_{n-2}, \ldots, X_1 = s_1) = 
+P(X_n = s_n | X_{n-1} = s_{n-1}),
+$$ 
+czyli gdy prawdopodobieństwa znalezienia sie w danym stanie zależą jedynie od stanu go poprzedzającego.
+\end{definition}
+
+\begin{definition}[Macierz stochastyczna]
+Macierz gromadząca prawdopodobieństwa przejścia z i-tego stanu do j-tego stanu taka, że sumy poszczególnych wierszy wynoszą $1$ to macierz taką nazywamy macierzą przejścia lub macierzą stochastyczną.
+\end{definition}
+
+\subsection{Skończone gry z światem i agentem.}
+
+Modele decyzyjne poruszają się w tzw. skończonych światach. Ponadto wyszczególnia się w nich dwie role świat oraz agentów (czasami konkurujących ze sobą). 
+\begin{itemize}
+\item Świat reprezentuje ogół stanów w jakich znajdują się wszystkie z nim znajdujące sie twory. Często nie cała informacja o świecie jest dostępna agentom.
+\item Agenci są inteligentnymi i zdolnymi do podejmowania decyzji konstruktami osadzonymi w danym świecie. 
+\end{itemize}  
+
+\begin{problem*}
+Rozważmy następujące zagadnienie. Mamy dostępny następujący świat jak na grafice \ref{fig-grid-deterministic}. Załóżmy, że mamy dostępne następujące składowe tego modelu:
+\begin{itemize}
+\item 4 akcje, które można wykonać to ruch w górę-dół-lewo-prawo.
+\item Efekty akcji, powodujące ruch o ile tylko pole w danym kierunku jest dostępne oraz pozostanie w tym samym polu jeśli pole nie jest dostępne. \ldots
+\item 2 stany pochłaniające \ldots
+\item Pytanie o akcje które należy wykonać aby przejść ze startu do skarbu w najkrótszy sposób?
+\end{itemize}
+\end{problem*}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/deterministyczny.png}
+\caption{Skończony świat deterministyczny} \label{fig-grid-deterministic}
+\end{figure}
+
+Mamy dostępne dwa rozwiązania optymalne \ref{fig-grid-deterministic-1sol} oraz \ref{fig-grid-deterministic-2sol}.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/det_solution1.png}
+\caption{Rozwiązanie optymalne 1} \label{fig-grid-deterministic-1sol}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/det_solution2.png}
+\caption{Rozwiązanie optymalne 2} \label{fig-grid-deterministic-2sol}
+\end{figure}
+
+\section{Modele decyzyjne Markova}
+
+Jak mawia klasyk:
+
+\begin{quotation}
+Chcieliśmy dobrze, wyszło jak zawsze. (zwykle)\\
+\begin{flushright}
+Wiktor Czernomyrdin, polityk rosyjski (1938-2010).
+\end{flushright}
+\end{quotation}
+
+Prowadzi to do pewnej refleksji, którą mamy po przemyśleniu skończonych światów deterministycznych. Obserwujemy, że akcje które podejmujemy:
+\begin{itemize}
+\item Mogą powodować zamierzony efekt, przeciwny efekt, inny efekt, niezamierzony efekt lub nawet brak efektu.
+\item Efekty akcji należy rozumieć w kanwie rachunku prawdopodobieństwa.
+\item Rozważać dalej będziemy świat, rządzone przez prawdopodobieństwa - tzw. {Światy (modele) stochastyczne}.
+\end{itemize}
+
+\begin{problem*}
+Rozważmy poprzednio omówiony świat (rysunek \ref{fig-grid-deterministic}) z następującym zestawem zasad:
+
+\begin{itemize}
+\item Bez zmian - 4 akcje, efekty akcji, 2 stany pochłaniające \ldots
+\item Wybrana akcja $a$ wykonuje się poprawnie z pr-stwem $0.8$,
+\item Z pr-stwem $0.1$ wykonuje się ona prostopadle w lewo względem zamierzonej tj. zamiast w dół to w prawo.
+\item Z pr-stwem $0.1$ (brakujące prawdopodobieństwo) wykonana zostanie akcja prostopadle w prawo względem zamierzonej tj. zamiast w lewo to w górę.
+\end{itemize}
+\end{problem*}
+
+\begin{exercise*}
+Rodzi się następujące pytanie. Jakie jest prawdopodobieństwo, że realizując kolejno nasze akcje z wersji świata deterministycznego dotrzemy do skarbu?
+\end{exercise*}
+
+\begin{proof}[Rozwiązanie]
+Występują dwie niezależne drogi, w których nasza strategia zadziała. Pierwsza gdy wszystkie nasze akcje wykonają się poprawnie
+$$
+0.8 \cdot 0.8 \cdot 0.8 \cdot 0.8 \cdot 0.8 = 0.8 ^5 = 0.32768.
+$$
+Oraz druga gdy pomimo błędów dotrzemy do rozwiązania
+$$
+0.1 \cdot 0.1 \cdot 0.1 \cdot 0.1 \cdot 0.8 = 0.8 \cdot 0.1^4 = 0.00008. 
+$$
+
+Zatem ostatecznie nasze prawdopodobieństwo to: $0.32768 + 0.0008 = 0.32776$. 
+\end{proof}
 
 
+\begin{definition}[Proces decyzyjny Markowa]
+Procesem decyzyjnym Markova nazywać będziemy model składający się z 
+\begin{itemize}
+\item Stanów (skończona ilość) - pełne opisy położenia obiektu w świecie. ($s \in S$),
+\item  Akcje (zbiór akcji) - wybory które można podjąć. Tu wystepować mogę dwie odmiany.
+\begin{itemize}
+\item Globalny zbiór akcji $A$,
+\item lub lokalny zbiór akcji dostępnych w danym stanie $A(s)$.
+\end{itemize}
+\item Funkcji przejścia $T \colon S \times A \times S \to [0,1]$ zgodna z formułą:
+$$
+T(s, a, s') = P( s' | s, a ).
+$$
+Czyli oddający prawdopodobieństwa przejścia ze stanu $s$ do stanu $s'$ w efekcie wykonania akcji $a$. Funkcja ta stanowi opis świata, zbió© wszystkich praw jego fizyki,
+\item  Nagrody , które mogą być wprowadzano na jeden z 3 sposobów:
+\begin{itemize}
+\item Nagroda za przebywanie w danym stanie $R(s)$,
+\item Nagroda za przebywanie w danym stanie i podjęcia danej decyzji $R(s,a)$, oraz
+\item Nagroda za przejście ze stany $s$ do stanu $s'$ w skutek decyzji $a$.
+\end{itemize}
+\end{itemize}
+Do ważnych cech procesów decyzyjnych Markowa zaliczamy:
+\begin{itemize}
+\item Własność Markova (niezależność od stanów poprzedzających). Co inaczej oznacza, że liczy się tylko teraźniejszość. Tylko bieżący stan ma wpływ na określanie prawdopodobieństw. Oraz
+\item Stacjonarność (niezależność od czasu). Łatwo tłumaczona na warunek określający, że \textit{Prawa fizyki się nie zmieniają} - albo po prostu, że zasady są stałe.\footnote{Dlatego funkcja przejścia nie posiada }
+\end{itemize}
+\end{definition}
+
+Jeśli powyższe zatem definiuje nam problem to wyjaśnijmy również czym jest rozwiązanie takiego problemu:
+
+\begin{definition}[Polityka]
+Polityką nazwiemy dowolną funkcję $\pi: S \to A$, czyli przypisującą akcję do stanów. Przez naszę funkcję rozumiemy zatem relację grupującą trójki 
+$$
+\pi = \{ <s,a,r>, \ldots \}.
+$$
+\end{definition}
+
+\begin{definition}[Rozwiazanie problemu decyzyjne Markowa]
+Rozwiązaniem problemu decyzyjne Markowa nazwiemy tę funkcję $\pi^\ast: S \to A$, nazywaną polityką optymalną, która spośród zbioru wszystkich polityk danego problemu maksymalizuje wartość oczekiwaną nagrody.
+\end{definition}
+
+Ważnym jest zroumienie pewnej szczególnej różnicy
+
+\begin{remark*}
+Polityka to nie ciąg akcji zapewniajacy zysk (nie ciąg komend) - ale wskazówka (nakaz) co zrobić gdy znajdziemy się w określonym stanie (nawet gdy znaleźliśmy się w nim przez przypadek).
+\end{remark*}
+
+Niewątpliwie najtrudniejszą częścią całej tej teorii jest odszukanie polityki optymalnej. Nie jest to tak łatwe jakby się wydawało  W przypadku procesu decyzyjnego Markowa nagroda za dobre decyzje często może przyjść z bardzo dużym opóźnieniem. Rozważmy kilka przykładów
+
+\begin{example}[Przykłady]
+
+Rozważmy kilka obrazujących przykładów:
+\begin{itemize}
+\item Co zrobić mając do wyboru pójście na przyjęcie do znajomych względem uczenia się do egzaminu? Przyjęcie ze znajomymi może okazać się bardzo udane i wartość natychmiastowej nagrody może być wysoka - natomiast teoria z tego egzaminu - może się ostatecznie okazać nigdy nie zastosowana w późniejszym życiu. Z drugiej strony może okazać się, że nauka do egzaminu pozwoli nam w dalszej perspektywie uzyskać znacząco lepszą pracę i osiągnąć sukcesy w przyszłości.
+\item Jaki ruch na szachownicy wykonać? W końcu być może 3 ruch spowodować, że 40 ruchów później partia będzie przegrana lub wygrana.
+\item Jaki komputer, samochód, telefon, ubezpieczenie wybrać? W końcu tyle zmiennych może warunkować co się stanie w przyszłości.
+\end{itemize}
+
+\end{example}
 
 
+Rozważmy kolejną wariację naszego problemu. Do tej pory większość stanu nie niosła ze sobą żadnej nagrody. Co się stanie kiedy to zmienimy?
+
+\begin{problem*}
+Wykorzystajmy ponownie naszą grafikę \ref{fig-grid-deterministic} z obrazem świata i zmodyfikujmy odpowiednio zasady tego świata.
+Niech nasz świat to będzie opis pewnej plaży. Skarb to będzie chłodne w cieniu wraz ze stanowiskiem z lodami. Pułapką niech będzie część plaży cała w odłamkach szkła. Resztę niech pokrywa lekko gorący piasek. Obserwujemy następujące rzeczy
+
+\begin{itemize}
+\item Kiedy piasek nie parzył można było w nieskończoność poruszać się po stanach świata nie odczuwając presji na przemieszczanie się w kierunku nagrody. Osiągnięcia pola nagrody w 5 turze co i 105 zwracało efekt identyczny z punktu widzenia agentów tego świata.
+\item Piasek lekko parzący powinien spowodować wymuszenie (względnie) szybkie przemieszczanie w kierunku pola z nagrodą. Symuluje to bowiem karanie agenta, za bezproduktywne trwanie w danym stanie.
+\item Im bardziej parzący będzie piasek tym intuicyjnie agent będzie bardziej skłonny do podejmowania ryzyka celem unikania dużych kar.
+\item Tak jak można dostrzec to w przypadku gdyby kary były faktycznie nagrodami - polityka sprowadza się do nie-kończenia-gry \ref{fig-paradise-sand}
+\item Gdy stosowane są srogie kary (co powoduje zmianę plaży w świat parzącej lawy) \ref{fig-lava} - polityka optymalna nakazuje akcje szybko kończące grę.
+\item Natomiast gdy kary są nieznaczne, jak na grafice \ref{fig-warm-sand}, obserwujemy to co wg nas jest najbardziej intuicyjną polityką.
+\end{itemize}
+\end{problem*}
+
+\begin{example}[Pogląd Keynesa na inflację]
+Osobą znające się dobrze matematyce finansowej są świadome dwóch poglądów na temat zjawiska inflancji. Jak wiadomo inflacja jest zjawiskiem, które powoduje osłabianie mocy nabywczej pieniądza w czasie. W efekcie tego wielu ekonomistów wskazuje, że zjawisko to należy zredukować do zera i pozwolić na swobodne i stacjonarne postrzeganie pieniądza. Jednak inna grupa ekonomistów stwierdziła, że efekty działania inflancji na rynek są inne. Grupa ta od twórcy podstaw tych koncepcji nazywa Keynesistami. Wg tej szkoły ekonomicznej
+\begin{itemize}
+\item Duża inflacja rujnuje ekonomię (oczywisty fakt),
+\item Deflacja (ujemna inflacja - czyli pieniądz z czasem zyskuje na wartości) powoduje gromadzenie pieniądza i zahamowanie procesu handlu,
+\item Brak inflacji tylko pozornie nie powoduje strat. W efekcie braku inflacji, tempo obrotu pieniądza jest wyraźnie zredukowane (ludziom nie śpieszy się wydawać pieniędzy).
+\item Nieznaczna dodatnia inflacja powoduje pobudzenie wymiany handlowej, skłania do inwestowania pieniędzy zamiast ich prostego gromadzenia i powoduje rozwój gospodarczy.
+\end{itemize}
+\end{example}
+
+Powyższy przykład jest podany celem umotywowania siły stosowania niewielkich kar do wymuszenia decyzji, które kierunkowane są na konkretny cel.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/warm_world.png}
+\caption{Optymalna polityka w świecie rajskiej plaży z $R(s) = +1$} \label{fig-paradise-sand}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/sand_solution.png}
+\caption{Optymalna polityka w świecie plaży z $R(s) = -0.05$} \label{fig-warm-sand}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{grids/lava_world.png}
+\caption{Optymalna polityka w świecie lawy z $R(s) = -1$} \label{fig-lava}
+\end{figure}
+
+\section{Koncepcja użyteczności w procesach decyzyjnych}
+
+Ważnym elementem, który należy pamiętać - pracując z procesami decyzyjnymi - jest pamiętanie, że polityka nie określa nagrody za jej stosowanie.  To jest jedynie proste określenie wyboru akcji w danym stanie. Mając określoną politykę można określić wartość osiąganą przez pewne postępowania - ale w koncepcji procesów decyzyjnych - jest to sprawa drugoplanowa. Ponadto na tą chwilę miejmy również świadomość o występowaniu dwóch rodzajów procesów decyzyjnych w zależności o wiedzy o jego stanie.
+
+\begin{definition}[Światy z informacją zupełną i niezupełną]
+Powiemy, że dany świat jest światem z informacją zupełną jeśli dowolny agent - może poznać w pełni swój stan (w zależności od definicji - może to być również stan wszystkich agentów świata). Jeśli stan nie jest stanem z informacją zupełną to jest światem z informacją niezupełną. 
+\end{definition}
+
+Wreszcie przechodząc do oceny jakości stosowania danych polityk należy rozważyć dodatkowe pojęcia. Jak np. ciągi nagród.
+
+\begin{definition}[Ciągi nagród, stanów, akcji]
+W efekcie notowania postępów działania agentów tworzone są ciągi.
+I tak
+\begin{itemize}
+\item Ciąg złożony ze stanów przez które kolejno przechodził wybrany agent - nazywa się ciągami stanów,
+\item Ciąg złożony z wartości reprezentujących nagrody uzyskiwane przez wybranego agenta nazywa się ciągami nagród,
+\item Ciąg złożony z akcji wybieranych przez agenta nazywa sie ciągami akcji.
+\end{itemize}
+Ponadto oznaczmy przez $SS$ przestrzeń wszystkich ciągów stanów, $SR$ przestrzeń wszystkich ciągów nagród oraz $SA$ przestrzeń wszystkich ciagów akcji.
+\end{definition}
+
+Zauważmy, że przez stacjonarność w problemach nasze ciągi nagród są potencjalnie nieskończone. Intuicyjnie ciągi nagród stanowia dla nas podstawę do oceny jakości danej polityki. Podstawa część naszego rozumowania na chwilę obecną może być opisana algorytmem:
+
+\begin{enumerate}
+\item Określamy pewną politykę, 
+\item Ustalamy stan początkowy,
+\item Stosując daną politykę możemy tworzyć ciagi nagród.
+\end{enumerate}
 
 
+\begin{remark*}
+Ciągi nagród są zatem pewną realizacją szeregu czasowego.
+\end{remark*}
+
+Intuicyjnie czujemy, że aby uznać daną politykę za optymalną należy rozważać ciągi nagród generowane przez nią i je oceniać. Ciągi te są jednak potencjalnie nieskończone i wszystko to rodzi pytanie jak je oceniać. Do oceny stosowane są tzw. funkcje użyteczności.
+
+\begin{definition}[Funkcja użyteczności]
+Funkcja użyteczności nazywamy funkcję $U: SS \to \setR$. 
+\end{definition}
+
+Dzięki użyciu funkcji użyteczności możemy porównywać ciągi.
+
+\begin{definition}[Porządek częściowy w przestrzeni $SS$ względem funkcji użyteczności $U$]
+Powiemy, że dwa ciągi stanów $ ss^1 = (ss^1_0, ss^1_1, \ldots)$ oraz $ss^2 = (ss^2_0, ss^2_1, \ldots)$ spełniają relację częściowego porządku względem pewnej funkcji użyteczności $U$ gdy
+$$
+ss^1 \preceq ss^2 \iff U((ss^1_0, ss^1_1, \ldots)) \geq U((ss^2_0, ss^2_1, \ldots)).
+$$
+
+Ponadto jeśli $ss^1 \preceq ss^2$ oraz $ss^1 \succeq ss^2$ to napiszemy $ ss^1 \simeq ss^2$.
+\end{definition}
+
+\begin{problem}[Proste sumowanie nagród - przykład odrzucający model.]
+Rozważmy przypadek gdzie funkcja użyteczności jest zadana jako prosta suma nagród w czasie, tj.
+$$
+U : (s_0, s_1, s_2, \ldots) : \mapsto \sum_{n=0}^{\infty} R(s_n).
+$$
+Rozważmy dwa ciągi nagród (dla odpowiednio ciagów stanów $s^1$ oraz $s^2$) postaci
+$$
+R(s^1) = (1,1,1,1,1,1,1,1,1,\ldots), \quad R(s^2) = (1,2,1,2,1,2,1,2,1,2,\ldots).
+$$
+
+Pomimo, iż intuicyjnie stwierdzilibyśmy, ze ciag stanów $s^2$ generuje lepsze ciągi nagród to widzimy, że
+$$
+U(s^1) = \infty = U(s^2),
+$$
+czyli w sensie tej funkcji użyteczności $s^1 \simeq s^2$ - czyli kompletnie nie to co sugeruje nam intuicja.
+\end{problem}
+
+Powyższy przykład powoduje rozbieżności z spodziewanym przez nas rezultatem gdyż rozważona funkcja użyteczności nie jest zgodna z naszym rozumowaniem. Stąd do rozwiazywania procesów decyzyjnych Markova używana jest przez nas inna klasa funkcji użyteczności.
+
+\begin{definition}[Użyteczność Lambda]
+Niech $\lambda \in (0,1)$. Funkcją użyteczność $U_\lambda : SS \to \setR$ nazywamy funkcję zadaną wzorem
+$$
+U: (s_0, s_1, \ldots) \mapsto \sum_{n=0}^{\infty} \lambda^n R(s_n).
+$$
+\end{definition} 
+
+\begin{lemma}[Zbieżność w funkcji użyteczności lambda]
+Niech $\lambda \in (0,1)$ oraz niech $R : S \to \setR$ nie przyjmuje wartości $\pm \infty$. Wtedy funkcja użyteczności lambda przyjmuje skończoną wartość dla wszystkich ciągów stanów.
+\end{lemma}
+
+\begin{proof}
+Niech spełnione będą założenia z lematu. Niech $s = (s_0, s_1, \ldots)$ będzie pewnym dowolnym ciągiem stanów z przestrzeni $SS$. Wtedy
+\begin{align*}
+U(s) & = \sum_{n=0}^{\infty} \lambda^n R(s_n) \\
+& \leq \sum_{n=0}^{\infty} \lambda^n \max \set{R_{max}, -R_{min}} \\
+& = \max \set{R_{max}, -R_{min}} \frac{1}{1-\lambda} < \infty.
+\end{align*}
+Korzystamy w powyższym z tego, że przestrzeń stanów jest skończona - a zatem możliwe nagrody stanowią również skończony zbiór - więc można wskazać elementy maksymalne i minimalne. Reszta to własności ciągów geometrycznych.
+\end{proof}
+
+\begin{remark*}
+Często faktyczną lambda użyteczność nagrody ze stanu $s_k$ tj $\lambda^i R(s_k)$ często jest nazywana zdyskonowaną nagrodą (i-krotnie zdyskontowaną). Przez to dostrzegamy kolejne analogie do matematyki finansowej czy ubezpieczeniowej.
+\end{remark*}
 
 
+\section{Równanie Bellmanna}
 
+Powyżej zdefiniowane pojęcia pozwalają nam uporządkować algorytm oceny polityki. Mamy zatem:
+
+\begin{enumerate}
+\item Wybieramy konkretną politykę,
+\item Ustalamy stan początkowy,
+\item Generujemy postępując zgodnie z polityką ciągi stanów i nagród wychodzące z wybranego stanu początkowego,
+\item Oceniamy je z użyciem funkcji użyteczności.
+\end{enumerate}
+
+Powyższe jednak nie uwzględnia stochastyczności modelu - przecież generowane ciągi stanów są losowe. Rozwiążmy ten problem dodając kolejny krok do algorytmu:
+
+\begin{enumerate}
+\item Wybieramy konkretną politykę,
+\item Ustalamy stan początkowy,
+\item Generujemy postępując zgodnie z polityką ciągi stanów i nagród wychodzące z wybranego stanu początkowego,
+\item Oceniamy je z użyciem funkcji użyteczności.
+\item Jako ocenę danej polityki przy starcie z danego stanu wybieramy wartość przeciętną uzyskiwanej użyteczności.
+\end{enumerate}
+Dokonując podsumowania po wszystkich stanach początkowych otrzymujemy postać wartość całej polityki. Pozwala to sformułować stwierdzenie.
+
+\begin{theorem}[Postać polityki optymalnej]
+Przy zastosowaniu funkcji użyteczności lambda z ustalonym $\lambda \in (0,1)$ polityka optymalna może zostać opisana wzorem
+$$
+\pi^\ast : s \mapsto \argmax_{\pi} \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_n) }{ \pi, s_0 = s},
+$$
+gdzie przez $\ExConditional{\cdot}{\pi, s_0 = s}$ rozumiemy warunkową wartość oczekiwaną przy starcie z stanu $s$ oraz przestrzeganiu polityki $\pi$.
+\end{theorem}
+
+Powyższe twierdzenie dostarcza nam warunki dla polityki optymalnej, ale powyższa formuła nie wzbudza najmniejszych nadziei na obliczenie postaci dla rozważanego problemu. Aby pokazać jak można wykorzystać to do obliczenia realnej polityki danego problemu wprowadźmy dalsze oznaczenia.
+
+\begin{definition}[Użyteczność stanu i polityki]
+Niech $\pi$ będzie pewną polityką w naszym problemie decyzyjnym a $s$ pewnym stanem początkowym. Wtedy użytecznością nazwiemy funkcję 
+$$
+U : (\pi, s) \mapsto \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_t) }{ \pi, s_0 = s}.
+$$
+Czasem z uwagi na stałość wyboru polityki będziemy pisać zamiast
+$$
+U^\pi(s) = U(\pi, s).
+$$
+\end{definition}
+
+\begin{theorem}[Równanie Bellmana]
+Poniższe równania są prawdziew.
+$$
+\pi^\ast : s \mapsto \argmax_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s'),
+$$
+oraz
+$$
+U: (\pi^\ast, s) \mapsto R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Drugie z tych równań nazywane jest równaniem Bellmana. 
+\end{theorem}
+
+
+\begin{proof}
+Zacznijmy od drugiego ze wzorów. Wykorzystamy definicję i twierdzenie o warunkowej wartości oczekiwanej
+\begin{align*}
+U(\pi^\ast, s ) & = \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_t) }{ \pi^\ast, s_0 = s} \\
+& = \ExConditional{ \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_t) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'}.
+\end{align*}
+Rozpisując pierwszy element sumy otrzymujemy
+\begin{align*}
+U(\pi^\ast, s ) & = \ExConditional{ \ExConditional{\sum_{t=0}^{\infty} \lambda^t R(s_t) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'} \\
+& = \ExConditional{ \ExConditional{R(s) + \lambda \sum_{t=1}^{\infty} \lambda^{t-1} R(s_t) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'} \\
+& = \ExConditional{ \ExConditional{R(s) + \lambda \sum_{t=0}^{\infty} \lambda^{t} R(s_{t+1}) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'}.
+\end{align*}
+Korzystając z tego, że $R(s)$ jest stałe otrzymujemy, a dalej z tego, że kolejna suma nie zależy już od $s_0$ - możemy rozpisać i zmienić numerowanie ciągu
+\begin{align*}
+U(\pi^\ast, s ) & = \ExConditional{ \ExConditional{R(s) + \lambda \sum_{t=0}^{\infty} \lambda^{t} R(s_{t+1}) }{ \pi^\ast, s_0 = s, s_1 = s'} }{s'} \\
+& = \ExConditional{R(s)}{s'} + \ExConditional{ \ExConditional{ \lambda \sum_{t=0}^{\infty} \lambda^{t} R(s_{t+1}) }{ \pi^\ast, s_1 = s'} }{s'}\\
+& = R(s) + \lambda \ExConditional{ \ExConditional{ \sum_{t=0}^{\infty} \lambda^{t} R(s_{t}) }{ \pi^\ast, s_0 = s'} }{s'}.
+\end{align*}
+Teraz rozpisując tę zewnętrzna wartość oczekiwaną otrzymujemy
+\begin{align*}
+U(\pi^\ast, s ) & = R(s) + \lambda \ExConditional{ \ExConditional{ \sum_{t=0}^{\infty} \lambda^{t} R(s_{t}) }{ \pi^\ast, s_0 = s'} }{s'} \\
+& = R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') \ExConditional{ \sum_{t=0}^{\infty} \lambda^{t} R(s_{t}) }{ \pi^\ast, s_0 = s'} \\
+& = R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0)
+\end{align*}
+Przedstawiony tu wzór bardzo już przypomina tezę. Pozostaje jednak pytanie o $\max_{a}$ wzgledem $\pi^\ast(s)$. Przypominjmy, że 
+$$
+\pi^\ast : s \mapsto \argmax_{\pi}  U(\pi,s).
+$$
+Przypuśćmy, że 
+$$
+R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0) \neq 
+R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Naturalnie skoro polityka $\pi^\ast$ jest optymalna to $U(\pi^\ast, \cdot)$ jest maksymalną użytecznością. Stąd musiałoby być
+$$
+R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0) > 
+R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Wystarczy jednak wziąć konkretne $a = \pi^\ast(s)$ aby pokazać, że powyższe jest sprzeczne. Zatem 
+$$
+U: (\pi^\ast, s) \mapsto R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Obserwacja którą poczyniliśmy chwilę temu orzekająca, że 
+$$
+\sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0) = \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s'),
+$$
+może zostać jednak zapisana w inny sposób znacząc wprost, że 
+$$
+\pi^\ast : s \mapsto \argmax_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
+$$
+Co kończy dowód.
+\end{proof}
+
+Powyższy wzór pokazuje prawdziwą naturę obu tych narzędzi.
+Dla użyteczności dostrzegamy, że
+$$
+U(s) = R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0),
+$$
+czyli użyteczność w danym stanie zależy od otrzymywanej nagrody oraz średniej użyteczności z kolejnych stanów, ale zdyskontowanych jednokrotnie (skoro dochodzi do przesunięcia w czasie). Z równania dla polityki dostrzegamy że
+$$
+\pi^\ast : s \mapsto \argmax_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s'),
+$$
+polityka optymalna to taka, która maksymalizuje przyszłą użyteczność dalszych stanów.
+
+\section{Algorytm iterowanych wartości}
+
+Równania Bellman pojawiły sie w naszej teorii w chwili gdy zaczęliśmy zastanawiać się nad możliwością odszukania optymalnej polityki. Aż do tej pory nie bardzo widzimy w jaki sposób te prawdziwe (bo to udowodniliśmy) równania Bellmana mogą nam pomóc rozwiązać problem decyzyjny Markowa. Przyjrzyjmy się ponownie równaniu Bellmana.
+
+$$
+U^{\pi^\ast}(s) = R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U^{\pi^\ast}( s').
+$$
+
+Odszukanie rozwiązania polegało by na podaniu wartości obcięcia funkcji $U^{\pi^\ast}$ przy wyborze polityki optymalnej dla wszystkich stanów $s \in S$, których jest skończona ilość. Jeśli mamy $N$ stanów oznacza to, że równanie Bellmana jest układem N równań z N niewiadomymi. Gdyby tylko równania te były liniowe, wykorzystując wiedzę z algebry umielibyśmy natychmiast je rozwiązać. Równania te jednak posiadają w swojej strukturze $\max_{a}$ które jest operacją nieliniową. Co oznacza, że równań tych nie można rozwiązać za pomocą algebry liniowej i np. eliminiacji Gaussa. Zaprezentujemy szybki algorytm stosowany w tym miejscu do wyznaczenia aproksymacji prawdziwych wartości użyteczności - tzw. algorytm iterowanych wartości.
+
+\begin{definition}[Algorytm iterowanych wartości]
+Aby odszukać politykę optymalną stosowany jest następujący algorytm:
+\begin{enumerate}
+\item Inicjalizujamy wartość początkową wektora $U(s)$ wartościami losowymi
+$$
+\forall_{s \in S} \quad U_0(s) = rand().
+$$
+\item Wyznaczamy wartość kolejnej iteracji na podstawie poprzedniej i wzoru Bellmana. Tzn. dla $n \in \setN$ 
+$$
+\forall_{s \in S} \quad U_n(s) =  R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U_{n-1}( s').
+$$
+\item Krok 2 wykonujemy tak długo, aż w algorytmie $\norm{U_n - U_{n-1}}$ będzie satysfakcjonująco blisko zera.
+\item Po uzyskaniu zbieżności wyznaczana jest polityka na podstawie przybliżonej wartości użyteczności.
+\end{enumerate}
+
+\end{definition} 
+
+\begin{remark*}
+Czy polityka uzyskana na podstawie przybliżonych użyteczności jest optymalna czy też przybliża optymalną? Otóż okazuje się, że z dużą dozą pewności można powiedzieć, że jest optymalna. W końcu polityka jest funkcją $\pi : S \to A$ czyli istnieje skończona ilość polityk w odróżnieniu od użyteczności. Stąd od pewnego miejsca polityka wyznaczona na podstawie przybliżonych będzie już stała i równa polityce optymalnej.
+\end{remark*}
+
+
+\begin{remark*}
+Czy wybór początkowych wartości dla $U_0(s)$ jest faktycznie zupełnie nie istotny. Otóż nie jest. Zauważmy, że w myśl algorytmu
+$$
+\forall_{s \in S} \quad U_n(s) =  R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U_{n-1}( s')
+$$
+ta losowa wartość w każdej iteracji jest dyskontowana przez współczynnik $\lambda$. Można to argumentować w ten sposób, że $\lambda$ powoduje zmniejszenie ilości fałszywej informacji o wartości użyteczności, a w to miejsce za pomocą funkcji $R(s)$ wprowadzone zostają wartości prawdziwe dotyczące użyteczności.
+\end{remark*}
+
+\section{Algorytm iterowanych polityk}
+
+Drugim algorytmem pozwalającym na rozwiązywanie problemów decyzyjnych Markowa jest algorytm iterowanych polityk. 
+
+\begin{definition}[Algorytm iterowanych politych]
+Aby odszukać politykę optymalną stosowany jest następujący algorytm:
+\begin{enumerate}
+\item Inicjalizujamy początkową politykę $\pi_0$ w sposób losowy. 
+\item Mając określoną politykę wyznaczamy wartości użyteczności każdego ze stanów.
+$$
+U_t = U(\pi_t, \cdot).
+$$
+\item Mając określone użyteczności wyznaczamy kolejną politykę
+$$
+\pi_{t+1}: s \mapsto \argmax_{a} \sum_{s'} T(s,a,s') U_t(s').
+$$
+\item Algorytm (krok 2 i krok 3) powtarzamy aż do uzyskania zbieżności (polityka nie zmieniła się po kroku). Po uzyskaniu zbieżności przyjmujemy, że ostatnia iteracja tak naprawdę oddaje naszą politykę optymalną.
+\end{enumerate}
+
+Istotnym elementem jest w kroku 2 wyznaczenie wartości użyteczności. Aby to zrobić należy rozwiązać równanie Bellmana postaci
+$$
+U_t(s) = R(s) + \lambda \sum_{s'} T(s, \pi_t(s), s') U_t(s').
+$$
+Zauważmy, żę tym razem - znając politykę zgodnie z którą postępujemy - aby wyznaczyć wartości funkcji $U_t(s)$ należy rozwiązać układ N równań z N niewiadomymi - który tym razem jest układem liniowym. Oznacza to, że możemy wyliczyć wartości prawdziwych użyteczności przy zadanej polityce dzięki operacjom algebry liniowej.
+\end{definition}
+
+\chapter{Uczenie wzmacniane w Modelach decyzyjnych Markowa}
+
+Choć powiedzieliśmy sobie dość dużo o modelach decyzyjnych Markowa - nie mówiliśmy nic o uczeniu maszynowym czy uczeniu wzmacnianym. Skąd wiemy, że nie mówiliśmy o uczeniu maszynowym? Ponieważ ani razu nie mówiliśmy nic o danych - ani o wnioskowaniu z nich. Czy byłyby dane w modelach decyzyjnych Markowa.
+
+\begin{definition}[Dane w modelach decyzyjnych Markowa]
+W przypadku kiedy mówimy o danych w modelach decyzyjnych Markowa - oznacza to, że nie jest nam znana postać funkcji nagrody $R(s)$ jak również nie jest nam znana postać funkcji przejścia $T(s,a,s')$. Danymi pochodzącymi z modelu decyzyjnego Markowa nazwiemy zbiór uporządkowanych czwórek postaci 
+$$
+\tuple{s,a,r,s'},
+$$
+czyli wektorów zawierających informacje o stanie początkowym, jak i końcowym, wybranej akcji oraz uzyskanej w efekcie tego działania nagrodzie.
+\end{definition}
+
+\begin{remark}[Zadania w Modelach decyzyjnych Markowa]
+Pracując z modelami decyzyjnymi możemy przeprowadzać łącznie 4 operacje
+\begin{itemize}
+\item Wnioskowanie - kiedy posiadamy pełne informacje o modelu decyzyjnym i chcemy opracować optymalną politykę.\footnote{Tę część już robiliśmy}.
+\item Uczenie - kiedy posiadamy zestaw danych pochodzących z modelu decyzyjnego i chcemy opracować optymalną politykę.
+\item Modelowanie - kiedy posiadamy dane z modelu i chcemy estymować parametry tego modelu,
+\item Generowanie - kiedy posiadamy model i chcemy tworzyć nowe dane pochodzące z tego modelu.
+\end{itemize}
+\end{remark}
+
+W efekcie powyższego dostrzegamy, że dostępne nam są 3 różne sposoby pracy z modelami decyzyjnymi, każdy poprzez aproksymację innej składowej.
+
+\begin{enumerate}
+\item Pierwsze podejście zakłada aproksymowanie polityki optymalnej czyli funkcji przypisującej akcję do stanu. Algorytmem który miał tutaj zastosowanie było iterowanie polityki.
+\item Drugie podejście zakład aproksymowanie użyteczności. Po odpowiednim jej przybliżeniu - możemy na tej podstawie wyznaczyć politykę - której poszukujemy.
+\item Trzecie podejście natomiast zakłada aproksymowanie przekształcenia które dla stanu i akcji przypisuje stan końcowy oraz nagrodę. Na podstawie tego przybliżenia mamy możliwość wyznaczenia użyteczności na na tej podstawie dalej politykę.
+\end{enumerate}
+
+Aby zrealizować trzecie podejście potrzebna jest nam nowa kolejna funkcja, do opisu aproksymowania naszego zadania.
+
+
+\begin{definition}[Funkcja Q]
+Dla rozważanego modelu decyzyjnego funkcją $Q$ dla wybranego stanu oraz akcji nazwiemy funkcję
+$$
+Q : (s,a) \mapsto R(s) + \lambda \sum_{s'} T(s,a,s') U(s').
+$$
+\end{definition}
+
+\begin{remark*}
+Choć historycznie nie jest to uzasadnione, niektórzy odnoszą się do funkcji Q jakby stanowiła ona skrót od funkcji jakości (Quality). Okazuje się że przypisanie takiej nazwy do tej funkcji jest wyjątkowo trafne, gdyż uzyskana tam wartość może wyrażać jakość wyboru akcji $a$ znajdując się w sytuacji $s$.
+\end{remark*}
+
+\begin{theorem}[Wyrażenie użyteczności i polityki optymalnej.]
+Niech $Q$ będzie funkcją $Q$ dla procesu decyzyjnego Markova. Wtedy
+$$
+U(s) = \max_{a} Q(s,a),
+$$
+oraz 
+$$
+\pi^\ast(s) = \argmax_{a} Q(s,a).
+$$
+\end{theorem}
+
+\begin{proof}
+Dowód pierwszej równości jest oczywisty. Do drugiego wystarczy zauważyć, że ani $R(s)$ ani $\gamma$ nie wpływają to która akcja $a$ jest maksymalną.
+\end{proof}
+
+\begin{theorem}[Równanie dla funkcji Q]
+Niech $Q$ będzie Q funkcją dla procesu decyzynego Markowa. Wtedy 
+$$
+Q(s,a) = R(s) + \lambda \sum_{s'} T(s,a,s') \max_{a'} Q(s',a').
+$$
+\end{theorem}
+
+\begin{proof}
+Mamy 
+$$
+Q(s,a) = R(s) + \lambda \sum_{s'} T(s,a,s') U(s').
+$$
+Wobec poprzedniego twierdzenia dla $U(s')$ mamy
+$$
+U(s') = \max_{a'} Q(s',a').
+$$
+Stąd teza.
+
+\end{proof}
+
+W dalszej części skupimy się na estymowaniu funkcji Q w naszym modelu decyzyjnym Markowa. Proces ten nazywa się również formalnie Q-learningiem.
+
+\begin{definition}[Algorytm Q-learning]
+Załóżmy, że posiadamy dane z procesu decyzyjnego Markowa w postaci czwórek $\tuple{s,a,r,s'}$. 
+\begin{enumerate}
+\item Inicjalizujemy estymator dla $Q(s,a)$. 
+\item Wprowadzamy korektę dla danych $\tuple{s,a,r,s'}$ w kolejnych iteracjach na podstawie wzoru uczącego
+$$
+Q_{t+1}(s,a) = Q_{t}(s,a) + \alpha_t \bracket{ \bracket{r + \gamma \max_{a'} Q_{t}(s',a')} - Q_{t}(s,a)},
+$$
+gdzie $\alpha_t$ jest wybrana tak, że $\sum_{t} \alpha_t = \infty$ oraz $\sum_{t} \alpha_t^2 < \infty$.
+\item Krok 2 jest powtarzania aż do uzyskania zbieżności. Na podstawie uzyskanych wartości Q-funkcji wyznaczamy użyteczności oraz optymalną politykę.
+\end{enumerate}
+
+\end{definition}
 
 \addcontentsline{toc}{chapter}{Skorowidz}
 \printindex
