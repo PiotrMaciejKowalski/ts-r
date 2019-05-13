@@ -53,6 +53,7 @@ Wersja & Autor & Data & Opis\\\hline
 1.7 & P. Kowalski & 10.04.19 & Dodanie elementów do modeli GARCH \\\hline
 1.8 & P. Kowalski & 24.04.19 & Dodanie wprowadzenia do procesów decyzyjnych Markowa, oraz predykcji opartej o sieci neuronowe \\\hline
 1.9 & P. Kowalski & 28.04.19 & Dodanie elementów dotyczących zastosowania teorii spektralnej do predykcji \\\hline
+1.10 & P. Kowalski & 8.05.19 & Rozszerzenie elementów związanych z modelami decyzyjnymi Markowa oraz Q-learningiem \\\hline
 \end{tabular}
 \caption{Wersje dokumentu.}
 \end{table}
@@ -3618,7 +3619,7 @@ Przedstawiony tu wzór bardzo już przypomina tezę. Pozostaje jednak pytanie o 
 $$
 \pi^\ast : s \mapsto \argmax_{\pi}  U(\pi,s).
 $$
-Przypuścmy, że 
+Przypuśćmy, że 
 $$
 R(s) + \lambda \sum_{s'} T(s,\pi^\ast(s), s') U(\pi^\ast, s_0) \neq 
 R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(\pi^\ast, s').
@@ -3654,31 +3655,166 @@ $$
 $$
 polityka optymalna to taka, która maksymalizuje przyszłą użyteczność dalszych stanów.
 
-\section{Algorytm Bellmana}
+\section{Algorytm iterowanych wartości}
 
-Równania Bellman pojawiły sie w naszej teorii w chwili gdy zaczęliśmy zastanawiać się nad możliwością odszukania optymalnej polityki...
+Równania Bellman pojawiły sie w naszej teorii w chwili gdy zaczęliśmy zastanawiać się nad możliwością odszukania optymalnej polityki. Aż do tej pory nie bardzo widzimy w jaki sposób te prawdziwe (bo to udowodniliśmy) równania Bellmana mogą nam pomóc rozwiązać problem decyzyjny Markowa. Przyjrzyjmy się ponownie równaniu Bellmana.
 
-%TODO to be continued...
+$$
+U^{\pi^\ast}(s) = R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U^{\pi^\ast}( s').
+$$
 
-%\begin{tabular}{|c|c|}\hline
-%Polityka optymalna & $ \pi^\ast = \argmax_{\pi} \Ex{ \sum_{n=0}^{\infty} \lambda^n R(s_n)}{\pi} $ \\\hline
-%\uncover<2->{Użyteczność polityki} & \uncover<2->{$ U^\pi(s) = \Ex{\sum_{n=0}^{\infty} \lambda^n R(s_n)}{\pi, s_0 = s} $} \\\hline 
-%\uncover<3->{Właściwa użyteczność} & \uncover<3-> {$U(s) = U^{\pi^\ast}(s)$}\\\hline
-%\end{tabular}
-%
-%\uncover<4->{
-%\begin{block}{Polityka optymalna}
-%\begin{equation*}
-%\pi^\ast (s) = \argmax_{a} \sum_{s'} T(s,a,s') U(s').
-%\end{equation*}
-%\end{block}
-%}
-%\uncover<5->{
-%\begin{block}{\uncover<6->{Równanie Bellmanna}}
-%\begin{equation}
-%U(s) = R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U(s')
-%\end{equation}
-%\end{block}
+Odszukanie rozwiązania polegało by na podaniu wartości obcięcia funkcji $U^{\pi^\ast}$ przy wyborze polityki optymalnej dla wszystkich stanów $s \in S$, których jest skończona ilość. Jeśli mamy $N$ stanów oznacza to, że równanie Bellmana jest układem N równań z N niewiadomymi. Gdyby tylko równania te były liniowe, wykorzystując wiedzę z algebry umielibyśmy natychmiast je rozwiązać. Równania te jednak posiadają w swojej strukturze $\max_{a}$ które jest operacją nieliniową. Co oznacza, że równań tych nie można rozwiązać za pomocą algebry liniowej i np. eliminiacji Gaussa. Zaprezentujemy szybki algorytm stosowany w tym miejscu do wyznaczenia aproksymacji prawdziwych wartości użyteczności - tzw. algorytm iterowanych wartości.
+
+\begin{definition}[Algorytm iterowanych wartości]
+Aby odszukać politykę optymalną stosowany jest następujący algorytm:
+\begin{enumerate}
+\item Inicjalizujamy wartość początkową wektora $U(s)$ wartościami losowymi
+$$
+\forall_{s \in S} \quad U_0(s) = rand().
+$$
+\item Wyznaczamy wartość kolejnej iteracji na podstawie poprzedniej i wzoru Bellmana. Tzn. dla $n \in \setN$ 
+$$
+\forall_{s \in S} \quad U_n(s) =  R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U_{n-1}( s').
+$$
+\item Krok 2 wykonujemy tak długo, aż w algorytmie $\norm{U_n - U_{n-1}}$ będzie satysfakcjonująco blisko zera.
+\item Po uzyskaniu zbieżności wyznaczana jest polityka na podstawie przybliżonej wartości użyteczności.
+\end{enumerate}
+
+\end{definition} 
+
+\begin{remark*}
+Czy polityka uzyskana na podstawie przybliżonych użyteczności jest optymalna czy też przybliża optymalną? Otóż okazuje się, że z dużą dozą pewności można powiedzieć, że jest optymalna. W końcu polityka jest funkcją $\pi : S \to A$ czyli istnieje skończona ilość polityk w odróżnieniu od użyteczności. Stąd od pewnego miejsca polityka wyznaczona na podstawie przybliżonych będzie już stała i równa polityce optymalnej.
+\end{remark*}
+
+
+\begin{remark*}
+Czy wybór początkowych wartości dla $U_0(s)$ jest faktycznie zupełnie nie istotny. Otóż nie jest. Zauważmy, że w myśl algorytmu
+$$
+\forall_{s \in S} \quad U_n(s) =  R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U_{n-1}( s')
+$$
+ta losowa wartość w każdej iteracji jest dyskontowana przez współczynnik $\lambda$. Można to argumentować w ten sposób, że $\lambda$ powoduje zmniejszenie ilości fałszywej informacji o wartości użyteczności, a w to miejsce za pomocą funkcji $R(s)$ wprowadzone zostają wartości prawdziwe dotyczące użyteczności.
+\end{remark*}
+
+\section{Algorytm iterowanych polityk}
+
+Drugim algorytmem pozwalającym na rozwiązywanie problemów decyzyjnych Markowa jest algorytm iterowanych polityk. 
+
+\begin{definition}[Algorytm iterowanych politych]
+Aby odszukać politykę optymalną stosowany jest następujący algorytm:
+\begin{enumerate}
+\item Inicjalizujamy początkową politykę $\pi_0$ w sposób losowy. 
+\item Mając określoną politykę wyznaczamy wartości użyteczności każdego ze stanów.
+$$
+U_t = U(\pi_t, \cdot).
+$$
+\item Mając określone użyteczności wyznaczamy kolejną politykę
+$$
+\pi_{t+1}: s \mapsto \argmax_{a} \sum_{s'} T(s,a,s') U_t(s').
+$$
+\item Algorytm (krok 2 i krok 3) powtarzamy aż do uzyskania zbieżności (polityka nie zmieniła się po kroku). Po uzyskaniu zbieżności przyjmujemy, że ostatnia iteracja tak naprawdę oddaje naszą politykę optymalną.
+\end{enumerate}
+
+Istotnym elementem jest w kroku 2 wyznaczenie wartości użyteczności. Aby to zrobić należy rozwiązać równanie Bellmana postaci
+$$
+U_t(s) = R(s) + \lambda \sum_{s'} T(s, \pi_t(s), s') U_t(s').
+$$
+Zauważmy, żę tym razem - znając politykę zgodnie z którą postępujemy - aby wyznaczyć wartości funkcji $U_t(s)$ należy rozwiązać układ N równań z N niewiadomymi - który tym razem jest układem liniowym. Oznacza to, że możemy wyliczyć wartości prawdziwych użyteczności przy zadanej polityce dzięki operacjom algebry liniowej.
+\end{definition}
+
+\chapter{Uczenie wzmacniane w Modelach decyzyjnych Markowa}
+
+Choć powiedzieliśmy sobie dość dużo o modelach decyzyjnych Markowa - nie mówiliśmy nic o uczeniu maszynowym czy uczeniu wzmacnianym. Skąd wiemy, że nie mówiliśmy o uczeniu maszynowym? Ponieważ ani razu nie mówiliśmy nic o danych - ani o wnioskowaniu z nich. Czy byłyby dane w modelach decyzyjnych Markowa.
+
+\begin{definition}[Dane w modelach decyzyjnych Markowa]
+W przypadku kiedy mówimy o danych w modelach decyzyjnych Markowa - oznacza to, że nie jest nam znana postać funkcji nagrody $R(s)$ jak również nie jest nam znana postać funkcji przejścia $T(s,a,s')$. Danymi pochodzącymi z modelu decyzyjnego Markowa nazwiemy zbiór uporządkowanych czwórek postaci 
+$$
+\tuple{s,a,r,s'},
+$$
+czyli wektorów zawierających informacje o stanie początkowym, jak i końcowym, wybranej akcji oraz uzyskanej w efekcie tego działania nagrodzie.
+\end{definition}
+
+\begin{remark}[Zadania w Modelach decyzyjnych Markowa]
+Pracując z modelami decyzyjnymi możemy przeprowadzać łącznie 4 operacje
+\begin{itemize}
+\item Wnioskowanie - kiedy posiadamy pełne informacje o modelu decyzyjnym i chcemy opracować optymalną politykę.\footnote{Tę część już robiliśmy}.
+\item Uczenie - kiedy posiadamy zestaw danych pochodzących z modelu decyzyjnego i chcemy opracować optymalną politykę.
+\item Modelowanie - kiedy posiadamy dane z modelu i chcemy estymować parametry tego modelu,
+\item Generowanie - kiedy posiadamy model i chcemy tworzyć nowe dane pochodzące z tego modelu.
+\end{itemize}
+\end{remark}
+
+W efekcie powyższego dostrzegamy, że dostępne nam są 3 różne sposoby pracy z modelami decyzyjnymi, każdy poprzez aproksymację innej składowej.
+
+\begin{enumerate}
+\item Pierwsze podejście zakłada aproksymowanie polityki optymalnej czyli funkcji przypisującej akcję do stanu. Algorytmem który miał tutaj zastosowanie było iterowanie polityki.
+\item Drugie podejście zakład aproksymowanie użyteczności. Po odpowiednim jej przybliżeniu - możemy na tej podstawie wyznaczyć politykę - której poszukujemy.
+\item Trzecie podejście natomiast zakłada aproksymowanie przekształcenia które dla stanu i akcji przypisuje stan końcowy oraz nagrodę. Na podstawie tego przybliżenia mamy możliwość wyznaczenia użyteczności na na tej podstawie dalej politykę.
+\end{enumerate}
+
+Aby zrealizować trzecie podejście potrzebna jest nam nowa kolejna funkcja, do opisu aproksymowania naszego zadania.
+
+
+\begin{definition}[Funkcja Q]
+Dla rozważanego modelu decyzyjnego funkcją $Q$ dla wybranego stanu oraz akcji nazwiemy funkcję
+$$
+Q : (s,a) \mapsto R(s) + \lambda \sum_{s'} T(s,a,s') U(s').
+$$
+\end{definition}
+
+\begin{remark*}
+Choć historycznie nie jest to uzasadnione, niektórzy odnoszą się do funkcji Q jakby stanowiła ona skrót od funkcji jakości (Quality). Okazuje się że przypisanie takiej nazwy do tej funkcji jest wyjątkowo trafne, gdyż uzyskana tam wartość może wyrażać jakość wyboru akcji $a$ znajdując się w sytuacji $s$.
+\end{remark*}
+
+\begin{theorem}[Wyrażenie użyteczności i polityki optymalnej.]
+Niech $Q$ będzie funkcją $Q$ dla procesu decyzyjnego Markova. Wtedy
+$$
+U(s) = \max_{a} Q(s,a),
+$$
+oraz 
+$$
+\pi^\ast(s) = \argmax_{a} Q(s,a).
+$$
+\end{theorem}
+
+\begin{proof}
+Dowód pierwszej równości jest oczywisty. Do drugiego wystarczy zauważyć, że ani $R(s)$ ani $\gamma$ nie wpływają to która akcja $a$ jest maksymalną.
+\end{proof}
+
+\begin{theorem}[Równanie dla funkcji Q]
+Niech $Q$ będzie Q funkcją dla procesu decyzynego Markowa. Wtedy 
+$$
+Q(s,a) = R(s) + \lambda \sum_{s'} T(s,a,s') \max_{a'} Q(s',a').
+$$
+\end{theorem}
+
+\begin{proof}
+Mamy 
+$$
+Q(s,a) = R(s) + \lambda \sum_{s'} T(s,a,s') U(s').
+$$
+Wobec poprzedniego twierdzenia dla $U(s')$ mamy
+$$
+U(s') = \max_{a'} Q(s',a').
+$$
+Stąd teza.
+
+\end{proof}
+
+W dalszej części skupimy się na estymowaniu funkcji Q w naszym modelu decyzyjnym Markowa. Proces ten nazywa się również formalnie Q-learningiem.
+
+\begin{definition}[Algorytm Q-learning]
+Załóżmy, że posiadamy dane z procesu decyzyjnego Markowa w postaci czwórek $\tuple{s,a,r,s'}$. 
+\begin{enumerate}
+\item Inicjalizujemy estymator dla $Q(s,a)$. 
+\item Wprowadzamy korektę dla danych $\tuple{s,a,r,s'}$ w kolejnych iteracjach na podstawie wzoru uczącego
+$$
+Q_{t+1}(s,a) = Q_{t}(s,a) + \alpha_t \bracket{ \bracket{r + \gamma \max_{a'} Q_{t}(s',a')} - Q_{t}(s,a)},
+$$
+gdzie $\alpha_t$ jest wybrana tak, że $\sum_{t} \alpha_t = \infty$ oraz $\sum_{t} \alpha_t^2 < \infty$.
+\item Krok 2 jest powtarzania aż do uzyskania zbieżności. Na podstawie uzyskanych wartości Q-funkcji wyznaczamy użyteczności oraz optymalną politykę.
+\end{enumerate}
+
+\end{definition}
 
 \addcontentsline{toc}{chapter}{Skorowidz}
 \printindex
