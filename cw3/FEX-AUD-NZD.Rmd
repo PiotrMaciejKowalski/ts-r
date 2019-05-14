@@ -76,7 +76,7 @@ n<-8
 newdane <- data.frame(nr=1:N,zamkniecie=dane$zamkniecie)
 names(newdane)<-c("nr","zamkniecie")
 uczacy <- newdane[1:(N - n), ]
-testowy <- newdane[(N - n + 1):n, ]
+testowy <- newdane[(N - n + 1):N, ]
 ```
 
 Rozważmy następujący model i zobaczmy jak wygląda wykres dla danych i predykcji na zbiorze uczącym. 
@@ -92,9 +92,9 @@ abline(model1, col = "red")
 Widać zatem trend malejący. Teraz stworzony zostanie wykres rzeczywistych i predyktowanych wartości na ostatnie 2 dni okresu (zbiór testowy).
 
 ```{r}
-pred1 <- predict(model1, newdata = testowy)
-plot(testowy$nr, testowy$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dzień okresu", ylab = "Zamknięcie")
-lines(pred1, col = "red")
+pred1 <- predict(model1, testowy)
+plot(testowy$nr, testowy$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dzień okresu", ylab = "Zamknięcie", ylim =c(1.025, 1.043))
+lines(testowy$nr,pred1, col = "red")
 
 ```
 
@@ -119,7 +119,7 @@ n<-40
 newdane <- data.frame(nr=1:N,zamkniecie=dane$zamkniecie)
 names(newdane)<-c("nr","zamkniecie")
 uczacy <- newdane[1:(N - n), ]
-testowy <- newdane[(N - n + 1):n, ]
+testowy <- newdane[(N - n + 1):N, ]
 ```
 Rozważmy następujący model i zobaczmy jak wygląda wykres dla danych i predykcji na zbiorze uczącym. 
 
@@ -134,9 +134,9 @@ abline(model2, col = "blue")
 Widać zatem trend malejący. Teraz stworzony zostanie wykres rzeczywistych i predyktowanych wartości na ostatnie 30 dni okresu (zbiór testowy).
 
 ```{r}
-pred2 <- predict(model2, newdata = testowy)
-plot(testowy$nr, testowy$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dzień okresu", ylab = "Zamknięcie")
-lines(pred1, col = "blue")
+pred2 <- predict(model2,  testowy)
+plot(testowy$nr, testowy$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dzień okresu", ylab = "Zamknięcie", ylim = c(0.1,2.0))
+lines(testowy$nr, pred2, col = "blue")
 
 ```
 
