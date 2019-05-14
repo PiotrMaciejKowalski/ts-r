@@ -37,13 +37,14 @@ Dodatkowo za pomocą funckji `complete` usupełnimy dane o brakujące dni.
 typ <- "Otwarcie"
 data_start <- as.Date("2019-02-01")
 
-dane_p <- read.csv("dane_EUR_PLN.csv") %>%
+dane <- read.csv("dane_EUR_PLN.csv") %>%
     mutate(Data = as.Date(Data)) %>%
     complete(Data = seq.Date(min(Data), 
                                  max(Data), 
-                                 by = "day"))
+                                 by = "day"))  %>%
+    filter(Data >= data_start) %>%
+    select(c("Data", typ))
 
-dane <- dane_p[dane_p$Data >= data_start, c("Data", typ)]
 head(dane)
 ```
 
@@ -82,7 +83,14 @@ test
 ```
 
 Ponieważ p-value=`r test$p.value` to nie mamy podstaw do odrzucenia hipotezy o 
-słabej stacjonarności naszego szeregu.
+słabej stacjonarności naszego szeregu. Zatem wprowadźmy parametr `d` 
+wykorzystywany w modelach.
+
+
+```{r}
+d <- 0
+```
+
 
 Narysujmy wykres (za pomocą `stl()`) z którego wprost odczytamy oryginalne 
 dane, trend, sezonowość i resztę.
@@ -92,39 +100,6 @@ kurs_stl <- stl(kurs, s.window = "periodic")
 plot(kurs_stl, col = brewer.pal(n = 4, name = "PRGn")[1])
 ```
 
-```{r include=FALSE}
-nsc <- diff(kurs)
-head(nsc)
-```
-
-```{r include = FALSE}
-tsdisplay(nsc, 
-          col = brewer.pal(n = 4, name = "PRGn")[1],
-          main = "Zróżnicowany szereg")
-```
-<!-- Przeprowadźmy zatem test aby sprawdzić cechy słabej stacjonarności szeregu  -->
-<!-- zróżnicowanego. -->
-
-```{r include = FALSE}
-adf.test(nsc)
-```
-
-<!-- Zróżnicowany szereg wykazuje cechy słabej stajonarności. Zatem nasze modele  -->
-<!-- predykcyjne stworzymy w oparciu o szereg zróżnicowany. Wprowadzimy zatem parametr  -->
-<!-- `d`, który będzie odpowiadał za zróżnicowanie szerego.  -->
-
-```{r include = FALSE}
-d <- 0
-```
-
-
-<!-- Narysujmy ponownie wykres (za pomocą `stl()`) z którego wprost odczytamy oryginalne  -->
-<!-- dane, trend, sezonowość i resztę. -->
-
-```{r include = FALSE}
-nsc_stl <- stl(nsc, s.window = "periodic")
-plot(nsc_stl, col = brewer.pal(n = 4, name = "PRGn")[1])
-```
 
 Na podstawie powyższych wykresów jesteśmy w stanie odszukać potencjalne trendy 
 i sezonowość. Dodatkowo możemy wyciągnąć wnioski dotyczące stacjonarności danych. 
@@ -227,7 +202,12 @@ Utwórzmy nowy wektor z przewidywanym kursem za 7 dni
 
 ```{r}
 pkurs <- rep(NULL,4)
-for (i in 1:4) { pkurs[i] <- predykcje[[i]]$mean[7]}
+
+for (i in 1:4) 
+{ 
+    pkurs[i] <- predykcje[[i]]$mean[7]
+}
+
 pkurs
 ```
 
@@ -244,7 +224,8 @@ decyzja <- pkurs < kurs[length(kurs)]
 decyzja
 ```
 
-
+Wszystkie stworzone modele utrzymują nas w przekonaniu, że powinniśmy 
+wymieniać 1€ na złotówki.
 
 
 
