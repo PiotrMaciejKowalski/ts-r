@@ -89,10 +89,10 @@ Dokonamy teraz podziału na zbiory: uczący i testowy.
 **Podział na zbiór uczący i testowy**
 ```{r}
 #Zbiór uczący
-zb_ucz = window(df3,end = 34)
+zb_ucz = window(df3,end = 39)
 
 #Zbiór testowy
-zb_test = window(df3, start = 35)
+zb_test = window(df3, start = 40)
 ```
 
 
@@ -139,7 +139,7 @@ lines(zb_test, col="dark blue")
 
 #Model ARMA/ARIMA
 ```{r}
-ARIMA <- arima(zb_ucz, order = c(2,2,2))
+ARIMA <- auto.arima(zb_ucz, d =2)
 summary(ARIMA)
 ```
 
@@ -158,7 +158,8 @@ lines(zb_test, col="red")
 
 
 #Podsumowanie
-Na tym etapie policzymy błędy średniokwadratowe dla modeli MA, AR i ARIMA. Na podstawie tych obliczeń będziemy mogli wybrać lepszy model do prognozy.
+Na tym etapie policzymy błędy średniokwadratowe dla modeli MA, AR i ARIMA. Na podstawie tych obliczeń będziemy mogli wybrać lepszy model do prognozy.   
+
 ```{r}
 #Model MA
 bl_MA=mean(((prognoza_MA$mean - zb_test)^2))
@@ -173,5 +174,6 @@ bl_ARIMA=mean(((prognoza_ARIMA$mean - zb_test)^2))
 bl_ARIMA
 ```
 
-Widzimy, że model AR wydaje się być lepszym od modelu MA i ARIMA.
+Widzimy, że model MA wydaje się być lepszym od modelu AR.
+Błąd średniokwadratowy dla szeregu ARIMA jest tak duży, ponieważ w odróżnieniu do poprzednich dwóch modeli inaczej jest dobrany parametr **d**.
 
