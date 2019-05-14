@@ -78,6 +78,7 @@ summary(modelMA)
 ```{r}
 prognozaMA = forecast(modelMA, h = length(test))
 plot(prognozaMA)
+lines(test, col="blue")
 ```
 ```{r}
 bMA<- mean(((prognozaMA$mean-test)^2))
@@ -88,12 +89,14 @@ bMA<- mean(((prognozaMA$mean-test)^2))
 modelAR = arima(tr, order = c(1,0,2))
 summary(modelAR)
 
+
 ```
 
 **Predykcja dla modelu AR**
 ```{r}
 prognozaAR = forecast(modelAR, h = length(test))
 plot(prognozaAR)
+lines(test, col="blue")
 ```
 ```{r}
 bAR<- mean(((prognozaAR$mean-test)^2))
@@ -111,6 +114,7 @@ summary(modelARIMA)
 ```{r}
 prognozaARIMA = forecast(modelARIMA, h = length(test))
 plot(prognozaARIMA)
+lines(test, col="blue")
 
 ```
 ```{r}
