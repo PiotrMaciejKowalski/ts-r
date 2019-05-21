@@ -1,0 +1,157 @@
+---
+title: "Analiza kursu dolara australijskiego (AUD) do dolara nowozelandzkiego (NZD)"
+author: "Małgorzata Woźna"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Analizowane dane 
+
+Analizowane będą dane ze strony HistData.com (https://www.histdata.com/) dotyczące kursu dolara australijskiego do dolara nowozelandzkiego. Dokładniej analiza kursów z bieżacego roku (dokładny okres 01.01.2019 - 25.03.2019) z godzin 8:00, 12:00, 16:00 i 20:00. Na potrzeby przedstawienia danych w formie wykresów pobrane przezemnie dane musiały zostać odpowiednio wybrane z obszernego pliku. Pokazany jest wyłącznie kurs zamknięci. Dodatkowo dane nie zawierają informacji o notowaniach w weekendy.
+
+## Wczytywanie danych
+Dane zostały wcześniej obrobione w programie Excel
+
+```{r wczytywanie}
+dane <- read.csv2(file = 'mwozna-dane.csv', header = TRUE, sep = ";", dec = ".")
+godz_8 <- dane[dane$godzina == 80000, ]
+godz_12 <- dane[dane$godzina == 120000, ]
+godz_16 <- dane[dane$godzina == 160000, ]
+godz_20 <- dane[dane$godzina == 200000, ]
+kurs<-as.numeric(dane$zamkniecie)
+dane$zamkniecie = kurs
+head(dane)
+```
+
+### Wyświetlenie losowych 6 linijek danych z wybranych godzin
+```{r}
+head(godz_8)
+head(godz_12)
+head(godz_20)
+```
+
+# Wykresy
+
+Początkowo przedstawione będą wykresy przedstawiające kurs walut z danej godziny osobno.
+
+```{r echo=FALSE}
+par(mfrow = c(2, 2), pty= "m")
+plot(1:length(godz_8$data), godz_8$zamkniecie, type = "l", main = "Kursy z 8:00", xlab = "Dzień", ylab = "Kurs", col="blue")
+plot(1:length(godz_12$data), godz_12$zamkniecie, type = "l", main = "Kursy z 12:00", xlab = "Dzień", ylab = "Kurs", col="blue")
+plot(1:length(godz_16$data), godz_16$zamkniecie, type = "l", main = "Kursy z 16:00", xlab = "Dzień", ylab = "Kurs", col="blue")
+plot(1:length(godz_20$data), godz_20$zamkniecie, type = "l", main = "Kursy z 20:00", xlab = "Dzień", ylab = "Kurs", col="blue")
+par(mfrow = c(1, 2))
+
+```
+
+## Wspólny wykres 
+Wykres przedstawia kursy walut o godzinie 8:00, 12:00, 16:00, 20:00. Wgląd na jeden wykres ułatwi analize róznic występującą między danymi godzinami.
+
+```{r echo=FALSE}
+curve(godz_8$zamkniecie[x], from = 1, to = length(godz_8$data), type = "l", xlab = "Dzień", ylab = "Kurs", col = "blue")
+curve(godz_12$zamkniecie[x], from = 1, to = length(godz_12$data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Kurs", col = "red")
+curve(godz_16$zamkniecie[x], from = 1, to = length(godz_16$data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Kurs", col = "brown")
+curve(godz_20$zamkniecie[x], from = 1, to = length(godz_20$data), add = TRUE, type = "l", xlab = "Dzień", ylab = "Kurs", col = "yellow")
+legend("bottomleft", legend = c("Godzina 8:00", "Godzina 12:00", "Godzina 16:00", "Godzina 20:00"), col = c("blue", "red", "brown", "yellow"), lwd = 1)
+```
+
+Możemy zauważyć podobieństwo wykresów z godziny 8:00, 12:00 oraz 16:00. Różni się jedynie wykres z godziny 20:00. Róznica ta nie wynika z dużego wzrostu czy spadku wartości kursu lecz ilość pobranych danych. Danych o godzinie 20:00 jest najwięcej. Dzięki obserwacji wykresu widzimy, że kurs walut jest najwyższy w połowie miesiąca póżniej spada.
+
+# Prognoza
+
+
+## Wstęp do konstrukcji modeli
+
+## Pierwszy model
+
+W pierwszym modelu predykcja na ostatnie 8 pomiarów tzn. danych dla 2 ostanich dni analizowanego okresu. Zostanie stworzona na podstawie zbioru uczącego składającego się ze wszystkich poprzednich danych.
+
+```{r}
+N<-length(dane$zamkniecie)
+n<-40 
+newdane <- data.frame(nr=1:N,zamkniecie=dane$zamkniecie)
+names(newdane)<-c("nr","zamkniecie")
+uczacy <- newdane[1:(N - n), ]
+testowy <- newdane[(N - n + 1):N, ]
+```
+
+Rozważmy następujący model i zobaczmy jak wygląda wykres dla danych i predykcji na zbiorze uczącym. 
+
+```{r echo=FALSE}
+model1<-lm(zamkniecie~nr,data=uczacy)
+summary(model1)
+plot(uczacy$nr, uczacy$zamkniecie, main = "Model pierwszy", xlab = "Pomiary", ylab = "Kurs zamknięcia")
+abline(model1, col = "red")
+
+```
+
+Widać zatem trend malejący. Teraz stworzony zostanie wykres rzeczywistych i predyktowanych wartości na ostatnie 2 dni okresu (zbiór testowy).
+
+```{r}
+pred1 <- predict(model1, testowy)
+plot(testowy$nr, testowy$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dzień okresu", ylab = "Zamknięcie", ylim =c(1.025, 1.043))
+lines(testowy$nr,pred1, col = "red")
+
+```
+
+Czas zatem na wyliczenie błędu średniokwadratowego i współczynnika Theil'a: 
+
+```{r}
+blad1=mean(((pred1-testowy$zamkniecie)^2))
+theil1=sum(((pred1-testowy$zamkniecie)^2))/sum((testowy$zamkniecie^2))
+```
+
+Błąd średniokwadratowy wynosi `r blad1`. Wartość statystyki Theil'a w tym modelu wynosi `r theil1`.
+
+Wartość tej statystyki jest mnijesza niz 1, zatem widać, że nasza prognoza jest skuteczniejsza niż prognoza naiwna.
+
+##Model drugi
+
+W drugim modelu zosatnie przeprowadzona predykcja dla ostanich 40 pomiarów tzn. dla 10 ostanich dni, stworzona na podstawie zbioru uczącego składającego się ze wszystkich poprzednich danych. Znacząco zmniejszamy zbiór uczący.
+
+```{r}
+N<-length(dane$zamkniecie)
+n<-40 
+window_size <- 40
+newdane <- data.frame(nr=1:N,zamkniecie=dane$zamkniecie)
+names(newdane)<-c("nr","zamkniecie")
+uczacy <- newdane[(N-n-window_size):(N - n), ]
+testowy <- newdane[(N - n + 1):N, ]
+```
+Rozważmy następujący model i zobaczmy jak wygląda wykres dla danych i predykcji na zbiorze uczącym. 
+
+```{r echo=FALSE}
+model2<-lm(zamkniecie~nr,data=uczacy)
+summary(model1)
+plot(uczacy$nr, uczacy$zamkniecie, main = "Model drugi", xlab = "Pomiary", ylab = "Kurs zamknięcia")
+abline(model2, col = "blue")
+
+```
+
+Widać zatem trend malejący. Teraz stworzony zostanie wykres rzeczywistych i predyktowanych wartości na ostatnie 30 dni okresu (zbiór testowy).
+
+```{r}
+pred2 <- predict(model2,  testowy)
+plot(testowy$nr, testowy$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dzień okresu", ylab = "Zamknięcie", ylim = c(1.03,1.05))
+lines(testowy$nr, pred2, col = "blue")
+
+```
+
+Czas zatem na wyliczenie błędu średniokwadratowego i współczynnika Theil'a: 
+
+```{r}
+blad2=mean(((pred2-testowy$zamkniecie)^2))
+theil2=sum(((pred2-testowy$zamkniecie)^2))/sum((testowy$zamkniecie^2))
+```
+
+Błąd średniokwadratowy wynosi `r blad2`. Wartość statystyki Theil'a w tym modelu wynosi `r theil2`.
+
+Widać, że wartość statystyki Theil'a jest mniejsza niż 1, zatem prognozy te są dokładniejsze niż prognoza naiwna.  
+
+###Podsumowanie
+
+Porównując błąd średniokwadratowy w obu modelach możemy stwierdzić że model drugi jest dokładniejszy. Błąd średniokwadratowy w pierwszym modelu wyniósł  `r blad1` , a w modelu drugim  `r blad2`.
