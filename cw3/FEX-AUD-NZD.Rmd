@@ -72,7 +72,7 @@ W pierwszym modelu predykcja na ostatnie 8 pomiarów tzn. danych dla 2 ostanich 
 
 ```{r}
 N<-length(dane$zamkniecie)
-n<-8 
+n<-40 
 newdane <- data.frame(nr=1:N,zamkniecie=dane$zamkniecie)
 names(newdane)<-c("nr","zamkniecie")
 uczacy <- newdane[1:(N - n), ]
@@ -116,9 +116,10 @@ W drugim modelu zosatnie przeprowadzona predykcja dla ostanich 40 pomiarów tzn.
 ```{r}
 N<-length(dane$zamkniecie)
 n<-40 
+window_size <- 40
 newdane <- data.frame(nr=1:N,zamkniecie=dane$zamkniecie)
 names(newdane)<-c("nr","zamkniecie")
-uczacy <- newdane[1:(N - n), ]
+uczacy <- newdane[(N-n-window_size):(N - n), ]
 testowy <- newdane[(N - n + 1):N, ]
 ```
 Rozważmy następujący model i zobaczmy jak wygląda wykres dla danych i predykcji na zbiorze uczącym. 
@@ -135,7 +136,7 @@ Widać zatem trend malejący. Teraz stworzony zostanie wykres rzeczywistych i pr
 
 ```{r}
 pred2 <- predict(model2,  testowy)
-plot(testowy$nr, testowy$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dzień okresu", ylab = "Zamknięcie", ylim = c(0.1,2.0))
+plot(testowy$nr, testowy$zamkniecie, main = "Predykcja na zbiorze testowym", xlab = "Dzień okresu", ylab = "Zamknięcie", ylim = c(1.03,1.05))
 lines(testowy$nr, pred2, col = "blue")
 
 ```
