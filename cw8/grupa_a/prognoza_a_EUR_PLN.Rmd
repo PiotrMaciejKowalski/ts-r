@@ -227,5 +227,13 @@ decyzja
 Wszystkie stworzone modele utrzymują nas w przekonaniu, że powinniśmy 
 wymieniać 1€ na złotówki.
 
+## Ocena prognozy
 
+Zgodnie z naszą prognozą wymieniliśmy 1€ na złotówki w dniu 14.05.2019 korzystając
+z predykcji do dnia poprzedniego włącznie. Otrzymaliśmy w ten sposób `r  dane$Otwarcie[dane$Data == "2019-05-13"]` zł. Spodziewaliśmy się uzyskać 21.05 minimum `r min(pkurs)`, a więc zyskać `r dane$Otwarcie[dane$Data == "2019-05-13"]-min(pkurs)`.
+
+
+W dniu 21.05 (7 dni później) otczytaliśmy cenę otwarcia z dnia 20.05, która wyniosła`r wynik <- 4.30475` `r wynik`, zatem na naszej transakcji straciliśmy `r wynik-dane$Otwarcie[dane$Data == "2019-05-13"]`.
+Zaproponowane przez nas modele spowodowały, że straciliśmy na naszej inwestycji.
+Może to być spowodowane relatywnie długim horyzontem predykcji (7 dni).
 
