@@ -113,7 +113,7 @@ text(mean(dzien),mean(otwarcie), round(summary(model)$r.squared,5),pos=4)
 
 Zajmiemy się teraz predykcją dla cen akcji spółki AWM od 06-03-2019 (zbior testowy). Możemy także zobaczyć jego wykres
 ```{r}
-prognoza<-predict(model, newdata = zb_testowy)
+prognoza<-predict(model, data = zb_testowy)
 prognoza
 plot(zb_testowy$otwarcie,xlab = "Data",ylab = "Cena otwarcia akcji", main="Model z trendem liniowym dla wszytskich przeszłych danych", type="l")
 lines(prognoza, col="blue")
