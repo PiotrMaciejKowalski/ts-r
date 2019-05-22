@@ -1,0 +1,126 @@
+---
+title: "Kurs USD-CHF"
+author: "Joanna Kamińska"
+date: "8 maja 2019"
+output:html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(forecast)
+library(tseries)
+```
+
+```{r}
+d<-read.csv2(file="jkaminska-dane.csv", header=TRUE, sep=";", dec=".")
+d_g <-d[d$godzina==80000, ]
+new_d <- as.Date(as.character(d_g$data), format= "%Y%m%d")
+d_g$data = new_d
+data <- ts(d_g$zamkniecie, frequency = 1)
+```
+
+```{r warning=FALSE}
+tsdisplay(data)
+```
+
+```{r}
+adf.test(data)
+```
+
+## Zróżnicowanie szeregu
+
+```{r}
+data_d <-diff(data)
+tsdisplay(data_d)
+```
+
+Na podstawie wykresów może stwierdzić, że szereg ten jest już stacjonarny. 
+Z wykresu ACF możemy odczytać, że q=2, z wykresu PACF odczytujemy, że p=1.
+
+Użyjemy teraz testu statystycznego, aby sprawdzić stacjonarność szeregu.
+
+```{r}
+pp.test(data_d, alternative = "stationary")
+```
+
+Widzimy, że p-value < 0.05 zatem szereg ten jest stacjonarny.
+
+## Podział danych na zbiór uczący i testowy.
+
+```{r}
+train= window(data_d, end=40)
+train
+test= window(data_d, start=40)
+test
+```
+
+```{r}
+ts.plot(train, test, col=1:2, lty=c(1,2))
+```
+
+
+## MODEL AR
+
+```{r}
+AR<-arima(train, c(1,1,0))
+summary(AR)
+```
+
+## MODEL MA
+
+```{r}
+MA<-arima(train, c(0,1,2))
+summary(MA)
+```
+
+## MODEL ARMA
+
+```{r}
+ARMA<-arima(train, c(1,1,2))
+summary(ARMA)
+```
+
+
+
+## Prognozy
+
+Prognoza dla modelu AR i MA.
+
+```{r}
+prognozaAR<-forecast(AR, h=length(test))
+plot(prognozaAR, type="l")
+lines(test, col="blue")
+```
+
+
+```{r}
+prognozaMA<-forecast(MA, h=length(test))
+plot(prognozaMA, type="l")
+lines(test, col="red")
+```
+
+```{r}
+prognozaARMA<-forecast(ARMA, h=length(test))
+plot(prognozaARMA, type="l")
+lines(test, col="red")
+```
+
+
+
+## Błędy średniokwadratowe dla zaproponowanych predykcji
+
+```{r}
+bladAR<- mean((prognozaAR$mean-test)^2)
+bladMA<-mean((prognozaMA$mean-test)^2)
+
+bledy<- c("Błąd dla AR"=bladAR, "Błąd dla MA"=bladMA)
+
+bledy
+```
+
+Podsumowanie:
+Wybieramy model MA.
+
+
+
