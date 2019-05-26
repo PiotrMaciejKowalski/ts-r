@@ -1,0 +1,96 @@
+---
+title: "Ćw 5"
+author: "KŁądka"
+date: "26 maja 2019"
+output: html_document
+---
+#Wczytanie danych i pakietów.
+```{r}
+library(XLConnect)
+library(dplyr)
+library(tidyr)
+library(forecast)
+library(tseries)
+dane <- readWorksheetFromFile('Ladka-GPW-CCC.xlsx', sheet = 1)
+head(dane)
+```
+
+#Wykres danych
+```{r}
+plot(dane$Otwarcie, type = 'l')
+```
+
+Badamy stacjonarność szeregu.
+```{r}
+sc = ts(dane$Otwarcie, frequency = 1)
+adf=adf.test(sc)
+adf
+```
+
+Zróżnicujmy szereg i wykonajmy ponownie test.
+```{r}
+dsc <- diff(sc)
+adf <- adf.test(dsc)
+adf
+```
+p-value=`r adf$p.value`<0.05, zatem zróżnicowany szereg czasowy ma cechy słabej stacjonarności.
+
+
+#wykresy ACF i PACF dla szeregu zróżnicowanego
+```{r}
+date = as.Date(dane$Data, format='%Y-%m-%d')
+plot(dsc)
+acf(dsc)
+pacf(dsc)
+```
+
+Tworzymy podział na zbiory treningowe i testowe
+```{r}
+treningowy = window(dsc,end = 20)
+head(treningowy)
+testowy = window(dsc,start = 21)
+head(testowy)
+```
+
+#Model MA
+```{r}
+modelMA = Arima(treningowy, order = c(0,0,1))
+summary(modelMA)
+prognozaMA = forecast(modelMA, h = length(testowy))
+mseMA<- mean(((prognozaMA$mean-testowy)^2))
+```
+```{r}
+plot(prognozaMA)
+lines(testowy, col = 'red')
+```
+
+#Model AR
+```{r}
+modelAR = Arima(treningowy, order = c(1,0,1))
+summary(modelAR)
+prognozaAR = forecast(modelAR, h = length(testowy))
+mseAR<- mean(((prognozaAR$mean-testowy)^2))
+```
+```{r}
+plot(prognozaAR)
+lines(testowy, col = 'red')
+```
+
+#Model ARIMA
+```{r}
+modelARIMA = Arima(treningowy, order = c(1,2,1))
+summary(modelARIMA)
+prognozaARIMA = forecast(modelARIMA, h = length(testowy))
+mseARIMA<- mean(((prognozaARIMA$mean-testowy)^2))
+```
+```{r}
+plot(prognozaARIMA)
+lines(testowy, col = 'red')
+```
+
+#Porównanie błędów średniokwadratowych
+```{r}
+mseMA
+mseAR
+mseARIMA
+```
