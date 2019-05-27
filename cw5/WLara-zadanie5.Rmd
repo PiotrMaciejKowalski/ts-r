@@ -90,9 +90,9 @@ test
 
 ##ModelL MA
 ```{r}
-modelMA = Arima(treningowy, order = c(0,0,2))
+modelMA = Arima(trening, order = c(0,0,2))
 summary(modelMA)
-prognozaMA = forecast(modelMA, h = length(testowy))
+prognozaMA = forecast(modelMA, h = length(test))
 
 ```
 
@@ -104,9 +104,9 @@ lines(test, col = "green")
 ##Model AR
 
 ```{r}
-modelAR = Arima(treningowy, order = c(1,0,2))
+modelAR = Arima(trening, order = c(1,0,2))
 summary(modelAR)
-prognozaAR = forecast(modelAR, h = length(testowy))
+prognozaAR = forecast(modelAR, h = length(test))
 
 ```
 
@@ -119,9 +119,9 @@ lines(test,col ="red")
 ##Model ARIMA
 
 ```{r}
-modelARIMA = Arima(treningowy, order = c(1,2,2))
+modelARIMA = Arima(trening, order = c(1,2,2))
 summary(modelARIMA)
-prognozaAR = forecast(modelARIMA, h = length(testowy))
+prognozaARIMA = forecast(modelARIMA, h = length(test))
 ```
 
 ```{r}
