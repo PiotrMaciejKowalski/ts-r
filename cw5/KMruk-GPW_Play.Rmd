@@ -1,0 +1,130 @@
+---
+title: "KMruk-Play"
+author: "Karolina Mruk"
+date: "8 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Zacznijmy od pobrania  potrzebnych pakietów
+```{r}
+library(dplyr)
+library(tidyr)
+library(forecast)
+library(tseries)
+```
+Wczytamy teraz dane
+```{r}
+dane<- read.csv("kMruk-GPW_PLAY.csv")[,1:5]
+date = as.Date(dane$Data, format='%Y-%m-%d')
+head(dane)
+```
+W zadaniu tym, weźmiemy pod uwagę **cenę Otwarcia**
+
+Zamiana danych w szereg czasowy
+```{r}
+szereg = ts(dane$Otwarcie, frequency = 1)
+head(szereg)
+```
+
+```{r}
+plot(dane$Otwarcie, type="l",main = "Wykres dla ceny otwarcia akcji spółki PLAY",
+     xlab = "Dni",
+     ylab = "Cena Otwarcia")
+```
+
+Badamy stacjonarność szeregu.
+```{r}
+adf1=adf.test(szereg)
+adf1
+```
+
+Ponieważ nasze `p-value` wynosi 0.5635 >0.05, to nie mamy podstaw do odrzucenia hipotezy dot. słabej stacjonarności.
+Zróżnicujemy nasz szereg i ponownie wykonamy test.
+
+```{r}
+df2=diff(szereg)
+adf2=adf.test(df2)
+adf2
+```
+Teraz widzimy, że nasze  p-value = 0.01827, zatem szereg jest teraz stacjonarny.
+
+#wykresy ACF i PACF dla szeregu zróżnicowanego
+
+```{r}
+tsdisplay(df2)
+```
+
+#Modele MA i AR
+
+Podzielimy na zbiór trenujący i testowy
+```{r}
+tr=window(df2,end=30)
+tr
+test=window(df2,start=31)
+test
+```
+
+#Model MA
+```{r}
+modelMA = arima(tr, order = c(0,0,2))
+summary(modelMA)
+```
+
+**Predykcja dla modelu MA**
+```{r}
+prognozaMA = forecast(modelMA, h = length(test))
+plot(prognozaMA)
+lines(test, col="blue")
+```
+```{r}
+bMA<- mean(((prognozaMA$mean-test)^2))
+```
+
+#Model AR
+```{r}
+modelAR = arima(tr, order = c(1,0,2))
+summary(modelAR)
+
+
+```
+
+**Predykcja dla modelu AR**
+```{r}
+prognozaAR = forecast(modelAR, h = length(test))
+plot(prognozaAR)
+lines(test, col="blue")
+```
+```{r}
+bAR<- mean(((prognozaAR$mean-test)^2))
+```
+
+#Model ARIMA
+```{r}
+modelARIMA = Arima(tr, order = c(1,1,2))
+summary(modelARIMA)
+
+
+```
+
+**Predykcja dla modelu ARIMA**
+```{r}
+prognozaARIMA = forecast(modelARIMA, h = length(test))
+plot(prognozaARIMA)
+lines(test, col="blue")
+
+```
+```{r}
+bARIMA<- mean(((prognozaARIMA$mean-test)^2))
+```
+
+#Porównanie błędów średniokwadratowych
+```{r}
+bMA
+bAR
+bARIMA
+```
+Zatem model ARIMA jest najlepszy
