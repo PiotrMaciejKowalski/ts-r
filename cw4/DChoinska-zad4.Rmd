@@ -9,55 +9,55 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#WczytujÄ™ dane dotyczÄ…ce kursu euro do dolara nowozelandzkiego, które pochodz¹ ze strony Histdata.com
+#WczytujÄ™ dane dotyczÄ…ce kursu euro do dolara nowozelandzkiego, ktÃ³re pochodzÄ… ze strony Histdata.com
 
 ```{r}
 library(dplyr)
 library(tidyr)
-dane <- read.table(file = 'Choiñska_Dane.csv',col.names =c('Data','Godzina','Kurs rozpoczêcia','Kurs zakoñczenia'), sep =";")
+dane <- read.table(file = 'ChoiÅ„ska_Dane.csv',col.names =c('Data','Godzina','Kurs rozpoczÄ™cia','Kurs zakoÅ„czenia'), sep =";")
 head(dane)
 ```
 ## Pierwsze filtrowanie potokowe
-W pierwszym procesie zaprezentujê kursy z godziny 12:00 dla których kurs zamkniêcia i rozpoczecia jest przynajmniej równy ze œrednim kursem rozpoczêcia 
+W pierwszym procesie zaprezentujÄ™ kursy z godziny 12:00 dla ktÃ³rych kurs zamkniÄ™cia i rozpoczÄ™cia jest przynajmniej rÃ³wny ze Å›rednim kursem rozpoczÄ™cia 
 ```{r}
-o <- mean(dane$Kurs.rozpoczêcia)
+o <- mean(dane$Kurs.rozpoczÄ™cia)
 dane %>%
-  filter(Godzina==120000, Kurs.rozpoczêcia >=o,Kurs.zakoñczenia>=o)%>%
-  select(Godzina,Kurs.rozpoczêcia,Kurs.zakoñczenia)-> result
+  filter(Godzina==120000, Kurs.rozpoczÄ™cia >=o,Kurs.zakoÅ„czenia>=o)%>%
+  select(Godzina,Kurs.rozpoczÄ™cia,Kurs.zakoÅ„czenia)-> result
 head (result)
 
 ```
 ```{r}
-plot(result$Kurs.rozpoczêcia, xlab="Pomiar",ylab="Kurs.rozpoczêcia",main="Kursy wiêksze ni¿ œredni kurs otwarcia z godziny 12:00")
+plot(result$Kurs.rozpoczÄ™cia, xlab="Pomiar",ylab="Kurs.rozpoczÄ™cia",main="Kursy wiÄ™ksze niÅ¼ Å›redni kurs otwarcia z godziny 12:00")
 ```
 
 ##Drugie filtrowanie potokowe
-W drugim procesie potokowym poka¿ê ró¿nicê pomiêdzy kursem rozpoczêcia a kursem zakoñczenia z godziny 20:00
+W drugim procesie potokowym pokaÅ¼Ä™ rÃ³Å¼nicÄ™ pomiÄ™dzy kursem rozpoczÄ™cia a kursem zakoÅ„czenia z godziny 20:00
 
 ```{r}
 dane %>%
   filter(Godzina==200000) %>%
-  select(Godzina,Kurs.rozpoczêcia,Kurs.zakoñczenia) %>%
-  mutate(roznica=Kurs.zakoñczenia-Kurs.rozpoczêcia) -> dane2
+  select(Godzina,Kurs.rozpoczÄ™cia,Kurs.zakoÅ„czenia) %>%
+  mutate(roznica=Kurs.zakoÅ„czenia-Kurs.rozpoczÄ™cia) -> dane2
 ```
 ```{r}
-plot(dane2$roznica,xlab = "Pomiar",ylab = "roznica",main= "roznica pomiedzy kursem rozpoczêcia a kursem zakoñczenia z godziny 20:00")
+plot(dane2$roznica,xlab = "Pomiar",ylab = "roznica",main= "rÃ³Å¼nica pomiÄ™dzy kursem rozpoczÄ™cia a kursem zakoÅ„czenia z godziny 20:00")
 ```
 
 ##Trzecie filtrowanie potokowe
 
-W trzecim procesie potokowym pogrupujê i podsumujê pewne dane
+W trzecim procesie potokowym pogrupujÄ™ i podsumujÄ™ pewne dane
 ```{r}
 dane %>%
   filter(Godzina==80000) %>%
-  mutate(roznica=Kurs.zakoñczenia-Kurs.rozpoczêcia) %>%
-  arrange(Kurs.rozpoczêcia) %>%
-  group_by(Kurs.rozpoczêcia) %>%
+  mutate(roznica=Kurs.zakoÅ„czenia-Kurs.rozpoczÄ™cia) %>%
+  arrange(Kurs.rozpoczÄ™cia) %>%
+  group_by(Kurs.rozpoczÄ™cia) %>%
   summarise(srednia=mean(roznica, na.rm = TRUE)) -> dane3
 head(dane3)
 ```
 ```{r}
-matplot(dane3$Kurs.rozpoczêcia, dane3$srednia, xlab="Zmiana", ylab="Å›rednie wartoÅ›ci", "l", col="blue")
+matplot(dane3$Kurs.rozpoczÄ™cia, dane3$srednia, xlab="Zmiana", ylab="Å›rednie wartoÅ›ci", "l", col="blue")
 ```
 
 
