@@ -2,7 +2,8 @@
 title: "Kurs USD-CHF"
 author: "Joanna Kamińska"
 date: "8 maja 2019"
-output:html_document
+output:
+  html_document
 ---
 
 ```{r setup, include=FALSE}
