@@ -66,6 +66,6 @@ barplot(tabela_3$Roznica, offset=0, main = "Różnica zamknięcia i otwarcia")
 
 ```{r}
 barplot(by_miesiac$Srednia_Otwarcie, names.arg = c("Styczeń", "Luty", "Marzec"), ylab = "Średnia cena akcji Agory",main = "Średnia cena otwarcia")
-barplot(by_miesiac$Srednia_Zamkniecie, names.arg = c("Styczeń", "Luty", "Marzec"),ylab = "Średnia cena akcji Agory",main = "Średnia cena zamknięcie")
+barplot(by_miesiac$Srednia_Zamkniecie, names.arg = c("Styczeń", "Luty", "Marzec"),ylab = "Średnia cena akcji Agory",main = "Średnia cena zamknięcia")
 ```
 
