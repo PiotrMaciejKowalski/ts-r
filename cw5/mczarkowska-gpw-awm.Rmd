@@ -114,8 +114,16 @@ prog2
 #Przedstawimy teraz uzyskane prognozy na wykresach
 ```{r}
 plot(prog)
+lines(testowy,col="red")
+```
+```{r}
 plot(prog1)
+lines(testowy,col="red")
+```
+
+```{r}
 plot(prog2)
+lines(testowy,col="red")
 ```
 
 #Policzmy teraz błąd średniokwadratowy, w celu sprawdzenia który model ma największą skuteczność
