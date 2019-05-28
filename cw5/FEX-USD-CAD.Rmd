@@ -1,0 +1,116 @@
+---
+title: "Analiza kursu dolara amerykańskiego do dolara kanadyjskiego"
+author: "Patrycja Kolanowska"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Dane
+
+Analizować będziemy dane pobrane ze strony Forex.pl dotyczące kursy dolara amerykańskiego do dolara kanadyjskiego. Interesuje nas bieżący rok (01.01.2019-22.03.2019) z godziny 8:00, 12:00, 16:00, 20:00. Interesować nas będzie godzina zamknięcia.
+
+```{r cars}
+dane <- read.csv2(file = 'pKolanowska-USDCAD.csv', header = TRUE)
+dane_8 <- dane[dane$Godzina == 80000, ]
+dane_12 <- dane[dane$Godzina == 120000, ]
+dane_16 <- dane[dane$Godzina == 160000, ]
+dane_20 <- dane[dane$Godzina == 200000, ]
+
+head(dane_8)
+```
+
+Zmieńmy typ danych na specjalnie przystowsowany do analizy szeregów czasowych.
+
+```{r}
+library(dplyr)
+library(forecast)
+sc <- ts(dane$Zamkniecie, frequency = 1)
+```
+
+Szereg czasowy zmiennej zamknięcia jest następującej postaci:
+```{r}
+plot(sc, main="Zamknięcie",col="red", xlab = "Dzień analizy", ylab="Cena zamknięcia")
+```
+
+## Funkcja autokorelacji (ACF) i autokorelacji cząstkowej (PACF)
+```{r}
+par(mfrow = c( 1, 2), pty = "m")
+acf(sc, main="ACF", ylab="Wartość korelacji", xlab=" ")
+pacf(sc, main="PACF", ylab="Wartość korelacji", xlab= " ")
+
+mtext("Przesunięcie, dla jakiego obliczana jest autokorelacja", side = 1, line = -3, outer = TRUE)
+```
+
+## Podział na zbiór uczący i testowy.
+
+Podzielmy nasz zbiór na część uczącą i część testową.
+
+```{r}
+l<-length(sc)
+```
+
+```{r}
+uczacy<-window(sc,end=100)
+head(uczacy)
+testowy<-window(sc,start=101)
+head(testowy)
+```
+
+```{r}
+ts.plot(uczacy, testowy, col=1:2, lty=c(1,2), xlab="Dni", main= "Podział na zbiór uczący i testowy - Kurs zamknięcia ")
+```
+
+##Model AR
+```{r}
+AR<-Arima(uczacy,order = c(2,1,0))
+summary(AR)
+```
+
+##Model MA
+```{r}
+MA<-Arima(uczacy, order=c(0,2,3))
+summary(MA)
+```
+
+##Model ARIMA
+```{r}
+ARIMA<-Arima(uczacy, order=c(1,2,2))
+summary(ARIMA)
+```
+
+
+
+## Prognozy
+
+Prognoza dla modelu AR.
+```{r}
+prognozaAR<-forecast(AR,h=length(testowy)-1)
+plot(prognozaAR,type="l")
+lines(testowy, col="red")
+```
+
+
+Prognoza dla modelu MA.
+```{r}
+prognozaMA<-forecast(MA,h=length(testowy)-1)
+plot(prognozaMA,type="l")
+lines(testowy, col="red")
+```
+
+Błędy średniokwadratowe dla zaproponowanych predykcji.
+```{r}
+m1<-mean( (prognozaAR$mean - testowy)^2, na.rm = TRUE)
+m2<-mean( (prognozaMA$mean - testowy)^2, na.rm = TRUE)
+```
+Błąd średniokwadratowy dla prognozy AR wynosi `r m1`, natomiast dla MA wynosi `r m2`
+Wybieramy model AR.
+
+
+
+
