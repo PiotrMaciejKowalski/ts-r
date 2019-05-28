@@ -138,6 +138,8 @@ prognoza2=predict(model_n,newdata=zb_testowy)
 prognoza2
 ```
 
+KOWALSKI: Poniższe wykresy są niepoprawne. I wymagałyby dalszej poprawy. Zostaną jednak z uwagi na termin wyjątkowo włączone do repozytorium.
+
 Zilustrujmy te wartości na wykresie:
 ```{r}
 prognoza2=predict(model_n,newdata=zb_testowy)
