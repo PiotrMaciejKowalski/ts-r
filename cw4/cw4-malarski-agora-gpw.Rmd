@@ -1,0 +1,71 @@
+---
+title: "zadanie4"
+author: "Adam Malarski"
+date: "30 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wczytywanie danych   
+
+ Wczytałem dane dotyczące notowań akcji spółki Agora na GPW. adres:https://stooq.pl/q/d/?s=ago&c=0&d1=20190101&d2=20190326
+```{r}
+library(dplyr)
+library(tidyr)
+Dane <- read.csv("C:/Users/Adam/ts-r/cw4/amalarski-agora-gpw.txt")
+head(Dane)
+Data <- Dane $Data
+Date <- as.Date(Data, "%Y-%m-%d")
+Wolumen <- Dane $Wolumen
+Otwarcie <- Dane $Otwarcie
+Zamkniecie <- Dane $Zamkniecie
+```
+##Pierwsze filtrowanie potokowe
+```{r}
+Dane %>%
+ filter(Najnizszy>=10.5) %>%
+  mutate(srednia = (Najnizszy+ Najwyzszy)/2) %>%
+  select(Data, Najnizszy, Najwyzszy, srednia) -> tabela_2
+tabela_2
+```
+
+
+```{r}
+plot(tabela_2$Data, tabela_2$srednia, xlab="Data", ylab = "Średnia cena akcji", main = "Średnia wartość najwyżej oraz najniższej ceny akcji w danym dniu", type="l")
+```
+
+##Drugie filtrowanie potokowe
+```{r}
+Dane %>%
+  mutate(Roznica=Zamkniecie-Otwarcie) %>%
+  filter(Roznica>0) %>%
+  select(Data, Otwarcie,Zamkniecie,Roznica)-> tabela_3
+tabela_3
+    ```
+```{r}
+barplot(tabela_3$Roznica, offset=0, main = "Różnica zamknięcia i otwarcia")
+```
+
+##Trzecie filtrowanie potokowe
+
+```{r}
+ by_miesiac <- Dane %>%
+  filter(Otwarcie > 3) %>%
+  mutate(Miesiac = format(as.POSIXct(Data), "%m")) %>%
+  group_by(Miesiac) %>%
+  summarise(
+  Srednia_Otwarcie = mean(Otwarcie),
+  Srednia_Zamkniecie = mean(Zamkniecie),
+  )
+  by_miesiac
+```
+
+
+```{r}
+barplot(by_miesiac$Srednia_Otwarcie, names.arg = c("Styczeń", "Luty", "Marzec"), ylab = "Średnia cena akcji Agory",main = "Średnia cena otwarcia")
+barplot(by_miesiac$Srednia_Zamkniecie, names.arg = c("Styczeń", "Luty", "Marzec"),ylab = "Średnia cena akcji Agory",main = "Średnia cena zamknięcia")
+```
+
