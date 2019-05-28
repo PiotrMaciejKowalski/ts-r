@@ -1,5 +1,5 @@
 ---
-title: "æwiczenie 5"
+title: "Ä‡wiczenie 5"
 author: "Marta Czarkowska"
 date: "7 maja 2019"
 output: html_document
@@ -8,11 +8,11 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-Zaczynam od wczytania danych spó³ki AWM oraz za³¹czenia niezbêdnych do wykonania zadania bibliotek.
+Zaczynam od wczytania danych spÃ³Å‚ki AWM oraz zaÅ‚Ä…czenia niezbÄ™dnych do wykonania zadania bibliotek.
 ```{r}
 library(forecast)
 library(readxl)
-dane <- read_excel("~/mczarkowska-gpw-awm.xlsx")[1:5]
+dane <- read_excel("mczarkowska-gpw-awm.xlsx")[1:5]
 head(dane)
 ```
 
@@ -29,12 +29,12 @@ sessional_otwarcie=ts(otwarcie,frequency = 5)
 ```
 #Podstawowy wykres
 
-Wykres naszego szeregu czasowego wygl¹da nastêpuj¹co:
+Wykres naszego szeregu czasowego wyglÄ…da nastÄ™pujÄ…co:
 ```{r}
 plot(otwarcie, xlab="Data",ylab="Cena otwarcia", main="Prosty wykres dla ceny otwarcia spÃ³Å‚ki AWM")
 ```
 
-#Wykresy autokoreacji ACF oraz autokorelacji cz¹stkowej PACF
+#Wykresy autokoreacji ACF oraz autokorelacji czÄ…stkowej PACF
 ```{r}
 acf(otwarcie)
 ```
@@ -42,13 +42,13 @@ acf(otwarcie)
 pacf(otwarcie)
 ```
 
-#Ró¿nicowanie szeregu
+#R??nicowanie szeregu
 ```{r}
 plot(diff(otwarcie))
 ```
 
 
-#Podzia³ na zbiór treningowy i testowy
+#PodziaÅ‚ na zbiÃ³r treningowy i testowy
 ```{r}
 length(otwarcie)
 uczacy<-window(otwarcie, end = 40)
@@ -57,12 +57,12 @@ testowy<-window(otwarcie, start = 41)
 testowy
 ```
 
-#Wspóllny wykres
+#WspÃ³llny wykres
 ```{r}
 ts.plot(uczacy, testowy, col=1:2, lty=c(1,2))
 ```
 
-#Dobór modelu ARIMA
+#DobÃ³r modelu ARIMA
 
 Model autoregresji - AR 
 
@@ -71,7 +71,7 @@ model<-Arima(uczacy, order = c(2,1,0))
 summary(model)
 ```
 
-Model œredniej ruchomej -  MA
+Model Å›redniej ruchomej -  MA
 
 ```{r}
 model1<-Arima(uczacy, order=c(0,1,1))
@@ -91,7 +91,7 @@ tsdiag(model)
 ```
 
 #Prognoza
-Zajmiemy siê prognoz¹ kolejno dla ka¿dego z modeli
+Zajmiemy siÄ™ prognozÅ¼ kolejno dla kaÅ¼dego z modeli
 
 Prognoza AR:
 ```{r}
@@ -118,7 +118,7 @@ plot(prog1)
 plot(prog2)
 ```
 
-#Policzmy teraz b³¹d œredniokwadratowy, w celu sprawdzenia który model ma najwiêksz¹ skutecznoœæ
+#Policzmy teraz bÅ‚Ä…d Å›redniokwadratowy, w celu sprawdzenia ktÃ³ry model ma najwiÄ™kszÄ… skutecznoÅ›Ä‡
 ```{r}
 bl_ar=mean((prog$mean-testowy)^2)
 bl_ar
