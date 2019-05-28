@@ -1,0 +1,113 @@
+---
+title: "Cw5-Choinska"
+author: "Choińska Daria"
+date: "28 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Rozpoczynam od wczytania danych oraz niezbędnych pakietów
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(forecast)
+library(tseries)
+dane <- read.table(file = 'Choinska_Dane.csv',col.names =c('Data','Godzina','Kurs rozpoczęcia','Kurs zakończenia'), sep =";")
+head(dane)
+```
+
+##Następnie tworzę szereg czasowy dla danych z godziny 20:00 i Kursu zakończenia
+
+```{r message=FALSE, warning=FALSE}
+
+dane %>%
+  filter(Godzina == 200000)%>%
+  select(Kurs.zakończenia)->result
+d.ts<-ts(data = result, frequency = 1)
+is.ts(d.ts)
+```
+```{r warning=FALSE}
+tsdisplay(d.ts)
+```
+
+
+Na wykresie widać, iż nasz szereg jest szeregiem malejącym, zatem o słabej stacjonarności. Zatem zróżnicuję szereg i ponownie wykonam test
+
+```{r}
+diff.ts<-diff(d.ts)
+tsdisplay(diff.ts)
+
+```
+
+
+Na podstawie tych wykresów stwierdzam, iż szereg jest już szeregiem stacjonarnym. Sprawdzę to jeszcze poprzez następujący test:
+
+
+```{r}
+
+pp.test(diff.ts, alternative = "stationary")
+
+```
+Skoro p-value=0.01 to odrzucamy hipotezę zerową, że szereg nie jest stacjonarny, zatem ten szereg jest szeregiem stacjonarnym, o czym mówi hipoteza alternatywna. 
+
+##Podział na zbiór treningowy i testowy
+
+```{r}
+a<-40
+N<-length(diff.ts)
+treningowy<-window(diff.ts,end = a+1)
+testowy<-window(diff.ts,start=a+1)
+```
+
+
+```{r}
+ts.plot(treningowy, testowy, col=1:2, lty=c(1,2))
+```
+
+## MODEL MA
+```{r}
+modelma<-arima(treningowy, c(0,1,1))
+summary(modelma)
+```
+
+## Model AR
+```{r}
+modelar=Arima(treningowy,order = c(1,0,0))
+summary(modelar)
+```
+## Model ARIMA
+```{r}
+modelarima=Arima(treningowy, order=c(1,1,2))
+summary(modelarima)
+```
+##Prognozy dla poszczególnych modeli
+
+```{r}
+prognozama<-forecast(modelma,h=length(testowy))
+prognozama
+```
+```{r}
+prognozaar<-forecast(modelar,h=length(testowy))
+prognozaar
+```
+
+```{r}
+plot(prognozama)
+plot(prognozaar)
+```
+
+
+##Policzę teraz błąd średniokwadratowy
+
+```{r}
+blad1<-mean( (prognozama$mean - testowy)^2, na.rm = TRUE)
+blad2<-mean( (prognozaar$mean - testowy)^2, na.rm = TRUE)
+```
+
+Błąd średniokwadratowy dla prognozy AR wynosi `r blad2`, natomiast dla MA wynosi `r blad1`
+
+Stąd minimalnie lepszy jest model Ma
+
