@@ -42,7 +42,7 @@ acf(otwarcie)
 pacf(otwarcie)
 ```
 
-#R??nicowanie szeregu
+#Różnicowanie szeregu
 ```{r}
 plot(diff(otwarcie))
 ```
