@@ -1,0 +1,130 @@
+---
+title: "Analiza kursu dolara amerykańskiego do dolara kanadyjskiego"
+author: "Patrycja Kolanowska"
+date: "26 marca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Dane
+
+Analizować będziemy dane pobrane ze strony Forex.pl dotyczące kursy dolara amerykańskiego do dolara kanadyjskiego. Interesuje nas bieżący rok (01.01.2019-22.03.2019) z godziny 8:00, 12:00, 16:00, 20:00. Interesować nas będzie godzina zamknięcia.
+
+```{r cars}
+dane <- read.csv2(file = 'pKolanowska-USDCAD.csv', header = TRUE )
+dane$Zamkniecie = as.numeric(levels(dane$Zamkniecie))[dane$Zamkniecie]
+dane_8 <- dane[dane$Godzina == 80000, ]
+dane_12 <- dane[dane$Godzina == 120000, ]
+dane_16 <- dane[dane$Godzina == 160000, ]
+dane_20 <- dane[dane$Godzina == 200000, ]
+#kurs<-as.numeric(dane$Zamkniecie)
+#dane$Zamkniecie=kurs
+
+
+head(dane)
+```
+
+## Wykresy
+Teraz zajmiemy się tworzeniem wykresów. Przedstawione zostaną wykresy pokazujące cenę w danej godzinie w ciągu całego analizowanego okresu.
+
+
+```{r pressure, echo=FALSE}
+x=1:58 
+
+wykres_1<-plot(x, dane_8$Zamkniecie, type="l",main="Kursy z godziny 8:00", xlab="Dni", ylab="Cena")
+wykres_2<-plot(x,dane_20$Zamkniecie, type="l",main="Kursy z godziny 20:00", xlab="Dni", ylab="Cena")
+```
+
+Wykresy wyglądają podobnie, dlatego zobaczmy wszystkie na jednym wspólnym wykresie
+
+```{r }
+curve(dane_8$Zamkniecie[x], from=1, to=60,type="l", main="Kursy  8:00, 12:00, 16:00, 20:00", xlab="Dni", ylab="Cena", col="red")
+curve(dane_20$Zamkniecie[x], from=1, to=60, col="blue", add=TRUE)
+curve(dane_12$Zamkniecie[x], from=1, to=60, col="black", add=TRUE)
+curve(dane_16$Zamkniecie[x], from=1, to=60, col="green", add=TRUE)
+legend("bottomleft",legend=c("Godzna 8:00", "Godzina 12:00", "Godzina 16:00", "Godzina 20:00"), col=c("red","black","green", "blue"), lwd=2)
+```
+
+
+Na wykresie widzimy, że cena kursu różni się w zależności od godziny. 
+
+
+
+
+## Zadanie 3 
+```{r}
+dane_16$t <- 1:length(dane_16$Zamkniecie)
+```
+## Model z trendem liniowym
+Korzystając z regresji liniowej przedstawię dwa modele. Rozważmy tylko cene zamknięcia.Dane będą przedstawione w następujący sposób: jako zbiór uczący oraz zbiór testowy.
+```{r}
+p<-15
+N<-length(dane_16$Zamkniecie)
+zb_uczacy<-dane_16[1:(N-p), ] 
+zb_testowy<-dane_16[(N-p+1):N,]
+zb_testowy
+```
+Rozważmy model 1
+```{r}
+model1<-lm(Zamkniecie~t, data = zb_uczacy)
+plot(zb_uczacy$t, zb_uczacy$Zamkniecie, main = "Predykcja na zbiorze uczącym", xlab="Dni", ylab="Zamknięcie")
+abline(model1, col = "red")
+```
+
+Korzystając z modelu, zajmiemy się predykcją pozostałych wartości.
+```{r}
+b<-coef(model1)[[1]]
+a<-coef(model1)[[2]]
+prediction = a * zb_testowy$t + b 
+print(prediction)
+zb_testowy$Zamkniecie- prediction
+```
+
+```{r}
+par()
+plot(zb_testowy$t, zb_testowy$Zamkniecie, main = "Predykcja dla modelu 1", xlab="Dni", ylab="Kursy", ylim=c(1.3, 1.4))
+lines(zb_testowy$t, prediction,col='red')
+```
+
+
+## Błąd średniokwadratowy i statystyka Theil'a dla modelu 1
+
+```{r}
+blad1=mean((zb_testowy$Zamkniecie-a*zb_testowy$t + b)^2)
+blad1
+stath1=sum((a*zb_testowy$t + b-zb_testowy$Zamkniecie)^2)/sum((zb_testowy$Zamkniecie)^2)
+stath1
+```
+## Model 2
+W modelu tym korzystać będziemy ze zbioru uczącego składającego się z 40 danych.
+```{r}
+u<-40
+zb_uczacy2<-dane_16[(N-p-u+1):(N-p), ] 
+zb_testowy2<-dane_16[(N-p+1):N,]
+model2<-lm(Zamkniecie~t, d=zb_uczacy2)
+```
+
+```{r}
+plot(zb_uczacy2$t, zb_uczacy2$Zamkniecie, main = "Predykcja na zbiorze uczącym", xlab="Dni", ylab="Zamkniecie")
+abline(model2, col="blue")
+```
+
+Korzystając z modelu, zajmiemy się predykcją pozostałych wartości.
+```{r}
+b2<-coef(model2)[[1]]
+a2<-coef(model2)[[2]]
+plot(zb_testowy2$t, zb_testowy2$Zamkniecie, main = "Predykcja dla modelu 2", xlab="Dni", ylab="Kursy",ylim=c(1.3, 1.4))
+lines(zb_testowy2$t, a2*zb_testowy2$t + b2, col="blue")
+```
+
+## Błąd średniokwadratowy i statystyka Theil'a dla modelu 2
+
+```{r echo=FALSE}
+blad2=mean((zb_testowy2$Zamkniecie-a2*zb_testowy2$t + b2)^2)
+blad2
+stath2=sum((a2*zb_testowy2$t +b2-zb_testowy2$Zamkniecie)^2)/sum((zb_testowy2$Zamkniecie)^2)
+stath2
+```
