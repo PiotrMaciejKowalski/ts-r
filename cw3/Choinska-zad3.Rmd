@@ -41,7 +41,7 @@ abline(h=mean(dane$Kurs.otwarcia),lty=1, col="blue")
 abline(h=mean(dane8$Kurs.otwarcia),lty=2, col="grey")
 abline(h=median(dane$Kurs.otwarcia),lty=1, col="brown")
 abline(h=median(dane8$Kurs.otwarcia),lty=2, col="yellow")
-legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 8:00","średni kurs dla 8:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='black')
+legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 8:00","średni kurs dla 8:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='white')
 ```
 
 ```{r echo=FALSE}
@@ -50,7 +50,7 @@ abline(h=mean(dane$Kurs.otwarcia),lty=1, col="blue")
 abline(h=mean(dane12$Kurs.otwarcia),lty=2, col="grey")
 abline(h=median(dane$Kurs.otwarcia),lty=1, col="brown")
 abline(h=median(dane12$Kurs.otwarcia),lty=2, col="yellow")
-legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 12:00","średni kurs dla 12:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='black')
+legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 12:00","średni kurs dla 12:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='white')
 
 ```
 ```{r echo=FALSE}
@@ -59,7 +59,7 @@ abline(h=mean(dane$Kurs.otwarcia),lty=1, col="blue")
 abline(h=mean(dane16$Kurs.otwarcia),lty=2, col="grey")
 abline(h=median(dane$Kurs.otwarcia),lty=1, col="brown")
 abline(h=median(dane16$Kurs.otwarcia),lty=2, col="yellow")
-legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 16:00","średni kurs dla 16:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='black')
+legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 16:00","średni kurs dla 16:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='white')
 
 ```
 ```{r echo=FALSE}
@@ -68,7 +68,7 @@ abline(h=mean(dane$Kurs.otwarcia),lty=1, col="blue")
 abline(h=mean(dane20$Kurs.otwarcia),lty=2, col="grey")
 abline(h=median(dane$Kurs.otwarcia),lty=1, col="brown")
 abline(h=median(dane20$Kurs.otwarcia),lty=2, col="yellow")
-legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 20:00","średni kurs dla 20:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='black')
+legend("topright", legend=c("Mediana", "średni kurs","Mediana dla 20:00","średni kurs dla 20:00"),col=c("blue","grey","brown","yellow"), lty=c(1,1,2,2), cex=0.8,bg='white')
 
 ```
 ```{r  echo=FALSE}
@@ -80,6 +80,7 @@ hist(dane$Kurs.otwarcia,
 
 ##Prognozy
 
+#MODEL 1
 wykonam prognozę modelem regresji liniowej dla calych przeszłych danych
 dane podzielimy na zbiór uczący i testowy
 
@@ -124,4 +125,55 @@ z<-sum((a*testowy$nr+b-testowy$Kurs.otwarcia)^2)/sum((testowy$Kurs.otwarcia)^2)
 
 
 Błąs średniokwadratowy wynosi `r s` , natomiast Statystyka Theil'a wynosi `r z`
-Ponieważ wartośćvtej statystyki< 1 to należy stwierdzić że prognoza jest bardziej skuteczna niż prognoza naiwna.
+Ponieważ wartość tej statystyki< 1 to należy stwierdzić że prognoza jest bardziej skuteczna niż prognoza naiwna.
+
+##MODEL 2
+
+W tym modelu zmniejszę zbiór uczący i sprawdzę na 2 przykładach jaki wybrać aby prognoza była dokładna
+
+
+```{r}
+e1<-5
+e2<-10
+uczący1<-alldata[(N-t-e1+1):(N-t),]
+uczący2<-alldata[(N-t-e2+1):(N-t),]
+reg1<-lm(uczący1$Kurs.otwarcia~uczący1$nr)
+reg2<-lm(uczący2$Kurs.otwarcia~uczący2$nr)
+plot(uczący2,main="Model 2",xlab="Pomiary",ylab="Kursy")
+abline(reg1,col="red" )
+abline(reg2,col="blue")
+legend("topright", legend=c("5", "10"),col=c("red","pink"), lty=c(2,2), cex=0.9,bg='white')
+b1<-coef(reg1)[1]
+a1<-coef(reg1)[2]
+b2<-coef(reg2)[1]
+a2<-coef(reg2)[2]
+```
+
+```{r}
+plot(testowy,main="Predykcja dla Modelu 2",xlab="Pomiary",ylab="Kursy")
+lines(testowy$nr,a1*testowy$nr+b1,col="red")
+lines(testowy$nr,a2*testowy$nr+b2,col="blue")
+lines(testowy$nr,a*testowy$nr+b,col="black")
+abline(reg2,col="grey")
+legend("topright", legend=c("5 ", "10","wszystkie pomiary"),col=c("red","blue","black"), lty=c(1,0,5), cex=0.5,bg='white')
+```
+#Wyznaczmy teraz błędy średniokwadratowe
+
+
+```{r}
+m1<-mean( (testowy$Kurs.otwarcia - a1*testowy$nr+b1)^2, na.rm = TRUE)
+m2<-mean( (testowy$Kurs.otwarcia - a2*testowy$nr+b2)^2, na.rm = TRUE)
+```
+
+Błędy średniokwadratowe dla predykcji dla zbioru uczącego składającego się z `r e1`pomiarów wynoszą `r m1` a składającego się z `r e2` pomiarów wynoszą `r m2`
+
+#Sprawdźmy teraz statystyki Theil'a
+
+
+```{r}
+th1<-sum((a1*testowy$nr+b1-testowy$Kurs.otwarcia)^2)/sum((testowy$Kurs.otwarcia)^2)
+th2<-sum((a2*testowy$nr+b2-testowy$Kurs.otwarcia)^2)/sum((testowy$Kurs.otwarcia)^2)
+
+```
+
+Statystyki Theil'a dla predykcji dla zbioru uczącego składającego się z `r e1` pomiarów wynoszą  `r th1`  a z  `r e2` pomiarów wynoszą `r th2` zatem są mniejsze niż 1
