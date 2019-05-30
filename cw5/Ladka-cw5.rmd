@@ -46,9 +46,9 @@ pacf(dsc)
 
 Tworzymy podział na zbiory treningowe i testowe
 ```{r}
-treningowy = window(dsc,end = 20)
+treningowy = window(dsc,end = 45)
 head(treningowy)
-testowy = window(dsc,start = 21)
+testowy = window(dsc,start = 46)
 head(testowy)
 ```
 
