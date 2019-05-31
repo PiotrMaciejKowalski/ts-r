@@ -1,0 +1,199 @@
+---
+title: "Prognoza kursu USD-PLN na dzień 28.05.2019"
+author: "Natalia Kiełbik, Joanna Kamińska, Justyna Kapucińska, Agnieszka Jadczak"
+date: "22 maja 2019"
+output: html_document
+---
+
+#Wczytanie danych
+
+Dane dotyczą kursu **USD-PLN** i zostały one pobrane w formacie `csv` ze [strony](https://stooq.pl/q/d/?s=usdpln).
+
+Najpierw wczytamy dane, a następnie przygotujemy je do dalszej części analizy.
+W zadaniu tym bierzemy pod uwagę tylko jedną zmienną - **cenę zamknięcia**.
+Ostatni pomiar kursu zamknięcia pochodzi z dnia 21.05.2019r.
+W poniższej analizie postaramy się zadecydować czy w dniu 28.05.2019r. wymienimy  pewną ilość USD, zakupioną dnia 21.05.2019r., na PLN.
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+library(tseries)
+library(forecast)
+library(dplyr)
+library(zoo)
+library(stats)
+
+```
+
+## Wczytanie danych
+```{r}
+dane = read.csv2("usdpln_d.csv",header = FALSE, dec = ".")
+```
+
+## Utworzenie szeregu czasowego
+```{r}
+sc <- ts(dane, frequency = 1)
+head(sc)
+length(sc)
+```
+
+
+```{r}
+plot(sc, main = "Kurs USD-PLN", ylab = "Kurs",xlab = "Dni")
+```
+
+
+```{r}
+tsdisplay(sc)
+```
+
+Sprawdźmy stacjonarność tego szeregu poprzez poniższy test statystyczny.
+```{r}
+
+adf.test(sc, alternative = "stationary")
+
+```
+
+Okazuje się, że wartśc p-value<0.05 zatem przyjmujemy hipotezę alternatywną, że badany szereg jest stacjonarny, tzn. nie mamy żadnej sezonowości ani trendów.
+
+Z wykresu ACF możemy odczytać, że q=14, z wykresu PACF odczytujemy, że p=2.
+Ponieważ nie różnicowaliśmy szeregu, więc d=0.
+
+## Dopasowanie modelu 
+
+W celu stworzenia odpowiedniej prognozy, musimy na podstawie dostępnych danych dopasować odpowiedni model predykcyjny. Podzielimy dane na zbiór testowy i uczący oraz zbadamy modele AR, MA, ARMA i ARIMA.
+Na podstawie błędów średniokwadratowych wybierzemy odpowiedni model i na jego podstawie wygenerujemy prognozę na dzień 28.05.2019 r. oraz podejmiemy odpowiednią decyzję.
+
+Parametry modeli predykcyjnych dla szeregu bez różnicowania
+
+```{r}
+p<-2
+q<-14
+d<-0
+```
+
+## Podział na zbiór uczący i testowy
+
+```{r}
+train<-window(sc, end= 90)
+test<-window(sc,start=90)
+```
+
+##MODELE
+
+## MODEL AR(p)
+
+```{r}
+AR<-arima(train, c(p,d,0))
+summary(AR)
+```
+
+## MODEL MA(q)
+```{r}
+MA<-arima(train, c(0,d,q))
+summary(MA)
+```
+
+## MODEL ARMA
+```{r}
+ARMA<- arima(train, c(p,d,q))
+summary(ARMA)
+```
+
+## MODEL ARIMA
+```{r}
+ARIMA<- auto.arima(train)
+summary(ARIMA)
+```
+
+## Prognozy
+
+## Prognozy modelem AR
+```{r}
+prognozaAR<-forecast(AR,h=length(test)-1)
+plot(prognozaAR,type="l")
+lines(test)
+
+```
+
+## Prognozy modelem MA
+```{r}
+prognozaMA<-forecast(MA,h=length(test)-1)
+plot(prognozaMA,type="l")
+lines(test)
+```
+
+## Prognozy modelem ARMA
+```{r}
+prognozaARMA<-forecast(ARMA,h=length(test)-1)
+plot(prognozaARMA,type="l")
+lines(test)
+```
+
+## Prognoza modelem ARIMA
+```{r}
+prognozaARIMA<-forecast(ARIMA,h=length(test)-1)
+plot(prognozaARIMA,type="l")
+lines(test)
+```
+
+
+## BŁĘDY DLA ZAPROPONOWANYCH MODELI
+
+Błędy średniokwadratowe dla zaproponowanych predykcji.
+```{r}
+m1<-mean( (prognozaAR$mean - test)^2, na.rm = TRUE)
+m2<-mean( (prognozaMA$mean - test)^2, na.rm = TRUE)
+m3<-mean( (prognozaARMA$mean - test)^2, na.rm = TRUE)
+
+m4<-mean( (prognozaARIMA$mean - test)^2, na.rm = TRUE)
+```
+
+Błąd średniokwadratowy dla prognozy AR wynosi `r m1`, dla MA wynosi `r m2`, natomiast dla ARMA wynosi `r m3`, dla modelu ARIMA wynosi `r m4`. 
+
+```{r}
+min(m1,m2,m3,m4)
+```
+
+Najmniejszy błąd średniokwadratowy występuje przy użyciu modelu ARIMA. Dlatego do rozwiązania naszego problemu i wygenerowania prognozy na 28.05.2019r. użyjemy tego modelu.
+
+## Prognoza na 28.05
+
+Musimy stworzyć nowy zbiór uczący i testowy, a zatem:
+
+
+```{r}
+train1<-window(sc, end= 99)
+```
+
+```{r}
+A<- auto.arima(train1)
+summary(A)
+```
+
+```{r}
+prognoza<-forecast(A,h=5)
+plot(prognoza,type="l", main="Predykcja na kolejne 7 dni")
+```
+
+```{r}
+prognoza
+```
+
+```{r}
+sc[99]
+```
+
+## DECYZJA
+
+Ponieważ ostatnia wartość prognozy(28.05) jest równa wartości kursu dla 21.05, możemy przypuszczać, że kurs dolara będzie taki sam w dniu 28.05 w stosunku do 21.05. Wymiana USD na PLN nie przyniesie nam zysku.
+
+## PODSUMOWANIE
+
+Zgodnie ze [stroną](https://stooq.pl/q/d/?s=usdpln) cena zamknięcia w dniu 28.05 wynosiła 3.84812.
+
+```{r}
+cena2105<-sc[99]
+predykcja<-3.8576
+cena2805<-3.84812
+```
+
+Przewidywałysmy, że zysk z wymiany USD na PLN w dniu 28.05 wyniesie `r predykcja-cena2105` na jednym USD, natomiast faktyczny zarobek z tej wymiany wyniósłby `r cena2805-cena2105 ` na każdym USD. Wymieniając USD na PLN poniosłybyśmy starty.
