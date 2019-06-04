@@ -1,0 +1,154 @@
+---
+title: "Zadanie5"
+author: "WLara"
+date: "7 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Wczytujemy dane z excela
+```{r}
+library(XLConnect)
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(forecast)
+library(tseries)
+df <- read_excel('Lara-dane2.xlsx', sheet = 1)
+df$Godzina<-substr(df$Godzina,12,16)
+df$Data<-as.Date(df$Data,)
+
+head(df)
+```
+
+Wyszukujemy dane z godziny 08:00
+
+```{r}
+df %>%
+  filter(Godzina == "08:00") ->df1
+head(df1)
+```
+
+
+Dane są obecnie przedstawone w postaci ramki danych. Zmieniami typ danych żeby móc modelować szeregi czasowe i tworzymy szereg czasowy. 
+
+```{r}
+
+sc = ts(df1$Cena_otw, frequency = 1)
+dates = as.Date(df1$Data, format='%Y-%m-%d')
+sessional_sc = ts(df1$Cena_otw, frequency = 1)
+sc
+```
+
+Przedstawmy wykresy ts, ACF i PACF.
+
+
+```{r}
+x<-ts(df1$Cena_otw, frequency = 1)
+tsdisplay(x)
+```
+
+Zbadajmy teraz stacjonarność szeregu. 
+
+```{r}
+stj = ts(df1$Cena_otw, frequency = 1)
+adf=adf.test(stj)
+adf
+```
+
+Po odczytaniu wartości p-value nie możemy odrzucić hipotezy o niestacjonarności szeregu. Zróżnicujemy ten szereg i w ten sposób otrzymamy informacje o jego stacjonarności. 
+
+```{r}
+data_d <- diff(stj)
+adf.test(data_d)
+```
+
+Powtórzmy proces
+
+```{r}
+data_d1 <-diff(data_d)
+adf.test(data_d1)
+```
+
+Po ponownym zróżnicowaniu otrzymujemy szereg, na którym możemy tworzyć interesujące nas modele. Narysujmy wykresy ACF i PACF dla zróżnicowanego szeregu.
+
+```{r}
+tsdisplay(data_d1)
+```
+
+Tworzymy podział na zbiory treningowe i testowe.
+
+```{r}
+trening = window(data_d1,end = 30)
+trening
+test = window(data_d1,start = 31)
+test 
+```
+
+##ModelL MA
+```{r}
+modelMA = Arima(trening, order = c(0,0,2))
+summary(modelMA)
+prognozaMA = forecast(modelMA, h = length(test))
+
+```
+
+```{r}
+plot(prognozaMA)
+lines(test, col = "green")
+```
+
+##Model AR
+
+```{r}
+modelAR = Arima(trening, order = c(1,0,2))
+summary(modelAR)
+prognozaAR = forecast(modelAR, h = length(test))
+
+```
+
+```{r}
+plot(prognozaAR)
+lines(test,col ="red")
+```
+
+
+##Model ARIMA
+
+```{r}
+modelARIMA = Arima(trening, order = c(1,2,2))
+summary(modelARIMA)
+prognozaARIMA = forecast(modelARIMA, h = length(test))
+```
+
+```{r}
+plot(prognozaARIMA)
+lines(test, col = "yellow")
+```
+
+##Porównanie błędów średniokwadratowych dla powyższych prgonoz
+```{r}
+mseMA <- mean(((prognozaMA$mean-test)^2))
+mseAR <-  mean(((prognozaAR$mean-test)^2))
+mseARIMA <- mean(((prognozaARIMA$mean-test)^2))
+```
+
+```{r}
+mseMA
+mseAR
+mseARIMA
+
+```
+
+
+
+
+
+
+
+
+
+
