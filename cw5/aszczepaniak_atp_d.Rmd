@@ -1,0 +1,152 @@
+---
+title: "Zadanie5"
+author: "Ania Szczepaniak"
+date: "7 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pobieramy dane
+```{r}
+dane<-read.csv('aszczepaniak-data.csv', header = TRUE)
+```
+Pobieramy potrzebną nam bibliotekę:
+```{r}
+library(forecast)
+```
+
+Wykorzystamy typ danych dla modelowania szeregów czasowych: ts.
+
+```{r}
+szereg_czasowy = ts(dane$Zamkniecie, frequency = 1)
+dates = as.Date(dane$Data, format='%Y-%m-%d')
+sessional_szereg_czasowy = ts(dane$Zamkniecie, frequency = 5)
+szereg_czasowy
+```
+
+
+Rysujemy prosty wykres
+
+```{r}
+plot(szereg_czasowy)
+```
+
+Wykres ACF:
+
+```{r}
+acf(szereg_czasowy)
+```
+
+Wykres PACF:
+```{r}
+pacf(szereg_czasowy)
+```
+
+Podstawowy wykres
+
+```{r}
+
+tsdisplay(szereg_czasowy)
+```
+
+Różnicowanie szeregu
+
+```{r}
+plot(diff(szereg_czasowy))
+```
+
+```{r}
+pacf(diff(szereg_czasowy))
+```
+
+
+Dzielimy nasze dane na zbiór treningowy i testowy
+
+```{r}
+length(szereg_czasowy)
+szereg_czasowy.treningowy = window(szereg_czasowy,end = 55)
+szereg_czasowy.treningowy
+szereg_czasowy.testowy = window(szereg_czasowy,start = 56)
+szereg_czasowy.testowy
+```
+
+Wspólny wykres dla zbioru treningowego i testowego:
+
+```{r}
+ts.plot(szereg_czasowy.treningowy, szereg_czasowy.testowy, col=1:2, lty=c(1,2))
+```
+
+Model ARIMA
+
+```{r}
+ARIMA <- auto.arima(szereg_czasowy.treningowy)
+summary(ARIMA)
+```
+Wykres:
+
+```{r}
+plot(ARIMA$residuals)
+```
+
+```{r}
+tsdiag(ARIMA)
+```
+
+Prognoza
+
+```{r}
+Prognoza = forecast(ARIMA, h=length(szereg_czasowy.testowy))
+Prognoza
+```
+
+```{r}
+summary(ARIMA)
+```
+
+
+```{r}
+plot(Prognoza)
+lines(szereg_czasowy.testowy, col='blue')
+```
+
+Model AR
+
+```{r}
+AR = Arima(szereg_czasowy.treningowy, order = c(1,0,0))
+summary(AR)
+Prognoza2_AR= forecast(AR, h = length(szereg_czasowy.testowy))
+```
+Wykres:
+```{r}
+plot(Prognoza2_AR)
+lines(szereg_czasowy.testowy, col = 'red')
+```
+
+Model MA
+```{r}
+MA = Arima(szereg_czasowy.treningowy, order = c(0,0,1))
+summary(MA)
+Prognoza3_MA = forecast(MA, h = length(szereg_czasowy.testowy))
+```
+Wykres:
+```{r}
+plot(Prognoza3_MA)
+lines(szereg_czasowy.testowy, col = 'green')
+```
+
+Błędy średniokwadratowe:
+
+```{r}
+Blad_ARIMA=mean((Prognoza$mean-szereg_czasowy.testowy)^2)
+Blad_AR=mean((Prognoza2_AR$mean-szereg_czasowy.testowy)^2)
+Blad_MA=mean((Prognoza3_MA$mean-szereg_czasowy.testowy)^2)
+
+Blad_ARIMA
+Blad_AR
+Blad_MA
+```
+
+Blad_AR jest najmniejszy, zatem ten model jest najlepszy.
