@@ -60,7 +60,7 @@ legend("bottomright",c("otwarcie","zamknięcie"), col= 1:2, lty=1:2)
 ```
 
 ## Zadanie 3
-Wybieram jedną zmienną- otwarcie godziny 08:00
+Wybieram potrzebne zmiennę 
 ```{r}
 dane1=dane[,1:3]
 head(dane1)
@@ -78,13 +78,19 @@ summary(model)
 
 Rozdzielam model na dwa zbiory: uczący i testujący
 ```{r}
-N=15
-uczący= data.frame(cbind(data=dane1$Data[1:(N-1)],otwarcie=dane1$Otwarcie.[1:(N-1)]))
-testowy=data.frame(cbind(data=dane1$Data[N:length(dane1$Data)],otwarcie=dane1$Otwarcie.[N:length(dane1$Otwarcie.)]))
+Dni=dane$Data[dane$Godzina.=="08:00"]
+Otwarcie=dane$Otwarcie.[dane$Godzina.=="08:00"]
+dane2=data.frame(Dni,Otwarcie)
+
+N=35
+uczący= data.frame(cbind(data=1:(N-1),otwarcie=dane2$Otwarcie[1:(N-1)]))
+testowy=data.frame(cbind(data=N:length(dane2$Dni),otwarcie=dane2$Otwarcie[N:length(dane2$Otwarcie)]))
 ```
+
 Funkcja prognozy
+
 ```{r}
-modeld=lm(uczący$otwarcie~uczący$data)
+modeld=lm(otwarcie~data, data = uczący)
 summary(modeld)
 współczynnik=coef(modeld)
 prognoza= współczynnik[2]*testowy$data+współczynnik[1]
