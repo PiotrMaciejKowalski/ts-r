@@ -22,7 +22,6 @@ head(dane)
 ##Następnie tworzę szereg czasowy dla danych z godziny 20:00 i Kursu zakończenia
 
 ```{r message=FALSE, warning=FALSE}
-
 dane %>%
   filter(Godzina == 200000)%>%
   select(Kurs.zakończenia)->result
@@ -33,13 +32,13 @@ is.ts(d.ts)
 tsdisplay(d.ts)
 ```
 
-
 Na wykresie widać, iż nasz szereg jest szeregiem malejącym, zatem o słabej stacjonarności. Zatem zróżnicuję szereg i ponownie wykonam test
 
 ```{r}
 diff.ts<-diff(d.ts)
+```
+```{r}
 tsdisplay(diff.ts)
-
 ```
 
 
@@ -96,8 +95,14 @@ prognozaar
 
 ```{r}
 plot(prognozama)
-plot(prognozaar)
+lines(testowy,col="red")
 ```
+```{r}
+plot(prognozaar)
+lines(testowy,col="red")
+```
+
+
 
 
 ##Policzę teraz błąd średniokwadratowy
