@@ -57,8 +57,8 @@ chartSeries(WOJAS)
 ```{r}
 Data<-dane$Data
 Otwarcie<-dane$Otwarcie
-
 ```
+
 ```{r}
 Data2 <- as.Date(Data, "%Y-%m-%d")
 dane<-cbind(dane,Data2)
@@ -79,21 +79,21 @@ summary(reg)
 
 ```{r}
 p=70
-zbiorU=data.frame(cbind(Data2=Data2[1:(p-1)],Otwarcie=Otwarcie[1:(p-1)]))
-zbiorT=data.frame(cbind(Data2=Data2[p:length(Data2)],Otwarcie=Otwarcie[p:length(Otwarcie)]))
+zbU=data.frame(cbind(Data2=Data2[1:(p-1)],Otwarcie=Otwarcie[1:(p-1)]))
+zbT=data.frame(cbind(Data2=Data2[p:length(Data2)],Otwarcie=Otwarcie[p:length(Otwarcie)]))
 ```
 
 ```{r}
-plot(zbiorU$Data2, zbiorU$Otwarcie,'p',col="red", main = "Predykcja na zbiorze uczącym", xlab="Dni", ylab="Otwarcie")
+plot(zbU$Data2, zbU$Otwarcie,'p',col="red", main = "Predykcja na zbiorze uczącym", xlab="Dni", ylab="Otwarcie")
 ```
 
 ```{r}
-model <- lm(zbiorU$Otwarcie ~ zbiorU$Data2)
+model <- lm(zbU$Otwarcie ~ zbU$Data2)
 summary(model)
 ```
 
 ```{r}
-plot(zbiorU$Data2, zbiorU$Otwarcie,'p',col="red");
+plot(zbU$Data2, zbU$Otwarcie,'p',col="red");
 abline(model)
 ```
 
@@ -102,17 +102,17 @@ a = model$coefficients[[2]]
 b = model$coefficients[[1]]
 
 #model liniowy postaci y = ax + b
-predykcja = a * zbiorT$Data2 + b
-plot(zbiorT$Data2, zbiorT$Otwarcie, main = "Predykcja dla modelu ", xlab="Dni", ylab="Kursy")
-lines(zbiorT$Data2, predykcja, col= "blue")
+predykcja = a * zbT$Data2 + b
+plot(zbT$Data2, zbT$Otwarcie, main = "Predykcja dla modelu ", xlab="Dni", ylab="Kursy")
+lines(zbT$Data2, predykcja, col= "blue")
 ```
 
 ```{r}
-bladsr<- mean((predykcja-zbiorT$Otwarcie)^2)
-theila <- sum((predykcja-zbiorT$Otwarcie)^2)/sum(zbiorT$Otwarcie^2)
+bladsr<- mean((predykcja-zbT$Otwarcie)^2)
+theila <- sum((predykcja-zbT$Otwarcie)^2)/sum(zbT$Otwarcie^2)
 ```
+
 ```{r}
 bladsr
 theila
-
 ```
