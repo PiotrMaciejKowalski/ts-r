@@ -1,0 +1,131 @@
+---
+title: "EUR-PLN"
+author: "Grupa D"
+date: "1 06 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(XLConnect)
+library(dplyr)
+library(forecast)
+library(tseries)
+library(zoo)
+library(Metrics)
+library(jsonlite)
+```
+
+## R Markdown
+
+Wczytajmy dane i wybierzmy zmienną do analizy - cenę zamknięcia.
+
+```{r}
+dane<- read.csv(file='eurusd_d.csv', col.names=c("Data","Otwarcie","Najwyzszy", "Najnizszy", "Zamkniecie"))
+dane1=dane[5]
+head(dane1)
+
+```
+```{r}
+dane2=dane1[dim(dane1)[1]:1,]
+#dane2
+```
+
+Przekształćmy teraz posiadane dane do postaci szeregu czasowego:
+```{r}
+sc=ts(dane2)
+length(sc)
+```
+
+```{r}
+tsdisplay(sc)
+```
+
+```{r}
+adf.test(sc)
+```
+
+Wysokie p-value nie pozwala przyjąć, że szereg jest stacjonarny.
+
+```{r}
+sc2=diff(sc)
+adf.test(sc2)
+```
+```{r}
+tsdisplay(sc2)
+```
+Podzielmy dane na zbiór treningowy i testowy, aby wybrać najlepszy model.
+
+```{r}
+train=window(sc, start=480, end=600)
+test=window(sc, start=601)
+
+```
+
+
+```{r}
+ts.plot(train, test, col=1:2)
+```
+
+
+Zacznijmy od modelu ARIMA
+
+```{r}
+modelARIMA <- auto.arima(train)
+modelARIMA.forecast <- forecast(modelARIMA, h=length(test))
+plot(modelARIMA.forecast,ylim = c(1,1.25))
+```
+```{r}
+modelETS <- ets(train)
+modelETS.forecast <- forecast(modelETS, h=length(test))
+plot(modelETS.forecast)
+```
+
+```{r}
+bladARIMA=mean((modelARIMA.forecast$mean-test)^2)
+bladARIMA
+
+plot(test, type="l", xlab="Time", ylab="Value")
+lines(modelARIMA.forecast$mean,  col="red")
+
+```
+
+```{r}
+bladETS=mean((modelETS.forecast$mean-test)^2)
+bladETS
+
+plot(test, type="l", xlab="Time", ylab="Value")
+lines(modelETS.forecast$mean,  col="red")
+
+```
+
+Porównajmy jeszcze statystyki Theila:
+```{r}
+theil.Arima = sum((modelARIMA.forecast$mean - test)^2)/sum((test)^2)
+theil.Arima
+theil.ETS = sum((modelETS.forecast$mean - test)^2)/sum((test)^2)
+theil.ETS
+```
+
+Lepszy okazuje się model ARIMA, dlatego też z niego korzystamy w naszej prognozie na najbliższe 4 dni.
+```{r}
+modelARIMA2 = auto.arima(sc)
+predykcja <- forecast(modelARIMA2,h=4)
+predykcja
+plot(predykcja, xlim = c(600,629), ylim = c(1,1.1))
+```
+
+```{r} 
+dane_z_0306 = sc[625]
+wynik = unlist(predykcja[4])
+prognoza_na_0706 = as.numeric(wynik[4])
+dane_z_0306
+prognoza_na_0706
+```
+
+Widzimy, że cena minimalnie wzrosła więc według prognozy opłaca się nam kupić euro za dolary. Poniżej przedstawimy prognozowany zysk na jednej jednostce monetarnej.
+```{r}
+prognozowany_zysk = as.numeric(prognoza_na_0706 - dane_z_0306)
+prognozowany_zysk
+```
+
