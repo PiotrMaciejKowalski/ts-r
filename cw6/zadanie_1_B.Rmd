@@ -1,0 +1,221 @@
+---
+title: "Wgranie danych"
+author: "Małgorzata Woźna, Maria Soja, Weronika Lara, Patrycja Kolanowska"
+date: "7 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Opis projektu**
+W pierwszym zadaniu grupowym zajmiemy się opracowniem danych dotyczących stopy bezrobocia w Polsce. Dane zostały pobrane ze strony https://stat.gov.pl. Utworzymy i porównamy różne modele na dany rok.
+
+- rok 2019;
+- rok 2018;
+- rok 2015;
+- rok 2010.
+
+
+## R Markdown
+**Wczytanie danych**
+
+```{r}
+library(jsonlite)
+library(tseries)
+
+dane <- read.csv2("GUS.csv", header=FALSE)
+pure_data <-dane[2:31,2:13]
+head(pure_data)
+```
+
+```{r}
+pure_inv_data <- pure_data[dim(pure_data)[1]:1, ]
+head(pure_inv_data)
+```
+
+
+
+```{r}
+library(jsonlite)
+data_vec = as.vector(t(pure_inv_data))
+```
+
+```{r}
+d2 = lapply(data_vec, function(x) return(sub(',','.', x)))
+data_vec
+```
+```{r}
+data_vec_with_dot = unlist(d2)
+```
+
+
+```{r}
+num_data_vec = as.numeric(data_vec_with_dot)
+num_data_vec
+```
+```{r}
+df=data.frame(num_data_vec)
+new_dane=num_data_vec[1:351]
+new_dane
+```
+
+
+```{r}
+plot(num_data_vec, type = "l")
+```
+```{r}
+library(dplyr)
+library(forecast)
+frequency(new_dane)
+```
+Co oznacza brak sezonowości
+
+```{r}
+sc = ts(new_dane, frequency = 1)
+adf.test(sc)
+```
+Za pomocą różnocowania usuwamy trend z naszych danych
+
+```{r}
+new_dane1=diff(new_dane)
+plot(new_dane1, type = "l")
+
+```
+```{r}
+adf.test(new_dane1)
+```
+
+
+**Wykresy ACF i PACF**
+
+
+```{r}
+tsdisplay(new_dane1)
+```
+
+```{r}
+library(zoo)
+srednia_kroczaca=rollmean(sc, 1)
+plot(srednia_kroczaca)
+```
+
+
+
+
+***Podział danych***
+Podzielmy nasze dane zbiory uczące i testowe
+```{r}
+l=length(new_dane1)
+l
+```
+*Rok 2019*
+```{r}
+test2019=window(sc,start=349)
+  
+train2019=window(sc,end=348)
+  
+test2019
+```
+*Rok 2018*
+```{r}
+test2018=window(sc,start=337, end=348 )
+train2018=window(sc,end=336)
+```
+*Rok 2015*
+```{r}
+test2015=window(sc,start=301,end=312)
+train2015=window(sc, end=300)
+```
+*Rok 2010*
+```{r}
+test2010=window(sc,start=241,end=252)
+train2010=window(sc,end=240)
+```
+ 
+***Box-Cox***
+
+```{r}
+
+lambda = BoxCox.lambda(new_dane1, lower = 0, upper = 2)
+lambda
+
+```
+
+```{r}
+y<-BoxCox(new_dane1, lambda)
+plot(y, type = "l")
+```
+****Model Arima***
+```{r}
+modelArima = auto.arima(y)
+summary(modelArima)
+```
+Prognoza modelu dla wszystkich danych
+
+```{r}
+pred=forecast(modelArima)
+plot(pred)
+```
+
+```{r}
+X_hat2019 = forecast(modelArima, h=length(test2019), fan = TRUE)
+plot(X_hat2019)
+```
+
+```{r}
+model2019=auto.arima(train2019)
+summary(model2019)
+```
+
+```{r}
+model2018=auto.arima(train2018)
+summary(model2018)
+```
+
+```{r}
+model2015=auto.arima(train2015)
+summary(model2015)
+```
+
+```{r}
+model2010=auto.arima(train2010)
+summary(model2015)
+```
+
+```{r}
+X_hat2019 = forecast(model2019, h=length(test2019), fan = TRUE)
+plot(X_hat2019)
+```
+```{r}
+X_hat2018 = forecast(model2018, h=length(test2018), fan = TRUE)
+plot(X_hat2018)
+```
+```{r}
+X_hat2015 = forecast(model2015, h=length(test2015), fan = TRUE)
+plot(X_hat2015)
+```
+```{r}
+X_hat2010 = forecast(model2010, h=length(test2010), fan = TRUE)
+plot(X_hat2010)
+```
+
+Oblicznie błędu średnio kwadratowego dla danych na poszczególny rok
+```{r}
+blad2019=mean((X_hat2019$mean-test2019)^2)
+blad2019
+```
+```{r}
+blad2018=mean((X_hat2018$mean-test2018)^2)
+blad2018
+```
+```{r}
+blad2015=mean((X_hat2015$mean-test2015)^2)
+blad2015
+```
+```{r}
+blad2010=mean((X_hat2010$mean-test2010)^2)
+blad2010
+```
+
+
