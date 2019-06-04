@@ -22,8 +22,7 @@ mniejsza_od_losowej_5(6)
 ## Napisac funkcje, ktora odkryje tajemnicza wylosowana liczbe w funkcji mniejsza_od_losowej_100
 
 mniejsza_od_losowej_100 = generator_funkcji_mniejsza_od_losowej(100)
-
-znajdz_losowa = function()
-{
   
-}
+  for (i in 1:100){
+    cat(i, mniejsza_od_losowej_100(i),"\n")}
+
