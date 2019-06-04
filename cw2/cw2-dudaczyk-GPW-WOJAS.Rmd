@@ -1,0 +1,56 @@
+---
+title: "cw2_GPW_WOJAS"
+author: "Dudaczyk"
+date: "27 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+dane <- read.csv("C:/Users/Justyna/Desktop/Madzia/Szeregiczasowe/cw2/dudaczyk-GPW-WOJAS.csv", header=TRUE)
+
+summary(dane)
+```
+
+## Including Plots
+
+```{r}
+plot(dane$Maksymalna, type="l", main="Maksymalne ceny spółki WOJAS",col="green",xlab = "Data", ylab="Notowania")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+```{r}
+plot(dane$Minimalna, type="l", main="Minimalne ceny spółki WOJAS",col="red",xlab = "Data", ylab="Notowania")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+```{r}
+plot(dane$Maksymalna, type="l", main="Wykresy cen maksymalnych i minimalnych spółki WOJAS", col="green",xlab = "Data", ylab = "Notowania spółki WOJAS")
+lines(dane$Minimalna, type="l", col="red")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+
+plot(dane$Otwarcie, type="l", main="Wykresy cen otwarcia i zamknięcia spółki WOJAS", col="blue",xlab = "Data", ylab = "Notowania spółki WOJAS")
+lines(dane$Zamkniecie, type="l", col="grey")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+```{r}
+plot(dane$Otwarcie, type="l", main="Wykresy notowań spółki WOJAS", col="blue",xlab = "Data", ylab = "Notowania spółki WOJAS")
+lines(dane$Maksymalna, type="l", col="green")
+lines(dane$Minimalna, type="l", col="red")
+lines(dane$Zamkniecie, type="l", col="grey")
+axis(1, at = dane$Data, labels = levels(dane$Data))
+```
+
+```{r}
+# install.packages("quantmod")
+library("quantmod")
+WOJAS <- xts(dane[, -1], order.by = as.Date(dane[, 1]))
+names(WOJAS) = c("WOJ.Open", "WOJ.High", "WOJ.Low", "WOJ.Close", "WOJ.Volume")
+chartSeries(WOJAS, bar.type = "hlc", TA = NULL, type = "bars")
+```
+```{r}
+chartSeries(WOJAS)
+```
