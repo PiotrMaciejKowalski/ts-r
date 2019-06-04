@@ -1,0 +1,101 @@
+---
+title: "Zadanie5"
+author: "Justyna Kapucińska"
+date: "28 kwietnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Instaluje potrzebne pakiety
+```{r}
+library(dplyr)
+library(forecast)
+library(tseries)
+```
+
+#Wczytuje dane
+```{r}
+danep=read.csv2("Kapucinska_WTI_USD.csv")
+```
+
+Wybieram jedną zmienną- otwarcie godziny 8:00
+```{r}
+danep%>%
+  filter(grepl("08:00", Godzina.))%>%
+  select(Otwarcie.)->dane
+head(dane)
+```
+
+
+```{r}
+d.ts=ts(dane,frequency = 1)
+is.ts(d.ts)
+```
+
+#Wykresy
+
+```{r}
+tsdisplay(d.ts)
+```
+Ponieważ szereg nie jest stacjonarny zastosujemy różnicowanie.
+
+```{r}
+diff.ts=diff(d.ts)
+tsdisplay(diff.ts)
+```
+p=2, q=2, d=1
+
+Sprawdźmy stacjonarność tego szeregu.
+```{r}
+pp.test(diff.ts, alternative="stationary")
+```
+Orzucamy hipotezę zerową, ponieważ p-value<0.05.
+
+#Podział na dwa zbiory: uczący i testowy
+```{r}
+N=35
+Uczący = window(diff.ts,end = N)
+Testowy = window(diff.ts,start = N+1)
+ts.plot(Uczący,Testowy, col=1:2,lty=c(1,2))
+```
+
+#Model MA
+```{r}
+model_ma=arima(Uczący, order=c(0,1,2))
+summary(model_ma)
+```
+
+#Model AR
+```{r}
+model_ar=arima(Uczący,order = c(2,1,0))
+summary(model_ar)
+```
+
+#Model ARMA
+```{r}
+model_arma=arima(Uczący, order=c(2,1,2))
+summary(model_arma)
+```
+
+#Prognoza
+```{r}
+prognoza_ma=forecast(model_ma,h=length(Testowy))
+plot(prognoza_ma,type="l", main="Prognoza MA")
+lines(Testowy,col="red")
+
+prognoza_ar=forecast(model_ar,h=length(Testowy))
+plot(prognoza_ar,type="l",main="Prognoza AR")
+lines(Testowy,col="red")
+```
+
+
+#Błędy średniokwadratowe prognozy
+```{r}
+błąd_ma=mean(((prognoza_ma$mean-Testowy)^2))
+błąd_ma
+błąd_ar=mean(((prognoza_ar$mean-Testowy)^2))
+błąd_ar
+```
+Zatem model MA jest lepszy.
