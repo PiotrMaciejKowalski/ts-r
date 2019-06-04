@@ -1,0 +1,140 @@
+---
+title: "ćwiczenie 5"
+author: "Marta Czarkowska"
+date: "7 maja 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Zaczynam od wczytania danych spółki AWM oraz załączenia niezbędnych do wykonania zadania bibliotek.
+```{r}
+library(forecast)
+library(readxl)
+dane <- read_excel("mczarkowska-gpw-awm.xlsx")[1:5]
+head(dane)
+```
+
+
+```{r}
+otwarcie=dane$Otwarcie
+data=dane$Data
+```
+
+```{r}
+otwarcie=ts(otwarcie, frequency=1)
+dates=as.Date(data, format='%Y-%m-%d')
+sessional_otwarcie=ts(otwarcie,frequency = 5)
+```
+#Podstawowy wykres
+
+Wykres naszego szeregu czasowego wygląda następująco:
+```{r}
+plot(otwarcie, xlab="Data",ylab="Cena otwarcia", main="Prosty wykres dla ceny otwarcia spółki AWM")
+```
+
+#Wykresy autokoreacji ACF oraz autokorelacji cząstkowej PACF
+```{r}
+acf(otwarcie)
+```
+```{r}
+pacf(otwarcie)
+```
+
+#Różnicowanie szeregu
+```{r}
+plot(diff(otwarcie))
+```
+
+
+#Podział na zbiór treningowy i testowy
+```{r}
+length(otwarcie)
+uczacy<-window(otwarcie, end = 40)
+uczacy
+testowy<-window(otwarcie, start = 41)
+testowy
+```
+
+#Wspóllny wykres
+```{r}
+ts.plot(uczacy, testowy, col=1:2, lty=c(1,2))
+```
+
+#Dobór modelu ARIMA
+
+Model autoregresji - AR 
+
+```{r}
+model<-Arima(uczacy, order = c(2,1,0))
+summary(model)
+```
+
+Model średniej ruchomej -  MA
+
+```{r}
+model1<-Arima(uczacy, order=c(0,1,1))
+summary(model1)
+```
+
+Model mieszany - ARIMA
+
+```{r}
+model2<- Arima(uczacy, order=c(1,2,2))
+summary(model2)
+```
+
+```{r}
+plot(model$residuals)
+tsdiag(model)
+```
+
+#Prognoza
+Zajmiemy się prognozż kolejno dla każdego z modeli
+
+Prognoza AR:
+```{r}
+prog=forecast(model, h=length(testowy))
+prog
+```
+
+Prognoza MA:
+```{r}
+prog1=forecast(model1, h=length(testowy))
+prog1
+```
+
+Prognoza ARIMA
+```{r}
+prog2<- forecast(model2, h=length(testowy))
+prog2
+```
+
+#Przedstawimy teraz uzyskane prognozy na wykresach
+```{r}
+plot(prog)
+lines(testowy,col="red")
+```
+```{r}
+plot(prog1)
+lines(testowy,col="red")
+```
+
+```{r}
+plot(prog2)
+lines(testowy,col="red")
+```
+
+#Policzmy teraz błąd średniokwadratowy, w celu sprawdzenia który model ma największą skuteczność
+```{r}
+bl_ar=mean((prog$mean-testowy)^2)
+bl_ar
+bl_ma=mean((prog1$mean-testowy)^2)
+bl_ma
+bl_arima=mean((prog2$mean-testowy)^2)
+bl_arima
+```
+
+
+Zatem drugi model jest najlepszy
