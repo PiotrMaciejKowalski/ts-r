@@ -1,6 +1,6 @@
 ---
 title: "Zadanie7"
-author: "Maria Soja" "Weronika Lara" "Małgorzata Woźna" "Patrycja Kolanowska"
+author: "Maria Soja Weronika Lara Małgorzata Woźna Patrycja Kolanowska"
 date: "4 06 2019"
 output: html_document
 ---
