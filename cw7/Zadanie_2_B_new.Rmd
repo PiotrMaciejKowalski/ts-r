@@ -1,0 +1,241 @@
+---
+title: "Zadanie7"
+author: "Maria Soja" "Weronika Lara" "Małgorzata Woźna" "Patrycja Kolanowska"
+date: "4 06 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+W naszym zadaniu wgrywamy dane ze strony https://stooq.pl/ ; wybrałyśmy pare walut ARS/MXN z całego roku 2018 oraz z roku bierzącego do dnia 
+```{r}
+
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(forecast)
+library(tseries)
+```
+```{r}
+df <- read.csv("arsmxn_d.csv")
+head(df)
+```
+```{r}
+frequency(df)
+```
+
+Dane są obecnie przedstawone w postaci ramki danych. Zmieniami typ danych żeby móc modelować szeregi czasowe i tworzymy szereg czasowy. 
+
+```{r}
+sc = ts(df$Otwarcie, frequency = 1)
+date = as.Date(df$Data, format='%Y-%m-%d')
+```
+
+
+Sprawdzamy jak nasze dane prezentują się na wykresie
+
+
+```{r}
+plot(date,sc, type = "l")
+```
+
+
+Na wykresie widzimy zdecydowany trend liniowy. Sporządzimy wykresy ts, ACF i PACF.
+
+
+```{r}
+x<-ts(df$Otwarcie, frequency = 1)
+tsdisplay(x)
+```
+
+Zbadamy teraz stacjonarność naszego szeregu.
+
+```{r}
+adf=adf.test(sc)
+adf
+```
+
+Po odczytaniu wartości p-value nie możemy odrzucić hipotezy o niestacjonarności szeregu. Zróżnicujemy ten szereg w celu otrzymania informacji o jego stacjonarności. 
+
+```{r}
+df_d=diff(sc)
+adf.test(df_d)
+```
+
+Po zróżnicowaniu otrzymujemy szereg, na którym możemy tworzyć interesujące nas modele. Narysujmy wykresy ACF i PACF dla zróżnicowanego szeregu.
+
+```{r}
+tsdisplay(df_d)
+```
+
+Tworzymy podział na zbiory treningowe i testowe.
+
+```{r}
+test=window(df_d,start=310)
+train=window(df_d,end =310)
+```
+
+##Model AUTO ARIMA
+
+```{r}
+model_arima=auto.arima(train)
+summary(model_arima)
+
+```
+
+```{r}
+predArima=forecast(model_arima, h=length(test))
+plot(predArima)
+```
+
+Dołóżmy linie predykcji wybranego modelu do naszego zbioru testowego.
+
+```{r}
+plot(test, type="l")
+lines(predArima$mean,col="red")
+```
+
+
+##Model AR1
+
+```{r}
+model_ar1=arima(train, c(1,0,0))
+summary(model_ar1)
+```
+
+
+
+```{r}
+predar1=forecast(model_ar1,h=length(test))
+plot(predar1)
+```
+
+Dołóżmy linie predycji dla wybranego modelu do zbioru testowego. 
+
+```{r}
+plot(test, type="l")
+lines(predar1$mean,col="red")
+```
+
+##Porównanie błędów średniokwadratowych dla powyższych prgonoz
+
+```{r}
+blad1=mean((predArima$mean-test)^2)
+blad2=mean((predar1$mean-test)^2)
+
+```
+
+```{r}
+blad1
+blad2
+```
+
+Zatem model AutoArima jest dokładnijeszy o czym świdaczny mniejszy błąd średniokwadratowy niz w przypadku modelu Ar(1)
+
+```{r}
+df_new <- read.csv("arsmxn_d_new.csv")
+head(df_new)
+```
+*Prognoza na 07.06.2019 rok*
+Powtarzamy procedurę dla danych po 4 dniach
+
+```{r}
+frequency(df_new)
+```
+
+Dane są obecnie przedstawone w postaci ramki danych. Zmieniami typ danych żeby móc modelować szeregi czasowe i tworzymy szereg czasowy. 
+
+```{r}
+sc_new = ts(df_new$Otwarcie, frequency = 1)
+date = as.Date(df_new$Data, format='%Y-%m-%d')
+```
+
+
+Sprawdzamy jak nasze dane prezentują się na wykresie
+
+
+```{r}
+plot(date,sc_new, type = "l")
+```
+
+
+Na wykresie widzimy zdecydowany trend liniowy. Sporządzimy wykresy ts, ACF i PACF.
+
+
+```{r}
+x<-ts(df_new$Otwarcie, frequency = 1)
+tsdisplay(x)
+```
+
+Zbadamy teraz stacjonarność naszego szeregu.
+
+```{r}
+adf_new=adf.test(sc_new)
+adf_new
+```
+
+Po odczytaniu wartości p-value nie możemy odrzucić hipotezy o niestacjonarności szeregu. Zróżnicujemy ten szereg w celu otrzymania informacji o jego stacjonarności. 
+
+```{r}
+df_d_new=diff(sc_new)
+adf.test(df_d_new)
+```
+
+Po zróżnicowaniu otrzymujemy szereg, na którym możemy tworzyć interesujące nas modele. Narysujmy wykresy ACF i PACF dla zróżnicowanego szeregu.
+
+```{r}
+tsdisplay(df_d_new)
+```
+
+Tworzymy podział na zbiory treningowe i testowe.
+
+```{r}
+train_new=window(df_d_new,end =345)
+test_new=window(df_d_new,start=345)
+```
+
+##Model AUTO ARIMA
+Korzystamy z modelu auto Arima ponieważ podał on dokładniejszy wynik dla poprzednich danych.
+```{r}
+model_arima_new=auto.arima(train_new)
+summary(model_arima_new)
+
+```
+
+```{r}
+predArima_new=forecast(model_arima_new, h=length(test_new))
+plot(predArima_new)
+```
+```{r}
+predArima_new
+```
+
+Dołóżmy linie predykcji wybranego modelu do naszego zbioru testowego.
+
+```{r}
+plot(test_new, type="l")
+lines(predArima_new$mean,col="red")
+```
+
+```{r}
+sc_new[345]
+```
+**Decyzja**
+Ponieważ ostatnia wartość prognozy(07.06) jest taka sama jak kurs dla 04.06, możemy przypuszczać, że kurs będzie taki sam w dniu 07.06 w stosunku do 04.06. Wymiana ARS na MXN przyniesie nam straty.
+**Podsumownie**
+```{r}
+cena_07.06<-0.43924
+cena_04.06<-0.43871
+predykcja<-sc_new[345]
+```
+```{r}
+zysk<-predykcja-cena_04.06
+zysk1<-cena_07.06-cena_04.06
+zysk
+zysk1
+```
+
+Przewidywałysmy, że zysk z wymiany ARS na MXN w dniu 28.05 wyniesie `r predykcja-cena_04.06` na jednym ARS, natomiast faktyczny zarobek z tej wymiany wyniósłby `r cena_07.06-cena_04.06 ` na każdym ARS.
+Wymieniając ARS na MXN zarobiłybyśmy. 
