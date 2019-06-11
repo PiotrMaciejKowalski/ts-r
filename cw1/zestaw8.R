@@ -23,7 +23,11 @@ mniejsza_od_losowej_5(6)
 
 mniejsza_od_losowej_100 = generator_funkcji_mniejsza_od_losowej(100)
 
+
 znajdz_losowa = function()
 {
-  
+  for (i in 1:100){
+    cat(i, mniejsza_od_losowej_100(i),"\n")
+  }
 }
+znajdz_losowa()
