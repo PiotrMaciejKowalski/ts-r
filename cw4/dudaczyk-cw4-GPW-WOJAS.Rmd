@@ -1,0 +1,82 @@
+---
+title: "dudaczyk-cw4-GPW-WOJAS"
+author: "Dudaczyk"
+date: "2 czerwca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+dane <- read.csv("C:/Users/Justyna/Desktop/Madzia/Szeregiczasowe/cw2/dudaczyk-GPW-WOJAS.csv", header=TRUE)
+
+head(dane)
+```
+```{r}
+summary(dane)
+```
+
+```{r}
+# install.packages("dplyr")
+library(dplyr)
+```
+```{r}
+Maks<-dane$Maksymalna
+Min<-dane$Minimalna
+Data<-dane$Data
+Otwarcie<-dane$Otwarcie
+Zamkniecie<-dane$Zamkniecie
+```
+```{r}
+Data2 <- as.Date(Data, "%Y-%m-%d")
+dane<-cbind(dane,Data2)
+```
+
+## proces1
+
+```{r}
+dane %>%
+ filter(Maks>=3 , Min<6) %>%
+  mutate(srcena = (Maks + Min)/2) %>%
+  mutate(Month = format(as.POSIXct(Data2), "%m")) %>%
+  group_by(Month) %>%
+  select(Data2, Otwarcie, Zamkniecie, srcena) -> tab1
+head(tab1)
+```
+
+```{r}
+plot(tab1$Data2, tab1$srcena, xlab="Data", ylab = "Średnia cena", main = "Średnia wartość cen: Maksymalnej i Minimalnej", type="l", col="green")
+```
+
+## proces2
+```{r}
+dane %>%
+  filter(Zamkniecie<6) %>%
+   mutate(RoznicaZM=Zamkniecie-Maks) %>%
+   arrange(Zamkniecie) %>%
+   group_by(Zamkniecie) %>%
+ summarise(sredniaR = mean(RoznicaZM, na.rm=TRUE)) -> tab2
+head(tab2)
+```
+
+```{r}
+matplot(tab2$Zamkniecie, tab2$sredniaR, xlab="Zmiana", ylab="średnie wartości", "l", col="red")
+```
+
+## proces3
+```{r}
+dane%>%
+  filter(grepl("-01-", Data2)) %>%
+   mutate(srednia = mean(Otwarcie)) %>%
+   mutate(roznica=(Otwarcie-srednia)) %>%
+ select(Data2, Otwarcie, roznica)-> tab3
+head(tab3)
+```
+
+```{r}
+plot(tab3$Data2, tab3$roznica, xlab="Data", ylab = "Średnia", type="p")
+```
