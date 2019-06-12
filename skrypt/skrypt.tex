@@ -21,7 +21,7 @@
 
 \usepackage{dyschemist}
 \author{dr, mgr inż. Piotr Kowalski}
-\title{Skrypt do wykładu z Szeregów czasowych i prognozowanie w biznesie}
+\title{Skrypt do wykładu z przedmiotu \\"Szeregi czasowe i prognozowanie w biznesie"}
 \date{\today}
 \begin{document}
 
@@ -54,7 +54,7 @@ Wersja & Autor & Data & Opis\\\hline
 1.8 & P. Kowalski & 24.04.19 & Dodanie wprowadzenia do procesów decyzyjnych Markowa, oraz predykcji opartej o sieci neuronowe \\\hline
 1.9 & P. Kowalski & 28.04.19 & Dodanie elementów dotyczących zastosowania teorii spektralnej do predykcji \\\hline
 1.10 & P. Kowalski & 8.05.19 & Rozszerzenie elementów związanych z modelami decyzyjnymi Markowa oraz Q-learningiem \\\hline
-1.11 & P. Kowalski w oparciu o uwagi studentów & 12.06.19 & Poprawki zgłoszone przez studentów
+1.11 & P. Kowalski i studenci & 12.06.19 & Poprawki zgłoszone przez studentów \\\hline
 \end{tabular}
 \caption{Wersje dokumentu.}
 \end{table}
@@ -157,7 +157,7 @@ $$
 Analogicznie jak w przypadku prognozy przez $\sequence{e_t}{t}{} = \sequence{\function[{e_t}]{1} }{t}{} $. Ponadto ciąg $\sequence{e_t}{t}{} $ nazywa sie ciągiem rezyduów\index{Szereg!rezydualny}, albo rezydualnym.
 \end{definition}
 
-Najprostszym sposobem tworzenia predykcji wg modelu probabilistyczne jest użycie modelu prognozy naiwnej.
+Najprostszym sposobem tworzenia predykcji wg modelu probabilistycznego jest użycie modelu prognozy naiwnej.
 
 \begin{definition}[Prognoza naiwna]\index{Prognoza!naiwna}
 Najprostszym modelem prognozowania jest prognoza naiwna w której
@@ -190,7 +190,7 @@ Niniejsza sekcja została przygotowana z wykorzystaniem \citep{montgomery2015int
 Ostatecznie, w różnej konfiguracji, zaproponowany i wdrożony zostanie model dokonujący dekompozycji i kompozycji wg założonego schematu. Jedynym co pozostanie będzie ocena skuteczności modelu. Nie wskazywanym jest stosowanie tylko jednego sposobu agregowania błędu z modelu. Najczęściej posługujemy się całymi zestawami wskaźników błędu i próbujemy dokonać ich jednoczesnej minimalizacji. W niniejszej sekcji przedstawmy kilka podstawowych sposobów na wprowadzenie błędu prognozy.
 
 \begin{definition}[Różne rodzaje błędu]
-Niech $\sequence{y_t}{t}{} $ będzie szeregiem czasowym  o długości $n$ oraz $\predict{y}{t}$ będzie predykcja na 1-okres wprzód. Zgodnie z wprowadzonymi oznaczeniemi $e_t = y_t - \predict{y}{t}$. Wtedy
+Niech $\sequence{y_t}{t}{} $ będzie szeregiem czasowym  o długości $n$ oraz $\predict{y}{t}$ będzie predykcją na 1-okres wprzód. Zgodnie z wprowadzonymi oznaczeniemi $e_t = y_t - \predict{y}{t}$. Wtedy
 \begin{itemize}
 \item Średnim błędem (ME) nazwiemy \index{Błąd!ME}
 $$
@@ -223,7 +223,7 @@ $$
 
 W niniejszym rozdziale omówimy podstawowe informacje dotyczące procesów stochastycznych zanim przejdziemy do samych szeregów czasowych. Zakładamy milcząco znajomość podstaw rachunku prawdopodobieństwa. Do samej definicji tak naprawdę wystarczy niewiele. Zacznijmy jednak od opowieści.
 
-Skąd pojawił się pomysł aby stosować modele probabilistyczne w modelach predykcyjnych. Matematyka będąc nauką teoretyczną posiada w zasadzie nieograniczone możliwości w modelowaniu świata rzeczywistego. Jest w stanie tworzyć modele tak deterministycznych jak i probalistycznych. Problem znajduje się gdzie indziej. Obserwujemy bowiem, że wszelkie próby odwzorowywania zdarzeń świata rzeczywistego oraz matematycznego modelu jest obciążone błędem o charakterze probabilistycznym. Niezależnie zatem od tego czy zjawisko samo w sobie posiada losowość, wpływ pomiaru wprowadza zasadność rozważania wpływów probabilistycznych.
+Skąd pojawił się pomysł aby stosować modele probabilistyczne w modelach predykcyjnych. Matematyka będąc nauką teoretyczną posiada w zasadzie nieograniczone możliwości w modelowaniu świata rzeczywistego. Jest w stanie tworzyć modele tak deterministyczne jak i probalistyczne. Problem znajduje się gdzie indziej. Obserwujemy bowiem, że wszelkie próby odwzorowywania zdarzeń świata rzeczywistego oraz matematycznego modelu jest obciążone błędem o charakterze probabilistycznym. Niezależnie zatem od tego czy zjawisko samo w sobie posiada losowość, wpływ pomiaru wprowadza zasadność rozważania wpływów probabilistycznych.
 
 \section{Elementy rachunku prawdopodobieństwa} 
  
@@ -276,7 +276,7 @@ Rozważmy pewną ustaloną chwilę czasu $t \in T$. Wtedy $X(t)$ lub $X_t$ oznac
 W komplementarnej konfiguracji
 
 \begin{definition}[Trajektoria procesu stochastycznego]
-Trajektorią lub realizacją dla procesu stoachastycznego nazywamy funkcję $t \mapsto X_t(\omega)$, gdzie $\omega \in \Omega$ jest ustalone.
+Trajektorią lub realizacją dla procesu stochastycznego nazywamy funkcję $t \mapsto X_t(\omega)$, gdzie $\omega \in \Omega$ jest ustalone.
 \end{definition}
 
 \begin{definition}[Procesy ciągłe i dyskretne]
@@ -349,7 +349,7 @@ W przypadku gdy $T = \setZ $ zwyczajowo będziemy pomijać $T$ pisząc skrótowo
 \end{remark}
 
 \begin{remark}
-Pomimo zdefiniowania szeregu czasowego jedynie dla $\setN \cup \set{0} $, czasem będziemy korzystali z notacji używającej indeksów ujemny. Wtedy najczęściej rozumieć będziemy ten zapis w następujący sposób
+Pomimo zdefiniowania szeregu czasowego jedynie dla $\setN \cup \set{0} $, czasem będziemy korzystali z notacji używającej indeksów ujemnych. Wtedy najczęściej rozumieć będziemy ten zapis w następujący sposób
 $$
 y_{-t} := y_{t}.
 $$
@@ -404,7 +404,7 @@ Oddaje to bardzo klasyczne rozumienie pojęcia stacjonarności - czyli niezależ
 \begin{remark*}
 To bardzo dziwny i przełomowy moment w rozponawaniu dziedziny jaką są szeregi czasowe. Rozważania rozpoczęliśmy od zmiennej losowej i szybko odczuliśmy, że nasze zdolności w modelowaniu są niedostateczne z uwagi na brak zależnosci od czasu. Przechodzimy więc do procesów stochastycznych, które posiadają możliwość zmieniania się w czasie. Po czym ograniczamy nasze rozważania do szeregów niezmieniających się w czasie. To w zasadzie bez sensu. 
 
-Powodem dla którego tak uważamy, jest gdyż obserwujemy to w tej chwili z perspektywy modelu i rachunku prawdopodobieństwa. Tymczasem prawdziwe powody, dla którego to robimy leżą w zadaniu przeciwnym czyli statystyce. Prawdziwą udręką badaniu szeregów czasowych jest to, że dla każdej chwili czasowej i przypisanej jej zmiennej losowej mamy jedynie pojedynczą obserwację. Żadna część statystyki nie pozwoli nam na wydanie uzasadnionego stwierdzenia o rozkładzie zmiennej w danej chwili. Nie jest więc tak, że ograniczamy się do elementów stacjonarnych, bo chcemy - lecz musimy. We wnętrzu naszego szeregu czasowego poszukiwać będziemy składowych stacjonarnych, gdyż tylko o takich statystyka jako nauka jest w stanie wypowiedzieć zdania prawdopodobnie prawdziwe.
+Powodem przez który stwierdzamy brak sensu, jest gdyż obserwujemy to wszystko w tej chwili z perspektywy modelu i rachunku prawdopodobieństwa. Tymczasem prawdziwe powody, dla którego to robimy leżą w zadaniu odwrotnym czyli statystyce. Prawdziwą udręką w badaniu szeregów czasowych jest to, że dla każdej chwili czasowej i przypisanej jej zmiennej losowej mamy jedynie pojedynczą obserwację. Jedną obserwację dla każdej zmiennej losowej. Żadna część statystyki nie pozwoli nam na wydanie uzasadnionego stwierdzenia o rozkładzie zmiennej w danej chwili. Nie jest więc tak, że ograniczamy się do elementów stacjonarnych, bo chcemy. Robimy tak gdyż musimy tak postąpić. We wnętrzu naszego szeregu czasowego poszukiwać będziemy składowych stacjonarnych, gdyż tylko o takich statystyka jako nauka jest w stanie wypowiedzieć zdania prawdopodobnie prawdziwe.
 \end{remark*}
 
 \begin{proposition}
@@ -493,7 +493,7 @@ W przypadku stacjonarnego szeregu czasowego, rozkłady wzajemne prawdopodobieńs
 $$
 \tsAutoCovariance{Y}{k} := \tsAutoCovariance{Y}{s,s+k},
 $$
-z uwagi na niezależność od $s \in S$. Notację tę będziemy również zakładać działając pod hipotezą stacjonarności szeregu, tj. w sytuacjach kiedy chcemy tę hipotezę potwierdzić i wyznaczamy wartości $\gamma$.
+z uwagi na niezależność od $s \in T$. Notację tę będziemy również zakładać działając pod hipotezą stacjonarności szeregu, tj. w sytuacjach kiedy chcemy tę hipotezę potwierdzić i wyznaczamy wartości $\gamma$.
 \end{remark}
 
 Dla tak zdefiniowanej funkcji autokowariancji wprowadźmy współczynnik nazywany współczynnikiem autokorelacji oraz ACF.
@@ -620,7 +620,7 @@ nazywamy filtrem Hanninga.
 
 \subsection{Wykresy kroczących median}
 
-Zupełnie inną grupę stanowi koncepcja kroczących median. Zanim pojawi sie ich formalna definicja kilka uwag o medianie, która wskazuje istotne punkty różniące ją od średniej - a zatem wpływających również na postać kroczących median. Jedną z zalet średnich kroczących jest możliwość jej liczenia dla kolejnych wartości w sposób skrócony zgodnie z algorytmem\index{Algorytm!średnej kroczącej}
+Zupełnie inną grupę stanowi koncepcja kroczących median. Zanim pojawi się ich formalna definicja kilka uwag o medianie, która wskazuje istotne punkty różniące ją od średniej - a zatem wpływających również na postać kroczących median. Jedną z zalet średnich kroczących jest możliwość jej liczenia dla kolejnych wartości w sposób skrócony zgodnie z algorytmem\index{Algorytm!średnej kroczącej}
 
 \begin{enumerate}
 \item Policz pierwszy element średniej kroczącej,
@@ -787,7 +787,7 @@ ma rozkład F-Snedecora o parametrach $u-1$ i $n-u$ stopniach swobody.
 
 Obserwujemy, że
 \begin{itemize}
-\item Jeśli udałoby się pokazać statystyczne, że powien szereg rozdzielczy naszej ma cechy czynników z ANOVA - to zaproponowany w oparciu o niego model predykcji (powinien) okaże się skuteczniejszy w prognozowaniu.
+\item Jeśli udałoby się pokazać statystyczne, że powien szereg rozdzielczy naszej zmiennej ma cechy czynników z ANOVA - to zaproponowany w oparciu o niego model predykcji (powinien) okaże się skuteczniejszy w prognozowaniu.
 \item Predykcja w szeregach czasowych polega głównie na $y_t \Rightarrow \predict{y}{t+1}$
 \item Zatem model powinien prognozować zmienną ilościową w oparciu o cechy jakościowe.
 \item ANOVA powraca do nas jednak na dalszych etapach - wyjaśniając lub dowodząc cennych własności.
@@ -1053,7 +1053,7 @@ Podstawowym sygnałem wskazującym na występowanie trendu w badanym zjawisku je
 
 Drugim często spotykanym problemem jest brak spełniania warunku stałości wariancji w szeregu czasowym. Dominuje tutaj rodzina potęgowa transformacji.
 
-\begin{definition}
+\begin{definition}[Transformacja Boxa-Coxa{\citep{zagdanski2016analiza}}]
 Dowolną transformację postaci
 $$
 y^{(\lambda)} = \left \lbrace 
@@ -1063,7 +1063,7 @@ y^{(\lambda)} = \left \lbrace
 \end{array}
  \right.
 $$ 
-gdzie $\dot{y} = \function[{\exp}]{\frac{1}{T} \sum_{t=1}^{T}  \ln y_t}$
+gdzie $\dot{y} = \function{\exp}{\frac{1}{T} \sum_{t=1}^{T}  \ln y_t}$
 nazywamy transformacją potęgową danych.
 \end{definition}
 
@@ -1094,10 +1094,9 @@ Cechą szczególną tych modeli jest to, że wykorzystują one do predykcji wart
 Model Prostego Wygładzania Wykładniczego (SES\footnote{ang. Simple Exponential Smoothing})\index{Model!SES} nazywany też modelem wygładzania wykładniczego pierwszego stopnia. Tak jak sygnalizowaliśmy już w modelu tym prognoza i wartość zjawiska są traktowane w pewien sposób z osobna. Zatem prognozy poprzedzające pełnią w tych modelach funkcje dodatkowych zmiennych stąd też z reguły ich wartości są często oznaczane pewną dodatkową literą w odróżnieniu od $\predict{y}{t}$. Tu zmienna szeregu czasowego gromadzącego predykcję oznaczana jest przez T.  W modelu tym spodziewamy się zależności,  w której
 
 $$
-\predict{y}{t+1} =  F_t = (1 - \theta) \sum_{s=0}^{t-1} \theta^s y_{t-s}.
+\predict{y}{t+1} =  F_t = (1 - \theta) \sum_{s=0}^{t-1} \theta^s y_{t-s},
 $$
-
-Lub inaczej zapisane jako
+gdzie $\theta \in (0,1)$ jest parametrem modelu. Powyższe może być także inaczej zapisane jako
 
 $$
 \predict{y}{t+1} = (1- \theta) \bracket{ y_t + \theta y_{t-1} + \theta^2 y_{t-2}+ \ldots + \theta^{t-1} y_{1}}.
@@ -1213,7 +1212,7 @@ Y_t = L(X_t) = \sum_{i=-\infty}^{+\infty} \psi_i X_{t-i},
 $$
 nazywanym filterem liniowym \index{Filtr liniowy}. Wtedy jeśli
 \begin{itemize}
-\item Współczynniki są niezmiennicze względem czasu tj. dla dowolnego $i \in \setZ$ współczynniki $\psi_i$ są stałe, oraz
+\item Współczynniki są niezmiennicze względem czasu tj. dla dowolnego $i \in \setZ$ współczynniki $\psi_i \in \setR$ są stałe, oraz
 \item Transformacja jest stabilna tj. $ \sum_{i=-\infty}^{+\infty}\abs{\psi_i} < \infty$
 \end{itemize}
 i procesy są zwiazane filterem liniowym tj. $Y_t = L(X_t)$ to $Y_t$ jest procesem stacjonarnym.
@@ -1613,6 +1612,18 @@ Powyższe definicje ostatecznie pozwalają nam zdefiniować funkcję częściowe
 \begin{definition}[PACF] \index{Funkcja!PACF}\index{Funkcja!częściowej autokorelacji}
 Częściową autokorelacją pomiędzy $Y_t$ a $Y_{t-k}$ nazywamy częściową korelację pomiędzy nimi po dopasowaniu zmiennych $Y_{t-1}, \ldots, Y_{t-k+1}$.
 \end{definition}
+Aby zatem policzyć PACF dla pary $Y_t$ a $Y_{t-k}$ wyznaczamy 
+$$
+\predict{Y_t}{} = a_1 + b_1 Y_{t-1} + \ldots + b_{k-1} Y_{t-k+1},
+$$
+oraz 
+$$
+\predict{Y_{t-k}}{} = a_1 + b_1 Y_{t-1} + \ldots + b_{k-1} Y_{t-k+1}.
+$$
+Wtedy PACF jest wyliczany z reszty z powyżej opisanych regresji zgodnie ze wzorem:
+$$
+\frac{\Covariance{Y_t^\ast}{Y_{t-k}^\ast}}{\sqrt{\Variance{Y_t^\ast}\Variance{Y_{t-k}^\ast}}}.
+$$
 
 \begin{remark}[Zastosowanie PACF w modelach AR]
 W modelach AR(p) funkcja PACF przyjmuje wartości istotnie różne od 0 wyłącznie dla $k \leq p$. Stąd to właśnie tę funkcję stosujemy przy badaniu zasadności modelu.
@@ -1944,7 +1955,7 @@ Najczęstszym zastosowaniem teorii transformacji Fouriera szeregu czasowego jest
 \item Dokonujemy odwrotnej transformaty Fouriera uzyskując ponownie sygnał początkowy, ale o mniejszej ilości szumu.
 \end{itemize}
 
-Powyższy algorytm można by nazwać nowym sposobem przeprowadzenia wygladzania wykresu.
+Powyższy algorytm można by nazwać nowym sposobem przeprowadzenia wygładzania wykresu.
 
 \begin{remark*}
 Pamiętajmy o podstawowej cesze tej transformacji. Wszystko o czym tu piszemy zaczyna się od aproksymowania funkcji okresowej. Aby stosować skutecznie zawarte tu teorie, należałoby mieć realne przesłanki, że funkcja ta ma szanse bycia okresową. Szereg czasowy powinien zatem posiadać przynajmnie stałą wartość przeciętną oraz stałą wariancję.
