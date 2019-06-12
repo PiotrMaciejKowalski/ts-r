@@ -82,7 +82,7 @@ Współczesne prognozowanie nie przypomina już w zasadzie prognozowania znanego
 
 \section{Podziały prognoz}
 
-Do dwóch głównych nurtów prognozowania zalicza się \citep[Ch. 1]{montgomery2015introduction} prognozowanie jakościowe i ilościowe. Prognozowanie jakościowe\index{Prognoza!jakościowa}, choć może wykorzystywać matematyczne modele i obliczenia, w znacznej mierze opiera się na subiektywnych ocenach formułowanych przez ekspertów. Przykładami zdań wypowiadanych w ramach prognozowania jakościowe są np.
+Do dwóch głównych nurtów prognozowania zalicza się \citep[Ch. 1]{montgomery2015introduction} prognozowanie jakościowe i ilościowe. Prognozowanie jakościowe\index{Prognoza!jakościowa}, choć może wykorzystywać matematyczne modele i obliczenia, w znacznej mierze opiera się na subiektywnych ocenach formułowanych przez ekspertów. Przykładami zdań wypowiadanych w ramach prognozowania jakościowego są np.
 \begin{itemize}
 \item Lato będzie upalne,
 \item Wartośc firmy będzie dalej wzrastać,
@@ -152,9 +152,9 @@ Wprowadźmy również od razu oznaczenie dla błędu danej prognozy
 \begin{definition}[Błąd prognozy \citep{montgomery2015introduction}]\index{Błąd!prognozy}
 Niech $\sequence{y_t}{t}{} $ będzie ciągiem opisującym pewne zjawisko w kolejnych chwilach czasu a $\predict[t-\gamma]{y}{t}$ jego prognozą o wyprzedzeniu $\gamma \in \setN$. Błędem $\gamma$-prognozy nazywać będziemy ciąg wartości dla kolejnych chwil czasu opisany wzorem:
 $$
-\sequence{\function[{e_t}]{\gamma}}{t}{} = \sequence{y_t}{t}{} - \sequence{\predict[t-\gamma]{y}{t}}{t}{}.
+\sequence{\function{e_t}{\gamma}}{t}{} = \sequence{y_t}{t}{} - \sequence{\predict[t-\gamma]{y}{t}}{t}{}.
 $$
-Analogicznie jak w przypadku prognozy przez $\sequence{e_t}{t}{} = \sequence{\function[{e_t}]{1} }{t}{} $. Ponadto ciąg $\sequence{e_t}{t}{} $ nazywa sie ciągiem rezyduów\index{Szereg!rezydualny}, albo rezydualnym.
+Analogicznie jak w przypadku prognozy przez $\sequence{e_t}{t}{} = \sequence{\function{e_t}{1} }{t}{} $. Ponadto ciąg $\sequence{e_t}{t}{} $ nazywa sie ciągiem rezyduów\index{Szereg!rezydualny}, albo rezydualnym.
 \end{definition}
 
 Najprostszym sposobem tworzenia predykcji wg. modelu probabilistycznego jest użycie prognozy naiwnej.
@@ -287,7 +287,7 @@ W zależności od rodzaju zbioru $T$ powiemy, że
 \end{itemize}
 \end{definition}
 
-Jeśli mamy się zajmować procesem stochastycznym trochę jak funkcją należy powiedzieć również coś o zbiorze wartości. Najczęściej będzie to oczywiście element z przestrzeni rzeczywistej, sigma-ciałem zbiorów borelowskich oraz miarą probabilistyczną - skoro $X_t$ mają być zmiennymi losowymi.
+Jeśli mamy się zajmować procesem stochastycznym trochę jak funkcją należy powiedzieć również coś o zbiorze wartości. Najczęściej będzie to oczywiście element z przestrzeni rzeczywistej, z sigma-ciałem zbiorów borelowskich oraz miarą probabilistyczną - skoro $X_t$ mają być zmiennymi losowymi.
 
 \begin{definition}[Zbiór stanów]
 Zbiór $S := \set{ \function{X_t}{\omega}, t \in T, \omega \in \Omega }$ nazywany jest przestrzenią stanów. Ponadto w zależności od jego liczności następuje następująca kategoryzacja procesów stochastycznych:
@@ -526,7 +526,7 @@ dla $k = 0,1, \ldots$, gdzie $k$ może się zmieniać tak długo jak $c_k$ może
 Jednym z komentarzy podawanym przez praktyków jest to, iż estymacja jest sensowna jak długo maksymalne $k$ nie przekracza $\frac{T}{4}$ rozmiaru próby.
 
 \begin{remark}
-Wyznaczenie ACF dla próby jest pierwszą z dobrze opisanych matematycznie sposobów na określenie czy szereg ma cechy stacjonarności. Wartości ACF powinny zbiegać do $0$ w miarę wzrostu czasu, dla dowolnych szeregów czasowych - jednakże dla stacjonarnych szeregów czasowych zbieżność ta powinna być znacząco szybsza.
+Wyznaczenie ACF dla próby jest pierwszym z dobrze opisanych matematycznie sposobów na określenie czy szereg ma cechy stacjonarności. Wartości ACF powinny zbiegać do $0$ w miarę wzrostu czasu, dla dowolnych szeregów czasowych - jednakże dla stacjonarnych szeregów czasowych zbieżność ta powinna być znacząco szybsza.
 \end{remark}
 
 \subsection{Metody wariogramowe}
@@ -787,7 +787,7 @@ ma rozkład F-Snedecora o parametrach $u-1$ i $n-u$ stopniach swobody.
 
 Obserwujemy, że
 \begin{itemize}
-\item Jeśli udałoby się pokazać statystyczne, że powien szereg rozdzielczy naszej zmiennej ma cechy czynników z ANOVA - to zaproponowany w oparciu o niego model predykcji (powinien) okaże się skuteczniejszy w prognozowaniu.
+\item Jeśli udałoby się pokazać statystycznie, że pewien szereg rozdzielczy naszej zmiennej ma cechy czynników z ANOVA - to zaproponowany w oparciu o niego model predykcji (powinien) okaże się skuteczniejszy w prognozowaniu.
 \item Predykcja w szeregach czasowych polega głównie na $y_t \Rightarrow \predict{y}{t+1}$
 \item Zatem model powinien prognozować zmienną ilościową w oparciu o cechy jakościowe.
 \item ANOVA powraca do nas jednak na dalszych etapach - wyjaśniając lub dowodząc cennych własności.
@@ -851,7 +851,7 @@ Powyższe opisuje "sztuczkę" doskonale znaną analitykom i możliwą dzięki po
 Wykorzystanie tej metody pozwala nam również stosować odmienne regresje: w tym np. regresje harmoniczne czyli rozwinięcia w skończoną sumę\footnote{W tym wypadku pierwszą sumę.} trygnometrycznego szeregu Fouriera tj.
 
 \begin{equation}
-y_t = \beta_0 + \beta_1 \function[{\sin}]{\frac{2 \pi}{d} t}  + \beta_2 \function[{\cos}]{\frac{2 \pi}{d} t} + \epsilon,
+y_t = \beta_0 + \beta_1 \function{\sin}{\frac{2 \pi}{d} t}  + \beta_2 \function{\cos}{\frac{2 \pi}{d} t} + \epsilon,
 \end{equation}
 gdzie $d$ jest spodziewanym czasem okresowości zjawiska. Aproksymację w postaci szeregów trygonometrycznych Fouriera są stosowane nader często kiedy zjawisko posiada właśnie cechy okresowości. W efekcie jej stosowania wyznaczane są składowe odpowiadające za poszczególne częstości (tzw. harmoniki) by opisywać zachowanie okresowe w danym okresie czasu. W przypadku szeregów czasowych ten rodzaj aproksymacji okazuje się być szczególnie użytecznym z uwagi na poszukiwanie trendów okresowych jak np. trendy roczne.
 
@@ -1118,7 +1118,7 @@ Wzór ten oczywiście odnosi do uczenia modeli matematycznych z wykorzystaniem a
 
 Obserwujemy tu, że 
 \begin{itemize}
-\item Nie występują związki autoregresyjne, ani MA. Prognozowana jest wartość losowego zaburzenia, które zapewne posiada bardziej wymagająca postać od szumu białego.
+\item Niewystępują związki autoregresyjne, ani MA. Prognozowana jest wartość losowego zaburzenia, które zapewne posiada bardziej wymagająca postać od szumu białego.
 \item Prognozowanie dąży do stabilności oraz niezależności od czasu. Wyklucza to użycie tego modelu gdy występuje trend lub sezonowość.
 \end{itemize}
 
@@ -1261,16 +1261,16 @@ Niech $ t_0 \in \setN \cup \set{0}$. Wtedy
 \end{align*}
 Warunek 2 jest w zasadzie oczywisty z postaci. Dla dowodu warunku 3 niech $s,t,h \in \setN \cup \set{0}$.
 \begin{align*}
-\function[{\gamma_Y}]{s+h,t+h} &= \Covariance{Y_{s+h}}{Y_{t+h}} \\
+\function{{\gamma_Y}}{s+h,t+h} &= \Covariance{Y_{s+h}}{Y_{t+h}} \\
 &= \Ex{ \bracket{\mu + \sum_{i=0}^{\infty} b_i \epsilon_{s+h-i}} \bracket{\mu + \sum_{i=0}^{\infty} b_i \epsilon_{t+h-i}}} - \mu^2.
 \end{align*}
 Jeśli $s=t$ to 
 $$
-\function[{\gamma_Y}]{s+h,s+h} = \Covariance{Y_{s+h}}{Y_{s+h}} = \Variance{Y_{s+h}} = \sigma^2 \bracket{ \sum_{i=0}^{\infty} b_i^2}.
+\function{\gamma_Y}{s+h,s+h} = \Covariance{Y_{s+h}}{Y_{s+h}} = \Variance{Y_{s+h}} = \sigma^2 \bracket{ \sum_{i=0}^{\infty} b_i^2}.
 $$
 W pozostałych przypadkach połóżmy $k=t-s$ przy założeniu, że $t > s$ które nie zmniejsza ogólności rozważań.
 \begin{align*}
-\function[{\gamma_Y}]{s+h,s+k+h} &= \Covariance{Y_{s+h}}{Y_{s+k+h}} \\
+\function{{\gamma_Y}}{s+h,s+k+h} &= \Covariance{Y_{s+h}}{Y_{s+k+h}} \\
 &= \Ex{ \bracket{\mu + \sum_{i=0}^{\infty} b_i \epsilon_{s+h-i}} \bracket{\mu + \sum_{i=0}^{\infty} b_i \epsilon_{s+k+h-i}}} - \mu^2 \\
 & = \mu^2 + \mu \Ex{\sum_{i=0}^{\infty} b_i \epsilon_{s+h-i}} + \mu \Ex{\sum_{i=0}^{\infty} b_i \epsilon_{s+k+h-i}} + \Ex{\sum_{i=0}^{\infty} \sum_{j=0}^{\infty}  b_i \epsilon_{s+h-i} b_j \epsilon_{s+k+h-j}} - \mu^2 \\
 &= \Ex{\sum_{i=0}^{\infty} b_i b_{k+i} \epsilon_i^2} \\
@@ -1681,15 +1681,15 @@ Wykresy te jednak nie uzyskały popularności porównywalnej z ACF i PACF. Głó
 \begin{itemize}
 \item AIC - Akaike Information Criterion, wyznaczającą błąd wg formuły \index{Błąd!AIC}
 $$
-AIC(p,q) = -2 \function[{\ln}]{L} + 2 \bracket{p+q+k+1}.
+AIC(p,q) = -2 \function{\ln}{L} + 2 \bracket{p+q+k+1}.
 $$
 \item AICC - Akaike Information Criterion Corrected, wyznaczająca błąd wg formuły \index{Błąd!AICC}
 $$
-AICC(p,q) = -2 \function[{\ln}]{L} + 2 \frac{\bracket{p+q+k+1}  n}{n-p-q-k-2}.
+AICC(p,q) = -2 \function{\ln}{L} + 2 \frac{\bracket{p+q+k+1}  n}{n-p-q-k-2}.
 $$
 \item BIC - Bayesian Information Criterion, wyznaczająca błąd wg formuły\index{Błąd!BIC}
 $$
-BIC(p,q) = -2 \function[{\ln}]{L} + \bracket{p+q+k+1} \ln n.
+BIC(p,q) = -2 \function{\ln}{L} + \bracket{p+q+k+1} \ln n.
 $$
 \end{itemize}
 We wszystkich powyższych formułach $k=0$ jeśli model nie zawiera składowej stałej oraz $k=1$ w przypadku gdy ją zawiera. Oprócz tego $L=MSE(y_t)$, gdzie $y_t$ jest naszym szeregiem czasowym, $n$ długością próby, co dokładnie oznacza, że 
@@ -2511,15 +2511,15 @@ FPE(p) = \bracket{\frac{T+kp+1}{T-kp-1}}^k \det \Sigma(p).
 $$
 \item Kryterium Akaike (AIC)\index{Błąd!AIC}
 $$
-AIC(p) = \function[{\ln}]{\det \Sigma(p)} + (k + pk^2) \frac{2}{T}.
+AIC(p) = \function{\ln}{\det \Sigma(p)} + (k + pk^2) \frac{2}{T}.
 $$
 \item Kryterium Hannan-Quinn (HQ) \index{Błąd!HQ}\index{Błąd!Hannan-Quinn}
 $$
-HQ(p) = \function[{\ln}]{\det \Sigma(p)} + (k + pk^2) \frac{2 \function[{\ln}]{\function[{\ln}]{T} } }{T}.
+HQ(p) = \function{\ln}{\det \Sigma(p)} + (k + pk^2) \frac{2 \function{\ln}{\function{\ln}{T} } }{T}.
 $$
 \item Kryterium Schwarza (SC) \index{Błąd!Schwarza}\index{Błąd!SC}
 $$
-SC(p) = \function[{\ln}]{\det \Sigma(p)} + (k + pk^2) \frac{\function[{\ln}]{T} }{T} .
+SC(p) = \function{\ln}{\det \Sigma(p)} + (k + pk^2) \frac{\function{\ln}{T} }{T} .
 $$
 \end{itemize}
 W powyższych wzorach $p$ to rozmiar modelu, $k$ to ilość zmiennych, $T$ rozmiar zbioru danych. Natomiast $\Sigma(p)$ oznacza macierz kowariancji błędów, tj.
@@ -2711,7 +2711,7 @@ Wtedy nasz proces pozostaje niestacjonarny mając za swoje charakterystyki
 & \Ex{y_t}= y_0 + \delta t = \mu_t, \\
 & \Variance{y_t} = \delta t , \\
 & \Covariance{y_t}{y_{t-\tau}}= (t-\tau) \sigma^2, \\
-& \function[{\rho_X}]{\tau,t} = \sqrt{1 - \frac{\tau}{t}}.
+& \function{\rho_X}{\tau,t} = \sqrt{1 - \frac{\tau}{t}}.
 \end{align*}
 
 \begin{figure}
