@@ -21,7 +21,7 @@
 
 \usepackage{dyschemist}
 \author{dr, mgr inż. Piotr Kowalski}
-\title{Skrypt do wykładu z Szeregów czasowych i prognozowanie w biznesie}
+\title{Skrypt do wykładu z przedmiotu \\"Szeregi czasowe i prognozowanie w biznesie"}
 \date{\today}
 \begin{document}
 
@@ -54,6 +54,7 @@ Wersja & Autor & Data & Opis\\\hline
 1.8 & P. Kowalski & 24.04.19 & Dodanie wprowadzenia do procesów decyzyjnych Markowa, oraz predykcji opartej o sieci neuronowe \\\hline
 1.9 & P. Kowalski & 28.04.19 & Dodanie elementów dotyczących zastosowania teorii spektralnej do predykcji \\\hline
 1.10 & P. Kowalski & 8.05.19 & Rozszerzenie elementów związanych z modelami decyzyjnymi Markowa oraz Q-learningiem \\\hline
+1.11 & P. Kowalski i studenci & 12.06.19 & Poprawki zgłoszone przez studentów \\\hline
 \end{tabular}
 \caption{Wersje dokumentu.}
 \end{table}
@@ -62,7 +63,7 @@ Wersja & Autor & Data & Opis\\\hline
 \chapter*{Przedmowa}
 \addcontentsline{toc}{chapter}{Przedmowa}
 
-Niniejszy skrypt gromadzi materiały przygotowane dla potrzeb kursu z Szeregów czasowych i prognozowania w biznesie dla studentów kierunku matematyka na Politechnice Łódzkiej w roku akademickim 2017/18. W pewnej części został oparty o przygotowany przez dr Elżbietę Krajewska oraz prof. Tadeusza Poredę wykład z lat poprzedzających. Skrypt został w późniejszym czasie mocno przebudowany, tak aby uwzględnić teorie wielowymiarowych modeli szeregów czasowych autorstwa 4 laureatów nagrody im. Nobla z zakresu ekonomii oraz elementy uczenia maszynowe w realizacji zadań predykcji. W roku akademickim 2018/19 planowane jest rozbudowanie skryptu o elementy składni R. 
+Niniejszy skrypt gromadzi materiały przygotowane dla potrzeb kursu z Szeregów czasowych i prognozowania w biznesie dla studentów kierunku matematyka na Politechnice Łódzkiej w roku akademickim 2017/18. W pewnej części został oparty o przygotowany przez dr Elżbietę Krajewska oraz prof. Tadeusza Poredę wykład z lat poprzedzających. Skrypt został w późniejszym czasie mocno przebudowany, tak aby uwzględnić teorie wielowymiarowych modeli szeregów czasowych autorstwa 4 laureatów nagrody im. Nobla z zakresu ekonomii oraz elementy uczenia maszynowego w realizacji zadań predykcji. W roku akademickim 2018/19 planowane jest rozbudowanie skryptu o elementy składni R. 
 
 \newpage
 \tableofcontents
@@ -73,7 +74,7 @@ Niniejszy skrypt gromadzi materiały przygotowane dla potrzeb kursu z Szeregów 
 
 Każdy z nas słyszał chyba historię o jednym z największych umysłów starożytnego świata - Archimedesie - i jego kąpieli. Część jednak nie pamięta związanej z tym wydarzeniem historii, a jeszcze mniejsza ilość zdaje sobie sprawę z wielkości tamtego odkrycia. Legenda dotycząca tego wydarzenia podaje, iż Archimedes został postawiony przez króla Syrakuz Hierona II przed zadaniem sprawdzenia królewskiego złotnika. Złotnik miał przygotować dla swojego króla koronę ze szczerego złota. Jednak kiedy była już gotowa, nie niszcząc jej nie można było stwierdzić czy złotnik zrealizował zadanie zgodnie z życzeniem, czy też użył domieszek innych metali. Archimedes długo rozważał jak zbadać to zagadnienie, kiedy to ostatecznie zażywając kąpieli odkrył zasadę wypierania wody przez ciało. W przypływie euforii krzycząc 'Eureka' przebiegł nagi ulicami Syrakuz. Z wykorzystaniem zasady wypierania cieczy przez ciało porównano wagi korony oraz równej objętościowo bryły złota i uznano, iż korona zawiera domieszki innych metali. Los oszusta złotnika nie jest historycznie pewny, lecz z pewnością był marny. Eureka - od czasu tego wydarzenia przypisywana była zachwytowi wobec znacznego odkrycia. 
 
-Część historyków\citep{netz2007kodeks} zauważa jednak, że odkrycie z tamtej kąpieli posiada jeszcze głębsze dno jeszcze bardziej doniosłego. Prawo wypierania cieczy stanowi jedno z pierwszych praw fizyki, sformułowanych przez człowieka. Powstało ono po prawdzie niewiele później od pierwszych matematycznych zasad. W chwili gdy Archimedes wyskoczył z okrzykiem z wanny stała się również inna bardziej znamienita rzecz. Odkryta została inżynieria. Połączenie bowiem prawa fizyki z elementami matematyki - po raz pierwszy w historii - pozwoliła człowiekowi patrzeć w przyszłość. Posiadając prawo fizyki oraz rachunek liczb - można było podać wynik pewnego doświadczenia, jeszcze zanim zostało ono przeprowadzone. Znając materiał (jego gęstość i objętość) i wykorzystując prawo wypierania można było podać dokładną ilość wypartej wody. Ta sama zasada pozwoliła sformułować wniosek o tym czy statek z danym obciążeniem będzie mógł unosić się na wodzie. Wtedy właśnie narodziło się jedno z najpotrzebniejszych zastosowań matematyki - tworzenie predykcji lub prognoz - opisu przyszłych wydarzeń na podstawie wiedzy i parametrów z przeszłości i doświadczeń.  
+Część historyków\citep{netz2007kodeks} zauważa jednak, że odkrycie z tamtej kąpieli posiada jeszcze głębsze dno sięgające jeszcze czegoś bardziej doniosłego. Prawo wypierania cieczy stanowi jedno z pierwszych praw fizyki, sformułowanych przez człowieka. Powstało ono po prawdzie niewiele później od pierwszych matematycznych zasad. W chwili gdy Archimedes wyskoczył z okrzykiem z wanny stała się również inna bardziej znamienita rzecz. Odkryta została inżynieria. Połączenie bowiem praw fizyki z elementami matematyki - po raz pierwszy w historii - pozwoliło człowiekowi patrzeć w przyszłość. Posiadając prawo fizyki oraz rachunek liczb - można było podać wynik pewnego doświadczenia, jeszcze zanim zostało ono przeprowadzone. Znając materiał (jego gęstość i objętość) i wykorzystując prawo wypierania można było podać dokładną ilość wypartej wody. Ta sama zasada pozwoliła sformułować wniosek o tym czy statek z danym obciążeniem będzie mógł unosić się na wodzie. Wtedy właśnie narodziło się jedno z najpotrzebniejszych zastosowań matematyki - tworzenie predykcji lub prognoz - opisu przyszłych wydarzeń na podstawie wiedzy i parametrów z przeszłości i doświadczeń.  
 
 Prognozowanie\index{Prognoza} jest pojęciem pochodzącym już z czasów antycznych, przez niektórych przypisywane Hipokratesowi z Kos (twórcy antycznej medycyny). Gnosis - wiedza po grecku, Prognosis - "przed wiedza", uprzednia wiedza - opisująca wiedzę o zdarzeniach z przyszłości. Z kolei predykcja\index{Predykcja} jest terminem o etymologii typowo rzymskiej (pre-dicere) powiedziane przed - wypowiedziane z wyprzedzeniem.
 
@@ -81,7 +82,7 @@ Współczesne prognozowanie nie przypomina już w zasadzie prognozowania znanego
 
 \section{Podziały prognoz}
 
-Do dwóch głównych nurtów prognozowania zalicza się \citep[Ch. 1]{montgomery2015introduction} prognozowanie jakościowe i ilościowe. Prognozowanie jakościowe\index{Prognoza!jakościowa}, choć może wykorzystywać matematyczne modele i obliczenia, w znacznej mierze opiera się na subiektywnych ocenach formułowanych przez ekspertów. Przykładami zdań wypowiadanych w ramach prognozowania jakościowe są np.
+Do dwóch głównych nurtów prognozowania zalicza się \citep[Ch. 1]{montgomery2015introduction} prognozowanie jakościowe i ilościowe. Prognozowanie jakościowe\index{Prognoza!jakościowa}, choć może wykorzystywać matematyczne modele i obliczenia, w znacznej mierze opiera się na subiektywnych ocenach formułowanych przez ekspertów. Przykładami zdań wypowiadanych w ramach prognozowania jakościowego są np.
 \begin{itemize}
 \item Lato będzie upalne,
 \item Wartośc firmy będzie dalej wzrastać,
@@ -128,7 +129,7 @@ Gromadzenie danych jest procesem mającym na celu zebranie informacji w formacie
 \end{itemize}
 Na tym etapie często też projektowane są odpowiednie struktury do gromadzenia i przetwarzania tych danych w przyszłości po wdrożeniu modelu.
 
-Analiza zbioru danych - dotyczy stosowania wszelakich metod analizy począwszy od konsultacji z ekspertami, gromadzeniu informacji o zjawiskach opisywanych przez dane, aż po efekty eksperymentów i algorytmów analizy danych. Podstawowym narzędziem do analizy są wszelakie sposoby wizualizacji danych, głównie wykresów. Na tym etapie poszukiwane są również trendy czasowe tak stałe, cykliczne co i sezonowe. Wyznaczane są również całe zbiory charakterystyk opisujących zbiór danych jak: średnie, mediany, mody, kwartyle etc. Efektem porządanym w tym etapie jest zrozumienie specyfiki zjawiska oraz związków nimi rządzących.
+Analiza zbioru danych - dotyczy stosowania wszelakich metod analizy począwszy od konsultacji z ekspertami, gromadzeniu informacji o zjawiskach opisywanych przez dane, aż po efekty eksperymentów i algorytmów analizy danych. Podstawowym narzędziem do analizy są wszelakie sposoby wizualizacji danych, głównie wykresów. Na tym etapie poszukiwane są również trendy czasowe tak stałe, cykliczne co i sezonowe. Wyznaczane są również całe zbiory charakterystyk opisujących zbiór danych jak: średnie, mediany, mody, kwartyle etc. Efektem pożądanym w tym etapie jest zrozumienie specyfiki zjawiska oraz związków nimi rządzących.
 
 Wybór i dostrajanie modelu \index{Model!dostrajanie} - jest iteracyjnym etapem w procesie prognozowania. W kolejnych iteracjach proponowane są różne modele matematyczne - uzyskiwane na podstawie wyników z poprzedzającej ten etap analizy. Modele te mogę różnić się w wielu aspektach. Mogą przyświecać im zupełnie różne koncepcje, różnić się użytymi algorytmami, przekazywanymi czynnikami, aż po różnice w ilości parametrów modelu. Po wyborze modelu przeprowadzane jest dostrajanie modelu, zwane też często uczeniem. W procesie tym wyznaczane są optymalne wartości parametrów - zapewniające minimalizację pewnego rodzaju błędu (zazwyczaj średniokwadratowego). Po wybraniu i dostrojeniu modelu podlega on szybkiej ocenie - i w przypadku niespełnienia podstawowych wymogów postawionych na etapie definiowania - odrzuceniu modelu.
 
@@ -136,7 +137,7 @@ Weryfikacja modelu - istotnie różni się od oceny modelu po jego strojeniu. Tu
 
 Etap wdrożenia to procesy głównie związane z Knowledge-Transfer (KT) \index{KT} - przekazania zdobytej wiedzy do klienta, wsparcia lub przeprowadzenia procesu wdrożenia modelu proponowanego w prognozie. Dotyczy to również przeprowadzenia odpowiedniego instruktażu dla klienta - aby mógł z sukcesami korzystać z modelu.
 
-Ostatni etap utrzymywania i monitorowania wydajności modelu - dotyczy uzyskiwania informacji o wydajności modelu w realizacji zadań produkcyjnych. W umysłach twórców prognozy musi występować bowiem świadomość, że modele  -również i te gotowe, wdrożone, produkcyjne - z czasem potrafią na skutek zmian w otaczającym świecie, podlegać dezaktualizacji. Podstawowe wskazanie o tym iż model przestaje zachowywać sie w sposób należyty może być zaobserwowany np. z wykorzystaniem odpowiednich wykresów monitorujących.
+Ostatni etap utrzymywania i monitorowania wydajności modelu - dotyczy uzyskiwania informacji o wydajności modelu w realizacji zadań produkcyjnych. W umysłach twórców prognozy musi występować bowiem świadomość, że modele  -również i te gotowe, wdrożone, produkcyjne - z czasem potrafią na skutek zmian w otaczającym świecie, podlegać dezaktualizacji. Podstawowym wskazaniem o tym iż model przestaje zachowywać się w sposób należyty - może zostać zaobserwowane np. z wykorzystaniem odpowiednich wykresów monitorujących.
 
 \section{Modele naiwne prognozowania i oznaczenia}
 
@@ -151,15 +152,15 @@ Wprowadźmy również od razu oznaczenie dla błędu danej prognozy
 \begin{definition}[Błąd prognozy \citep{montgomery2015introduction}]\index{Błąd!prognozy}
 Niech $\sequence{y_t}{t}{} $ będzie ciągiem opisującym pewne zjawisko w kolejnych chwilach czasu a $\predict[t-\gamma]{y}{t}$ jego prognozą o wyprzedzeniu $\gamma \in \setN$. Błędem $\gamma$-prognozy nazywać będziemy ciąg wartości dla kolejnych chwil czasu opisany wzorem:
 $$
-\sequence{\function[{e_t}]{\gamma}}{t}{} = \sequence{y_t}{t}{} - \sequence{\predict[t-\gamma]{y}{t}}{t}{}.
+\sequence{\function{e_t}{\gamma}}{t}{} = \sequence{y_t}{t}{} - \sequence{\predict[t-\gamma]{y}{t}}{t}{}.
 $$
-Analogicznie jak w przypadku prognozy przez $\sequence{e_t}{t}{} = \sequence{\function[{e_t}]{1} }{t}{} $. Ponadto ciąg $\sequence{e_t}{t}{} $ nazywa sie ciągiem rezyduów\index{Szereg!rezydualny}, albo rezydualnym.
+Analogicznie jak w przypadku prognozy przez $\sequence{e_t}{t}{} = \sequence{\function{e_t}{1} }{t}{} $. Ponadto ciąg $\sequence{e_t}{t}{} $ nazywa sie ciągiem rezyduów\index{Szereg!rezydualny}, albo rezydualnym.
 \end{definition}
 
-Najprostszym sposobem tworzenia predykcji wg modelu probabilistyczne jest użycie modelu prognozy naiwnej.
+Najprostszym sposobem tworzenia predykcji wg. modelu probabilistycznego jest użycie prognozy naiwnej.
 
 \begin{definition}[Prognoza naiwna]\index{Prognoza!naiwna}
-Najprostszym modelem prognozowania jest prognoza naiwna w której
+Prognozą naiwną nazywamy prognozę przeprowadzaną według formuły:
 $$
 \predict{y}{t} = y_{t-1}.
 $$
@@ -189,7 +190,7 @@ Niniejsza sekcja została przygotowana z wykorzystaniem \citep{montgomery2015int
 Ostatecznie, w różnej konfiguracji, zaproponowany i wdrożony zostanie model dokonujący dekompozycji i kompozycji wg założonego schematu. Jedynym co pozostanie będzie ocena skuteczności modelu. Nie wskazywanym jest stosowanie tylko jednego sposobu agregowania błędu z modelu. Najczęściej posługujemy się całymi zestawami wskaźników błędu i próbujemy dokonać ich jednoczesnej minimalizacji. W niniejszej sekcji przedstawmy kilka podstawowych sposobów na wprowadzenie błędu prognozy.
 
 \begin{definition}[Różne rodzaje błędu]
-Niech $\sequence{y_t}{t}{} $ będzie szeregiem czasowym  o długości $n$ oraz $\predict{y}{t}$ będzie predykcja na 1-okres wprzód. Zgodnie z wprowadzonymi oznaczeniemi $e_t = y_t - \predict{y}{t}$. Wtedy
+Niech $\sequence{y_t}{t}{} $ będzie szeregiem czasowym  o długości $n$ oraz $\predict{y}{t}$ będzie predykcją na 1-okres wprzód. Zgodnie z wprowadzonymi oznaczeniemi $e_t = y_t - \predict{y}{t}$. Wtedy
 \begin{itemize}
 \item Średnim błędem (ME) nazwiemy \index{Błąd!ME}
 $$
@@ -222,7 +223,7 @@ $$
 
 W niniejszym rozdziale omówimy podstawowe informacje dotyczące procesów stochastycznych zanim przejdziemy do samych szeregów czasowych. Zakładamy milcząco znajomość podstaw rachunku prawdopodobieństwa. Do samej definicji tak naprawdę wystarczy niewiele. Zacznijmy jednak od opowieści.
 
-Skąd pojawił się pomysł aby stosować modele probabilistyczne w modelach predykcyjnych. Matematyka będąc nauką teoretyczną posiada w zasadzie nieograniczone możliwości w modelowaniu świata rzeczywistego. Jest w stanie tworzyć modele tak deterministycznych jak i probalistycznych. Problem znajduje się gdzie indziej. Obserwujemy bowiem, że wszelkie próby odwzorowywania zdarzeń świata rzeczywistego oraz matematycznego modelu jest obciążone błędem o charakterze probabilistycznym. Niezależnie zatem od tego czy zjawisko samo w sobie posiada losowość, wpływ pomiaru wprowadza zasadność rozważania wpływów probabilistycznych.
+Skąd pojawił się pomysł aby stosować modele probabilistyczne w modelach predykcyjnych. Matematyka będąc nauką teoretyczną posiada w zasadzie nieograniczone możliwości w modelowaniu świata rzeczywistego. Jest w stanie tworzyć modele tak deterministyczne jak i probalistyczne. Problem znajduje się gdzie indziej. Obserwujemy bowiem, że wszelkie próby odwzorowywania zdarzeń świata rzeczywistego oraz matematycznego modelu jest obciążone błędem o charakterze probabilistycznym. Niezależnie zatem od tego czy zjawisko samo w sobie posiada losowość, wpływ pomiaru wprowadza zasadność rozważania wpływów probabilistycznych.
 
 \section{Elementy rachunku prawdopodobieństwa} 
  
@@ -275,7 +276,7 @@ Rozważmy pewną ustaloną chwilę czasu $t \in T$. Wtedy $X(t)$ lub $X_t$ oznac
 W komplementarnej konfiguracji
 
 \begin{definition}[Trajektoria procesu stochastycznego]
-Trajektorią lub realizacją dla procesu stoachastycznego nazywamy funkcję $t \mapsto X_t(\omega)$, gdzie $\omega \in \Omega$ jest ustalone.
+Trajektorią lub realizacją dla procesu stochastycznego nazywamy funkcję $t \mapsto X_t(\omega)$, gdzie $\omega \in \Omega$ jest ustalone.
 \end{definition}
 
 \begin{definition}[Procesy ciągłe i dyskretne]
@@ -286,7 +287,7 @@ W zależności od rodzaju zbioru $T$ powiemy, że
 \end{itemize}
 \end{definition}
 
-Jeśli mamy się zajmować procesem stochastycznym trochę jak funkcją należy powiedzieć również coś o zbiorze wartości. Najczęściej będzie to oczywiście element z przestrzeni rzeczywistej, sigma-ciałem zbiorów borelowskich oraz miarą probabilistyczną - skoro $X_t$ mają być zmiennymi losowymi.
+Jeśli mamy się zajmować procesem stochastycznym trochę jak funkcją należy powiedzieć również coś o zbiorze wartości. Najczęściej będzie to oczywiście element z przestrzeni rzeczywistej, z sigma-ciałem zbiorów borelowskich oraz miarą probabilistyczną - skoro $X_t$ mają być zmiennymi losowymi.
 
 \begin{definition}[Zbiór stanów]
 Zbiór $S := \set{ \function{X_t}{\omega}, t \in T, \omega \in \Omega }$ nazywany jest przestrzenią stanów. Ponadto w zależności od jego liczności następuje następująca kategoryzacja procesów stochastycznych:
@@ -348,7 +349,7 @@ W przypadku gdy $T = \setZ $ zwyczajowo będziemy pomijać $T$ pisząc skrótowo
 \end{remark}
 
 \begin{remark}
-Pomimo zdefiniowania szeregu czasowego jedynie dla $\setN \cup \set{0} $, czasem będziemy korzystali z notacji używającej indeksów ujemny. Wtedy najczęściej rozumieć będziemy ten zapis w następujący sposób
+Pomimo zdefiniowania szeregu czasowego jedynie dla $\setN \cup \set{0} $, czasem będziemy korzystali z notacji używającej indeksów ujemnych. Wtedy najczęściej rozumieć będziemy ten zapis w następujący sposób
 $$
 y_{-t} := y_{t}.
 $$
@@ -382,17 +383,13 @@ $$
 $$
 \end{definition}
 
-Operator różnicowy okazuje się być szczególnie ważny dla szeregów czasowych. Często okazuje się bowiem, że rozważane szeregi czasowe nie posiadają określonych (a potrzebnych) własności. Rozważanie kolejnych szeregów czasowych będących przekształconym szeregiem czasowym przez operator opóźnienia, pozwala często odszukać te potrzebne wartości wśród szeregów różnic.
+Operator różnicowy okazuje się być szczególnie ważny dla badania szeregów czasowych. Często okazuje się bowiem, że rozważane szeregi czasowe nie posiadają określonych (a potrzebnych) własności, w szczególności stałej wartości oczekiwanej czy cech bliskich stacjonarności. Rozważanie szeregów czasowym transformowanym przez operator opóźnienia, pozwala często odszukać te potrzebne własności wśród tych właśnie szeregów.
 
-Mamy dwie możliwości ogólniania tego operatora. Z jednej strony przez $\Delta^n$ rozumieć będziemy w naturalny sposób potęgę operatora opóźnienia. Natomiast zapis $\Delta_n$ oznaczać z kolei będzie użycie operatora $1 - L^n =: \Delta_n$.
-
-W dalszej części wprowadźmy typowe oznaczenia związane z prognozą.
-
-Operator różnicowy okazuje się być szczególnie ważny dla szeregów czasowych. Często okazuje się bowiem, że rozważane szeregi czasowe nie posiadają określonych (a potrzebnych) własności. Rozważanie kolejnych szeregów czasowych będących przekształconym szeregiem czasowym przez operator opóźnienia, pozwala często odszukać te potrzebne wartości wśród szeregów różnic.
-
-Mamy dwie możliwości ogólniania tego operatora. Z jednej strony przez $\Delta^n$ rozumieć będziemy w naturalny sposób potęgę operatora opóźnienia. Natomiast zapis $\Delta_n$ oznaczać z kolei będzie użycie operatora $1 - L^n =: \Delta_n$.
-
-W dalszej części wprowadźmy typowe oznaczenia związane z prognozą.
+Mamy dwie możliwości dalszego ogólniania tego operatora. Z jednej strony przez $\Delta^n$ rozumieć będziemy w naturalny sposób potęgę operatora opóźnienia, tj.
+$$
+\Delta^n = \underbrace{\Delta \circ \Delta \circ \ldots \circ \Delta}_{n}.
+$$
+Natomiast zapis $\Delta_n$ oznaczać z kolei będzie użycie operatora $1 - L^n =: \Delta_n$ czyli różnicowanie z, innym niż jedna chwila czasowa, opóźnieniem.
 
 \section{Stacjonarne szeregi czasowe.}
 
@@ -407,7 +404,7 @@ Oddaje to bardzo klasyczne rozumienie pojęcia stacjonarności - czyli niezależ
 \begin{remark*}
 To bardzo dziwny i przełomowy moment w rozponawaniu dziedziny jaką są szeregi czasowe. Rozważania rozpoczęliśmy od zmiennej losowej i szybko odczuliśmy, że nasze zdolności w modelowaniu są niedostateczne z uwagi na brak zależnosci od czasu. Przechodzimy więc do procesów stochastycznych, które posiadają możliwość zmieniania się w czasie. Po czym ograniczamy nasze rozważania do szeregów niezmieniających się w czasie. To w zasadzie bez sensu. 
 
-Powodem dla którego tak uważamy, jest gdyż obserwujemy to w tej chwili z perspektywy modelu i rachunku prawdopodobieństwa. Tymczasem prawdziwe powody, dla którego to robimy leżą w zadaniu przeciwnym czyli statystyce. Prawdziwą udręką badaniu szeregów czasowych jest to, że dla każdej chwili czasowej i przypisanej jej zmiennej losowej mamy jedynie pojedynczą obserwację. Żadna część statystyki nie pozwoli nam na wydanie uzasadnionego stwierdzenia o rozkładzie zmiennej w danej chwili. Nie jest więc tak, że ograniczamy się do elementów stacjonarnych, bo chcemy - lecz musimy. We wnętrzu naszego szeregu czasowego poszukiwać będziemy składowych stacjonarnych, gdyż tylko o takich statystyka jako nauka jest w stanie wypowiedzieć zdania prawdopodobnie prawdziwe.
+Powodem przez który stwierdzamy brak sensu, jest gdyż obserwujemy to wszystko w tej chwili z perspektywy modelu i rachunku prawdopodobieństwa. Tymczasem prawdziwe powody, dla którego to robimy leżą w zadaniu odwrotnym czyli statystyce. Prawdziwą udręką w badaniu szeregów czasowych jest to, że dla każdej chwili czasowej i przypisanej jej zmiennej losowej mamy jedynie pojedynczą obserwację. Jedną obserwację dla każdej zmiennej losowej. Żadna część statystyki nie pozwoli nam na wydanie uzasadnionego stwierdzenia o rozkładzie zmiennej w danej chwili. Nie jest więc tak, że ograniczamy się do elementów stacjonarnych, bo chcemy. Robimy tak gdyż musimy tak postąpić. We wnętrzu naszego szeregu czasowego poszukiwać będziemy składowych stacjonarnych, gdyż tylko o takich statystyka jako nauka jest w stanie wypowiedzieć zdania prawdopodobnie prawdziwe.
 \end{remark*}
 
 \begin{proposition}
@@ -496,7 +493,7 @@ W przypadku stacjonarnego szeregu czasowego, rozkłady wzajemne prawdopodobieńs
 $$
 \tsAutoCovariance{Y}{k} := \tsAutoCovariance{Y}{s,s+k},
 $$
-z uwagi na niezależność od $s \in S$. Notację tę będziemy również zakładać działając pod hipotezą stacjonarności szeregi, tj. w sytuacjach kiedy chcemy tę hipotezę potwierdzić i wyznaczamy wartości $\gamma$.
+z uwagi na niezależność od $s \in T$. Notację tę będziemy również zakładać działając pod hipotezą stacjonarności szeregu, tj. w sytuacjach kiedy chcemy tę hipotezę potwierdzić i wyznaczamy wartości $\gamma$.
 \end{remark}
 
 Dla tak zdefiniowanej funkcji autokowariancji wprowadźmy współczynnik nazywany współczynnikiem autokorelacji oraz ACF.
@@ -529,7 +526,7 @@ dla $k = 0,1, \ldots$, gdzie $k$ może się zmieniać tak długo jak $c_k$ może
 Jednym z komentarzy podawanym przez praktyków jest to, iż estymacja jest sensowna jak długo maksymalne $k$ nie przekracza $\frac{T}{4}$ rozmiaru próby.
 
 \begin{remark}
-Wyznaczenie ACF dla próby jest pierwszą z dobrze opisanych matematycznie sposobów na określenie czy szereg ma cechy stacjonarności. Wartości ACF powinny zbiegać do $0$ w miarę wzrostu czasu, dla dowolnych szeregów czasowych - jednakże dla stacjonarnych szeregów czasowych zbieżność ta powinna być znacząco szybsza.
+Wyznaczenie ACF dla próby jest pierwszym z dobrze opisanych matematycznie sposobów na określenie czy szereg ma cechy stacjonarności. Wartości ACF powinny zbiegać do $0$ w miarę wzrostu czasu, dla dowolnych szeregów czasowych - jednakże dla stacjonarnych szeregów czasowych zbieżność ta powinna być znacząco szybsza.
 \end{remark}
 
 \subsection{Metody wariogramowe}
@@ -623,7 +620,7 @@ nazywamy filtrem Hanninga.
 
 \subsection{Wykresy kroczących median}
 
-Zupełnie inną grupę stanowi koncepcja kroczących median. Zanim pojawi sie ich formalna definicja kilka uwag o medianie, która wskazuje istotne punkty różniące ją od średniej - a zatem wpływających również na postać kroczących median. Jedną z zalet średnich kroczących jest możliwość jej liczenia dla kolejnych wartości w sposób skrócony zgodnie z algorytmem\index{Algorytm!średnej kroczącej}
+Zupełnie inną grupę stanowi koncepcja kroczących median. Zanim pojawi się ich formalna definicja kilka uwag o medianie, która wskazuje istotne punkty różniące ją od średniej - a zatem wpływających również na postać kroczących median. Jedną z zalet średnich kroczących jest możliwość jej liczenia dla kolejnych wartości w sposób skrócony zgodnie z algorytmem\index{Algorytm!średnej kroczącej}
 
 \begin{enumerate}
 \item Policz pierwszy element średniej kroczącej,
@@ -790,7 +787,7 @@ ma rozkład F-Snedecora o parametrach $u-1$ i $n-u$ stopniach swobody.
 
 Obserwujemy, że
 \begin{itemize}
-\item Jeśli udałoby się pokazać statystyczne, że powien szereg rozdzielczy naszej ma cechy czynników z ANOVA - to zaproponowany w oparciu o niego model predykcji (powinien) okaże się skuteczniejszy w prognozowaniu.
+\item Jeśli udałoby się pokazać statystycznie, że pewien szereg rozdzielczy naszej zmiennej ma cechy czynników z ANOVA - to zaproponowany w oparciu o niego model predykcji (powinien) okaże się skuteczniejszy w prognozowaniu.
 \item Predykcja w szeregach czasowych polega głównie na $y_t \Rightarrow \predict{y}{t+1}$
 \item Zatem model powinien prognozować zmienną ilościową w oparciu o cechy jakościowe.
 \item ANOVA powraca do nas jednak na dalszych etapach - wyjaśniając lub dowodząc cennych własności.
@@ -808,7 +805,7 @@ Do najpopularniejszych metod analizy danych należy zdecydowanie regresja. Regre
 \item Funkcję, która z pewnych względów (komplikacji obliczeniowej z reguły) jest niepożądana w danym zastosowaniu, albo
 \item Grupę odczytów argumentów i wartości dla pewnej funkcji o nieznanej nam obecnie formule.
 \end{itemize}
-Do rozwiązania aproksymacji poszukiwana jest funkcja w ramach rozważanej klasy - np. wielomianu określonego stopnia, która "dobrze" przybliża nam zachowanie tej trudnej lub nieznanej funkcji. W tym rozumieniu ''dobrze'' z reguły oznacza minimalizację pewnej formuły funkcjonału błędu. Postać tego funkcjonału z reguły opierana jest na normie zdefiniowanej w danej przestrzeni funkcyjnej stąd pojawiają się pojęcia jak minimalizowanie błędu $\Ck[\infty]{\Omega} $ lub błędu $\Lp[{p}]{\Omega}$. W przypadku wartości w postaci grupy odczytów przestrzenie funkcyjne są skończenie wymiarowe co oznacza
+Do rozwiązania aproksymacji poszukiwana jest funkcja w ramach rozważanej klasy - np. wielomianu określonego stopnia, która "dobrze" przybliża nam zachowanie tej trudnej lub nieznanej funkcji. W tym rozumieniu ''dobrze'' z reguły oznacza minimalizację pewnej formuły funkcjonału błędu. Postać tego funkcjonału z reguły opierana jest na normie zdefiniowanej w danej przestrzeni funkcyjnej stąd pojawiają się pojęcia jak minimalizowanie błędu $\Ck{\infty}{\Omega} $ lub błędu $\Lp{p}{\Omega}$. W przypadku wartości w postaci grupy odczytów przestrzenie funkcyjne są skończenie wymiarowe co oznacza
 \begin{itemize}
 \item że wszystkie topologie (słabe), w których można by rozważać zbieżności aproksymacji do właściwej funkcji, są metryzowalne,
 \item wszystkie metryki są równoważne - tj. ciągi zbieżne w dowolnej metryce są zbieżne w każdej innej,
@@ -843,7 +840,7 @@ Wydawać by się mogło, że akurat w przypadku szeregów czasowych - taki rodza
 y = \beta_0 + \beta_1 x + \beta_2 x^2 + \epsilon,
 \end{equation}
 
-może być natychmiastowo przekształcona za pomocą podstawienia $\bar{x}_2 = x^2, \bar{x}_1$ do postaci
+może być natychmiastowo przekształcona za pomocą podstawienia $\bar{x}_2 = x^2, \bar{x}_1 = x$ do postaci
 $$
 y = \beta_0 + \beta_1 \bar{x}_1 + \beta_2 \bar{x}_2 + \epsilon,
 $$
@@ -854,7 +851,7 @@ Powyższe opisuje "sztuczkę" doskonale znaną analitykom i możliwą dzięki po
 Wykorzystanie tej metody pozwala nam również stosować odmienne regresje: w tym np. regresje harmoniczne czyli rozwinięcia w skończoną sumę\footnote{W tym wypadku pierwszą sumę.} trygnometrycznego szeregu Fouriera tj.
 
 \begin{equation}
-y_t = \beta_0 + \beta_1 \function[{\sin}]{\frac{2 \pi}{d} t}  + \beta_2 \function[{\cos}]{\frac{2 \pi}{d} t} + \epsilon,
+y_t = \beta_0 + \beta_1 \function{\sin}{\frac{2 \pi}{d} t}  + \beta_2 \function{\cos}{\frac{2 \pi}{d} t} + \epsilon,
 \end{equation}
 gdzie $d$ jest spodziewanym czasem okresowości zjawiska. Aproksymację w postaci szeregów trygonometrycznych Fouriera są stosowane nader często kiedy zjawisko posiada właśnie cechy okresowości. W efekcie jej stosowania wyznaczane są składowe odpowiadające za poszczególne częstości (tzw. harmoniki) by opisywać zachowanie okresowe w danym okresie czasu. W przypadku szeregów czasowych ten rodzaj aproksymacji okazuje się być szczególnie użytecznym z uwagi na poszukiwanie trendów okresowych jak np. trendy roczne.
 
@@ -1056,7 +1053,7 @@ Podstawowym sygnałem wskazującym na występowanie trendu w badanym zjawisku je
 
 Drugim często spotykanym problemem jest brak spełniania warunku stałości wariancji w szeregu czasowym. Dominuje tutaj rodzina potęgowa transformacji.
 
-\begin{definition}
+\begin{definition}[Transformacja Boxa-Coxa{\citep{zagdanski2016analiza}}]
 Dowolną transformację postaci
 $$
 y^{(\lambda)} = \left \lbrace 
@@ -1066,7 +1063,7 @@ y^{(\lambda)} = \left \lbrace
 \end{array}
  \right.
 $$ 
-gdzie $\dot{y} = \function[{\exp}]{\frac{1}{T} \sum_{t=1}^{T}  \ln y_t}$
+gdzie $\dot{y} = \function{\exp}{\frac{1}{T} \sum_{t=1}^{T}  \ln y_t}$
 nazywamy transformacją potęgową danych.
 \end{definition}
 
@@ -1097,10 +1094,9 @@ Cechą szczególną tych modeli jest to, że wykorzystują one do predykcji wart
 Model Prostego Wygładzania Wykładniczego (SES\footnote{ang. Simple Exponential Smoothing})\index{Model!SES} nazywany też modelem wygładzania wykładniczego pierwszego stopnia. Tak jak sygnalizowaliśmy już w modelu tym prognoza i wartość zjawiska są traktowane w pewien sposób z osobna. Zatem prognozy poprzedzające pełnią w tych modelach funkcje dodatkowych zmiennych stąd też z reguły ich wartości są często oznaczane pewną dodatkową literą w odróżnieniu od $\predict{y}{t}$. Tu zmienna szeregu czasowego gromadzącego predykcję oznaczana jest przez T.  W modelu tym spodziewamy się zależności,  w której
 
 $$
-\predict{y}{t+1} =  F_t = (1 - \theta) \sum_{s=0}^{t-1} \theta^s y_{t-s}.
+\predict{y}{t+1} =  F_t = (1 - \theta) \sum_{s=0}^{t-1} \theta^s y_{t-s},
 $$
-
-Lub inaczej zapisane jako
+gdzie $\theta \in (0,1)$ jest parametrem modelu. Powyższe może być także inaczej zapisane jako
 
 $$
 \predict{y}{t+1} = (1- \theta) \bracket{ y_t + \theta y_{t-1} + \theta^2 y_{t-2}+ \ldots + \theta^{t-1} y_{1}}.
@@ -1122,7 +1118,7 @@ Wzór ten oczywiście odnosi do uczenia modeli matematycznych z wykorzystaniem a
 
 Obserwujemy tu, że 
 \begin{itemize}
-\item Nie występują związki autoregresyjne, ani MA. Prognozowana jest wartość losowego zaburzenia, które zapewne posiada bardziej wymagająca postać od szumu białego.
+\item Niewystępują związki autoregresyjne, ani MA. Prognozowana jest wartość losowego zaburzenia, które zapewne posiada bardziej wymagająca postać od szumu białego.
 \item Prognozowanie dąży do stabilności oraz niezależności od czasu. Wyklucza to użycie tego modelu gdy występuje trend lub sezonowość.
 \end{itemize}
 
@@ -1216,7 +1212,7 @@ Y_t = L(X_t) = \sum_{i=-\infty}^{+\infty} \psi_i X_{t-i},
 $$
 nazywanym filterem liniowym \index{Filtr liniowy}. Wtedy jeśli
 \begin{itemize}
-\item Współczynniki są niezmiennicze względem czasu tj. dla dowolnego $i \in \setZ$ współczynniki $\psi_i$ są stałe, oraz
+\item Współczynniki są niezmiennicze względem czasu tj. dla dowolnego $i \in \setZ$ współczynniki $\psi_i \in \setR$ są stałe, oraz
 \item Transformacja jest stabilna tj. $ \sum_{i=-\infty}^{+\infty}\abs{\psi_i} < \infty$
 \end{itemize}
 i procesy są zwiazane filterem liniowym tj. $Y_t = L(X_t)$ to $Y_t$ jest procesem stacjonarnym.
@@ -1265,16 +1261,16 @@ Niech $ t_0 \in \setN \cup \set{0}$. Wtedy
 \end{align*}
 Warunek 2 jest w zasadzie oczywisty z postaci. Dla dowodu warunku 3 niech $s,t,h \in \setN \cup \set{0}$.
 \begin{align*}
-\function[{\gamma_Y}]{s+h,t+h} &= \Covariance{Y_{s+h}}{Y_{t+h}} \\
+\function{{\gamma_Y}}{s+h,t+h} &= \Covariance{Y_{s+h}}{Y_{t+h}} \\
 &= \Ex{ \bracket{\mu + \sum_{i=0}^{\infty} b_i \epsilon_{s+h-i}} \bracket{\mu + \sum_{i=0}^{\infty} b_i \epsilon_{t+h-i}}} - \mu^2.
 \end{align*}
 Jeśli $s=t$ to 
 $$
-\function[{\gamma_Y}]{s+h,s+h} = \Covariance{Y_{s+h}}{Y_{s+h}} = \Variance{Y_{s+h}} = \sigma^2 \bracket{ \sum_{i=0}^{\infty} b_i^2}.
+\function{\gamma_Y}{s+h,s+h} = \Covariance{Y_{s+h}}{Y_{s+h}} = \Variance{Y_{s+h}} = \sigma^2 \bracket{ \sum_{i=0}^{\infty} b_i^2}.
 $$
 W pozostałych przypadkach połóżmy $k=t-s$ przy założeniu, że $t > s$ które nie zmniejsza ogólności rozważań.
 \begin{align*}
-\function[{\gamma_Y}]{s+h,s+k+h} &= \Covariance{Y_{s+h}}{Y_{s+k+h}} \\
+\function{{\gamma_Y}}{s+h,s+k+h} &= \Covariance{Y_{s+h}}{Y_{s+k+h}} \\
 &= \Ex{ \bracket{\mu + \sum_{i=0}^{\infty} b_i \epsilon_{s+h-i}} \bracket{\mu + \sum_{i=0}^{\infty} b_i \epsilon_{s+k+h-i}}} - \mu^2 \\
 & = \mu^2 + \mu \Ex{\sum_{i=0}^{\infty} b_i \epsilon_{s+h-i}} + \mu \Ex{\sum_{i=0}^{\infty} b_i \epsilon_{s+k+h-i}} + \Ex{\sum_{i=0}^{\infty} \sum_{j=0}^{\infty}  b_i \epsilon_{s+h-i} b_j \epsilon_{s+k+h-j}} - \mu^2 \\
 &= \Ex{\sum_{i=0}^{\infty} b_i b_{k+i} \epsilon_i^2} \\
@@ -1597,7 +1593,7 @@ wraz z $\tsAutoCorellation{Y}{0} = 1$ nazywane są równaniami Yule-Walkera dla 
 
 \subsubsection{Częściowa funkcja autokorelacji (PACF)}
 
-Niech $X,Y,Z$ będą zmiennymi losowymi przyczym przyjmijmy że $Z$ jest w typie objaśniającym, natomiast $X,Y$ są objaśniane. Zdefiniujmy estymatory regresji liniowej wg wzorów
+Niech $X,Y,Z$ będą zmiennymi losowym. Przy czym przyjmijmy, że $Z$ jest w typie objaśniającym, natomiast $X,Y$ są objaśniane. Zdefiniujmy estymatory regresji liniowej wg wzorów
 \begin{align*}
 \predict{X}{} = a_1 + b_1 Z, b_1 = \frac{\Covariance{Z}{X}}{\Variance{Z}}, \\
 \predict{Y}{} = a_1 + b_2 Z, b_2 = \frac{\Covariance{Z}{Y}}{\Variance{Z}}.
@@ -1611,10 +1607,23 @@ $$
 $$
 \end{definition}
 
-W reszcie 
+Powyższe definicje ostatecznie pozwalają nam zdefiniować funkcję częściowej autokorelacji.
+
 \begin{definition}[PACF] \index{Funkcja!PACF}\index{Funkcja!częściowej autokorelacji}
 Częściową autokorelacją pomiędzy $Y_t$ a $Y_{t-k}$ nazywamy częściową korelację pomiędzy nimi po dopasowaniu zmiennych $Y_{t-1}, \ldots, Y_{t-k+1}$.
 \end{definition}
+Aby zatem policzyć PACF dla pary $Y_t$ a $Y_{t-k}$ wyznaczamy 
+$$
+\predict{Y_t}{} = a_1 + b_1 Y_{t-1} + \ldots + b_{k-1} Y_{t-k+1},
+$$
+oraz 
+$$
+\predict{Y_{t-k}}{} = a_1 + b_1 Y_{t-1} + \ldots + b_{k-1} Y_{t-k+1}.
+$$
+Wtedy PACF jest wyliczany z reszty z powyżej opisanych regresji zgodnie ze wzorem:
+$$
+\frac{\Covariance{Y_t^\ast}{Y_{t-k}^\ast}}{\sqrt{\Variance{Y_t^\ast}\Variance{Y_{t-k}^\ast}}}.
+$$
 
 \begin{remark}[Zastosowanie PACF w modelach AR]
 W modelach AR(p) funkcja PACF przyjmuje wartości istotnie różne od 0 wyłącznie dla $k \leq p$. Stąd to właśnie tę funkcję stosujemy przy badaniu zasadności modelu.
@@ -1672,15 +1681,15 @@ Wykresy te jednak nie uzyskały popularności porównywalnej z ACF i PACF. Głó
 \begin{itemize}
 \item AIC - Akaike Information Criterion, wyznaczającą błąd wg formuły \index{Błąd!AIC}
 $$
-AIC(p,q) = -2 \function[{\ln}]{L} + 2 \bracket{p+q+k+1}.
+AIC(p,q) = -2 \function{\ln}{L} + 2 \bracket{p+q+k+1}.
 $$
 \item AICC - Akaike Information Criterion Corrected, wyznaczająca błąd wg formuły \index{Błąd!AICC}
 $$
-AICC(p,q) = -2 \function[{\ln}]{L} + 2 \frac{\bracket{p+q+k+1}  n}{n-p-q-k-2}.
+AICC(p,q) = -2 \function{\ln}{L} + 2 \frac{\bracket{p+q+k+1}  n}{n-p-q-k-2}.
 $$
 \item BIC - Bayesian Information Criterion, wyznaczająca błąd wg formuły\index{Błąd!BIC}
 $$
-BIC(p,q) = -2 \function[{\ln}]{L} + \bracket{p+q+k+1} \ln n.
+BIC(p,q) = -2 \function{\ln}{L} + \bracket{p+q+k+1} \ln n.
 $$
 \end{itemize}
 We wszystkich powyższych formułach $k=0$ jeśli model nie zawiera składowej stałej oraz $k=1$ w przypadku gdy ją zawiera. Oprócz tego $L=MSE(y_t)$, gdzie $y_t$ jest naszym szeregiem czasowym, $n$ długością próby, co dokładnie oznacza, że 
@@ -1859,7 +1868,7 @@ $$
 
 \subsection{Model EGARCH}
 
-Inną rodziną odmian modelu GARCH są procesy wykładnicze GARCH zgodne z następującym modelem.
+Inną rodziną odmian modelu GARCH są procesy wykładnicze EGARCH zgodne z następującym modelem.
 
 \begin{definition}[Model EGARCH]\index{Model!EGARCH}
 Procesem EGARCH rzędu (q,p) nazwiemy proces $\stochasticprocess{h_t}{t}$ spełniajacy równanie:
@@ -1883,7 +1892,7 @@ Spróbujmy umieścić kolejną z technik w predykcji w odniesieniu do znanych na
 Najbardziej podstawowa z technik predykcji to regresja liniowa. Jednak u podstaw tej metody leży numeryczne zadanie aproksymacji. Oczywiście jest ona rozszerzona o pewne elementy analizy statystycznej, ale u podstaw leży aproksymacja. Trzeba dowiedzieć się, że w metodach numerycznych występuje wiele różnych aproksymacji. Niezwykle istotną grupą aproksymacji jest ta oparta o bazy ortogonalne przestrzeni i sławne twierdzenie Fouriera.
 
 \begin{theorem}[Twierdzenie Fouriera dla przestrzeni Hilberta]
-Rozważmy pewną przestrzeń funkcyjną $H$ - przestrzeń Hilberta. Oznaczmy przez $\scalar{\cdot}{\cdot}$ iloczyn skalarny tej przestrzeni. Niech $(h_1, h_2, \ldots, h_n, \ldots)$ będzie bazą ortogonalna tej przestrzeni. Wtedy dowolną funkcję $f \in H$ można zapisać za pomocą wzoru
+Rozważmy pewną przestrzeń funkcyjną $H$ - przestrzeń Hilberta. Oznaczmy przez $\scalar{\cdot}{\cdot}$ iloczyn skalarny tej przestrzeni. Niech $(h_1, h_2, \ldots, h_n, \ldots)$ będzie bazą ortogonalną tej przestrzeni. Wtedy dowolną funkcję $f \in H$ można zapisać za pomocą wzoru
 $$
 f = \sum_{i=0}^{\infty} \frac{\scalar{f}{h_i} }{\scalar{h_i}{h_i}} h_i.
 $$
@@ -1894,7 +1903,7 @@ Najsłynniejsza przestrzeń funkcyjna stosowana wraz z powyższym twierdzeniem t
 Twierdzenie dokładnie orzeka, że
 
 \begin{theorem}[Twierdzenie Fouriera-Eulera]
-Niech dana będzie funkcja okresowa $F: \setR \to \setR$ o okresie $T \in \setR^+$, bezwzględnia całkowalna w przedziale $[ \frac{-T}{2}, \frac{T}{2}]$. Wtedy
+Niech dana będzie funkcja okresowa $F: \setR \to \setR$ o okresie $T \in \setR^+$, bezwzględnie całkowalna w przedziale $[ \frac{-T}{2}, \frac{T}{2}]$. Wtedy
 $$
 S(x) = \frac{a_0}{2} + \sum_{n=1}^{\infty} \bracket{a_n \function{\cos}{\frac{2n\pi}{T}x} + b_n \function{\sin}{\frac{2n\pi}{T}x}},
 $$
@@ -1920,10 +1929,10 @@ Ponadto zachodzi wtedy zależność:
 $$
 f(t) = \frac{1}{2\pi} \int_{\setR } \hat{f}(\omega) e^{i\omega t}  \dt[\omega],
 $$
-nazywana transformacja odwrotną.
+nazywana transformacją odwrotną.
 \end{definition}
 
-Sama transformacja Fouriera jest nam nieprzydatna do analizy szeregów czasowych. Pamiętamy bowiem, że nasze czasowe występują w zasadzie wyłącznie w postaci realizacji czyli spróbkowanej. Aby uzyskać postać częstościową należało by wygenerować aproksymację naszej próbkowanej funkcji, a potem samą funkcję przenieść do dziedziny częstości. Na nasze szczęście jest matematyczna transformacja, która potrafi wykonać obie te operacje jednocześnie. Jest to dyskretna transformata Fouriera
+Sama transformacja Fouriera jest nam nieprzydatna do analizy szeregów czasowych. Pamiętamy bowiem, że nasze szeregi czasowe występują w zasadzie wyłącznie w postaci realizacji czyli spróbkowanej. Aby uzyskać postać częstościową należałoby wygenerować aproksymację naszej próbkowanej funkcji, a potem samą funkcję przenieść do dziedziny częstości. Na nasze szczęście jest matematyczna transformacja, która potrafi wykonać obie te operacje jednocześnie. Jest to dyskretna transformata Fouriera
 
 \begin{definition}[DFT]
 Niech dany będzie skończony ciąg próbek $a_0, a_1, \ldots, a_{N-1}$, że $a_i \in \setR $. Wtedy istnieje skończony ciąg $A_0, A_1, \ldots, A_{N-1}$, że $A_i \in \setC $ opisany wzorem
@@ -1936,17 +1945,17 @@ a_n = \frac{1}{N} \sum_{k=0}^{N-1} A_k e^{kn i \frac{2\pi}{N}}, 0 \leq n \leq N-
 $$
 \end{definition}
 
-Słyszać o DFT być może ktoś również słyszał o FFT czyli szybkiej transformacji Fouriera. Ogólnie wyliczenie dyskretnej transformaty Fouriera jest dość obciążające - jej złożoność obliczeniowa to $O(N^2)$. Tymczasem FFT jest algortmem, który przy pewnych warunkach potrafi skrócić wykonywanie obliczeń do $O(N \log N)$.
+Osoby słysząco o DFT być może słyszały również o FFT czyli szybkiej transformacji Fouriera. Postaramy sie krótko wyjaśnić jej znaczenie. Ogólnie wyliczenie dyskretnej transformaty Fouriera jest dość obciążające - jej złożoność obliczeniowa to $O(N^2)$. Tymczasem FFT jest algortmem, który przy pewnych warunkach potrafi skrócić wykonywanie obliczeń do $O(N \log N)$.
 
 Najczęstszym zastosowaniem teorii transformacji Fouriera szeregu czasowego jest transformacja do postaci częstości celem przeprowadzenie filtracji - to jest odrzucenia wysokich częstotliwości (zmiany losowe) a pozostawienie niskich częstości (zmiany regularne, sezonowości). Procedura postępowania jest tutaj bardzo prosta:
 
 \begin{itemize}
 \item Transformujemy sygnał do postaci częstości.
 \item Odrzucamy częstości niższe od pewnego progu.
-\item Dokonujemy odwrotnej transformaty Fouriera uzyskując ponownie sygnał początkowy, ale o mniejszej ilości szumu.
+\item Dokonujemy odwrotnej transformacji Fouriera uzyskując ponownie sygnał początkowy, ale o mniejszej ilości szumu.
 \end{itemize}
 
-Powyższy algorytm można by nazwać nowym sposobem przeprowadzenia wygladzania wykresu.
+Powyższy algorytm można by nazwać nowym sposobem przeprowadzenia wygładzania wykresu.
 
 \begin{remark*}
 Pamiętajmy o podstawowej cesze tej transformacji. Wszystko o czym tu piszemy zaczyna się od aproksymowania funkcji okresowej. Aby stosować skutecznie zawarte tu teorie, należałoby mieć realne przesłanki, że funkcja ta ma szanse bycia okresową. Szereg czasowy powinien zatem posiadać przynajmnie stałą wartość przeciętną oraz stałą wariancję.
@@ -1955,11 +1964,11 @@ Pamiętajmy o podstawowej cesze tej transformacji. Wszystko o czym tu piszemy za
 \begin{remark*}
 DFT nie jest jedyną transformacją, która posiada podobne zastosowanie w analizie ciągów. Wyróżnić warto jeszcze
 \begin{itemize}
-\item DCT, DST (DFT ale tylko dla $\cos$ lub $\sin$,
+\item DCT, DST (DFT ale tylko dla odpowiednio składowych z $\cos$ lub z $\sin$),
 \item Transformacje falkowe (oraz DWT),
 \item Transformację Laplace'a (oraz transformację Z).
 \end{itemize}
-Ponadto nawet dla transformaty Fouriera, występuje różne sposoby jej zadania. Co sprawia, że dla analityka dostępna jest liczna rodzina przekształceń.
+Ponadto nawet dla transformacji Fouriera, występują różne sposoby jej zadania. Co sprawia, że dla analityka dostępna jest dość liczna rodzina przekształceń.
 \end{remark*}
 
 Dostrzegamy iż teoria związana z analizowanie zjawisk na wykresach częstościowych posiada wiele potencjalnych możliwości do dalszego badania. W dalszej części omówimy jednak już tylko uznane teorie, które wyewoluowały z tej koncepcji:
@@ -1980,7 +1989,7 @@ $$
 \end{definition}
 
 \begin{definition}[Funkcja generująca ciągu]
-Niech $a = \ldots, a_{-n}, \ldots, a_0, a_1, \ldots, a_n, \ldots \subset \setR $ będzie ciągiem liczb rzeczywistych. Funkcję określoną wzorem funkcję $g_a : \setC \to \setC$ opisaną formułą:
+Niech $a = \ldots, a_{-n}, \ldots, a_0, a_1, \ldots, a_n, \ldots \subset \setR $ będzie ciągiem liczb rzeczywistych. Funkcję $g_a : \setC \to \setC$ opisaną formułą:
 $$
 g_a(x) = \sum_{h= -\infty}^{+\infty} a_h x^{h},
 $$
@@ -1992,7 +2001,7 @@ Widmo szeregu czasowego jest zatem przeskalowaną funkcją generującą dla cią
 \end{remark*}
 
 \begin{corollary}[]
-Pomiędzy widmem a funkcją autokorelacji występuje następująca zależność:
+Pomiędzy widmem a funkcją autokowariancji występuje następująca zależność:
 $$
 \sum_{h=-\infty}^{h=\infty} \tsAutoCovariance{X}{h} = 2\pi S_X(0).
 $$
@@ -2035,12 +2044,12 @@ $$
 nazywamy gęstością widmową.
 \end{definition}
 
-\begin{theorem}[Poprawność definicji gęstości widmowej.]
+\begin{theorem}[Poprawność definicji gęstości widmowej]
 Gęstość widmowa jest gęstością pewnego rozkładu prawdopodobieństwa.
 \end{theorem}
 
 \begin{proof}
-Stosująć odwrotną transformatę Fouriera otrzymujemy
+Stosując odwrotną transformatę Fouriera otrzymujemy
 $$
 \tsAutoCorellation{X}{h}= \int_{-\pi}^{\pi} e^{i \omega h} f_x(\omega) \dt[\omega].
 $$
@@ -2055,7 +2064,7 @@ Gęstość widmowa jest zatem gęstością rozkładu prawdopodobieństwa opisuj�
 Podstawowe pytanie, które się tu pojawia - to sposób w jaki możemy używać spektrum do analizowania szeregów czasowych. Okazuje się, że różne modele szeregów czasowych (a tych już kilka poznaliśmy) posiadają różne kształty widma. W sumie to dzięki temu - mająć wyliczone numerycznie z realizacji szeregu czasowego przybliżenie postaci widma - możemy naprawdę dobrze dobrać model zjawiska.
 
 \begin{remark*}
-W przypadku dziedziny czasu realizacja zawiera tylko jedna wartość. W dziedzinie częstotliwości próba losowa dana częstotliwość może być opisana znacznie większą ilością wartości.
+W przypadku dziedziny czasu realizacja zawiera tylko jedną wartość. W dziedzinie częstotliwości próba losowa dana częstotliwość może być opisana znacznie większą ilością wartości.
 \end{remark*} 
 
 \begin{theorem}[Widmo szumu białego]
@@ -2146,7 +2155,7 @@ Nagrody im. Nobla z dziedziny ekonomii
 \item Robert Eagle 2003 / za model ARCH,
 \item Clive Granger 2003 / za koncepcje przyczynowości,
 \item Christopher Sims 2011 / za model VAR i prace z przyczynowości,
-\item Thomas Sargent (2011) / za prace z zakresu przyczynowości.
+\item Thomas Sargent 2011 / za prace z zakresu przyczynowości.
 \end{itemize}
 
 \section{Przyczynowość Grangera}
@@ -2157,7 +2166,7 @@ Podstawę teorii inicjującej tworzenie modeli wielowymiarowych szeregów czasow
 \item dobrze oddający relację względem osi czasu, oraz
 \item mającym wzmocnione wartości predykcyjne. 
 \end{itemize}    
-W ujęciu Grangera związki pomiędzy szeregami czasowymi mogą mieć charaketer przyczynowo-skutkowy stąd i cała teoria nazywana jest najczęściej przyczynowością Grangera. Rozważony do tej pory schemat świata wnosił, że wszystkie szeregi czasowe, w sensie procesów stochastycznych, są niezależnymi od siebie, generowanymi przez niezależne szeregi czasowe powstałe z białych szumów. Z punktu widzenia ekonometrycznego - takie przypuszczenie można by nazwać najbardziej wątpliwym założeniem teorii szeregów czasowych. Praktycy bowiem, wręcz skłonni byliby przyjąć zupełnie przyciwstawny punkt orzekający o powszechności występowania związków pomiędzy szeregami czasowymi. 
+W ujęciu Grangera związki pomiędzy szeregami czasowymi mogą mieć charaketer przyczynowo-skutkowy stąd i cała teoria nazywana jest najczęściej przyczynowością Grangera. Rozważony do tej pory model świata zakładał, że wszystkie szeregi czasowe(w sensie procesów stochastycznych), są niezależnymi od siebie czyli generowanymi przez niezależne białe szumy. Z punktu widzenia ekonometrycznego - takie przypuszczenie można by nazwać najbardziej wątpliwym założeniem teorii szeregów czasowych. Praktycy bowiem, wręcz skłonni byliby przyjąć zupełnie przyciwstawny punkt orzekający o powszechności występowania związków pomiędzy szeregami czasowymi. 
 
 Kierują nami dwie podstawowe motywacje, które prowadzą do rozważania tego rodzajów związków. 
 \begin{itemize}
@@ -2304,7 +2313,7 @@ Zauważmy, że jeśli w powyższym modelu mamy zmienność natychmiastową to oz
 \begin{theorem}[O reprezentacji przyczynowości]
 Niech $x,y$ będą opisane przez model autoregresji dwuzmiennowej. Wtedy prawdziwa jest następująca charakteryzacja
 \begin{itemize}
-\item $ (x,y) \lor (x-y)$ gddy $\alpha_{12}(L) \equiv \alpha_{21}(L) \equiv 0$.
+\item $ (x,y) \lor (x \sim y)$ gddy $\alpha_{12}(L) \equiv \alpha_{21}(L) \equiv 0$.
 \item $ (x \rightarrow y) \lor (x \Rightarrow y)$ gddy $ \lnot \alpha_{12}(L) \equiv 0 \land \alpha_{21}(L) \equiv 0$. 
 \item $ (x \leftarrow y) \lor (x \Leftarrow y)$ gddy $  \alpha_{12}(L) \equiv 0 \land \lnot \alpha_{21}(L) \equiv 0$.
 \item $ (x \leftrightarrow y) \lor (x \Leftrightarrow y)$ gddy $ \lnot \alpha_{12}(L) \equiv 0 \land \lnot \alpha_{21}(L) \equiv 0$.
@@ -2371,18 +2380,18 @@ Do badania zjawisk przyczynowości Grangera dostępne jest kilka testów.
 
 \section{Model wielowymiarowy VAR}
 
-Naturalną konsekwencją występowania zależności pomiędzy szeregami czasowymi jest tworzenie ich modeli łącznych czyli wielowymiarowych. Pokazaliśmy wytworzony w tym rozumieniu model dwóch zmiennych jak również ogólny zarys jak można by rozwijać modele w kierunku większej ilości wymiarów. Dalszym zadaniem jest w takim razie ustalenie w jaki sposób najlepiej rozszerzać te modele aby prezentowały możliwie jak najlepiej zwarte i opisane teorie. W tej części omówimy tutaj teorię opracowaną przez Christophera Simsa i zaprezentowaną w 1980 roku. Sims był jednym ze zwolenników przyczynowości Grangera i rozwinął jego teorię tworząc koncepcję wektorów procesów autoregresywnych. 
+Naturalną konsekwencją występowania zależności pomiędzy szeregami czasowymi jest tworzenie ich modeli łącznych czyli wielowymiarowych. Pokazaliśmy wytworzony w tym rozumieniu model dwóch zmiennych jak również ogólny zarys jak można by rozwijać modele w kierunku większej ilości wymiarów. Dalszym zadaniem jest w takim razie ustalenie w jaki sposób najlepiej rozszerzać te modele aby prezentowały możliwie jak najlepiej zwarte i opisane teorie. W tej części omówimy teorię opracowaną przez Christophera Simsa i zaprezentowaną w 1980 roku. Sims był jednym ze zwolenników przyczynowości Grangera i rozwinął jego teorię tworząc koncepcję wektorów procesów autoregresywnych. 
 
 \subsection{Odrzucenie modelu niepełnych zależności}
 
 Akceptując model przyczynowości Grangera można dojść do wniosku, że wystarczy odszukać wszystkie statystycznie istotnie przyczynowości ażeby zaproponować jeden spójny model zjawiska. Przeciwną tezę popularyzował właśnie Sims, w której wszystkie możliwe konfiguracje zależności są dostępne. Za głównym argumentem przemawiającym za taką tezą Sims wymieniał to że modele powinny wykazywać się racjonalnością skoro modelują zjawiska uwzględniające ludzkie rozumowanie. Sims podał następujący przykład na poparcie.
 
 \begin{example}
-Rozważmy zmieniającą się cenę rynkową kawy, która jak w każdym modelu jest wypadkową popytu i podaży. Poziom tej ceny jest głównie zależny od poziomu jej produkcji w Brazylii, gdzie w porze jesiennej odbywają się zbiory na platacjach kawy. Rozważmy, że w danym roku pojawiły się silne przymrozki wiosną, którę dotknęły platacje kawy. W efekcie czego spodziewane przyszłe zbiory w znaczącym stopniu mogły ucierpieć. W sposób oczywisty będzie to wpływało na wartość podaży na kawę, więc w modelu przyczynowym odnotowano by wzrost ceny kawy na jesieni na skutek zmniejszonych plonów. Tak sytuację zinterpretowałby model uwzględniający niepełne zależności. Odrzucono bowiem możliwość wpływu pogody w Brazylii na popyt na kawę. Rozszerzając model przyczynowy o elementy racjonalności postępowania zauważamy, że osoby (głównie duży nabywcy) wobec informacji o problemach na platacjach kawy w Brazylii decydują się zakupić większe ilości w obawie o wzrost cen. W efekcie uzyskujemy niespodziewany efekt przyczynowy pomiędzy pogodą na platacjach w Brazylii a siłą nabywczą na kawę. 
+Rozważmy zmieniającą się cenę rynkową kawy, która jak w każdym modelu jest wypadkową popytu i podaży. Poziom tej ceny jest głównie zależny od poziomu jej produkcji w Brazylii, gdzie w porze jesiennej odbywają się zbiory na platacjach kawy. Rozważmy, że w danym roku pojawiły się silne przymrozki wiosną, którę dotknęły platacje kawy. W efekcie czego spodziewane przyszłe zbiory w znaczącym stopniu mogły ucierpieć. W sposób oczywisty będzie to wpływało na wartość podaży na kawę, więc w modelu przyczynowym odnotowano by wzrost ceny kawy na jesieni na skutek zmniejszonych plonów. Tak sytuację zinterpretowałby model uwzględniający niepełne zależności. Odrzucono bowiem możliwość wpływu pogody w Brazylii na popyt na kawę. Rozszerzając model przyczynowy o elementy racjonalności postępowania zauważamy, że osoby (głównie nabywcy o znacznych budżetach) wobec informacji o problemach na platacjach kawy w Brazylii decydują się zakupić większe ilości w obawie o wzrost cen. W efekcie uzyskujemy niespodziewany efekt przyczynowy pomiędzy pogodą na platacjach w Brazylii a siłą nabywczą na kawę. 
 \end{example} 
 Przykład ten ilustruje sytuację w której model zjawiska wielowymiarowego jest czymś innym niż suma kilku prostszych modeli (produkcja plantacji zależna od pogody, podaż zależna od produkcji w Brazylii, popyt zależny jedynie od innych czynników).
 
-Według Simsa złym sposobem rozumienia modeli wielowymiarowych było badanie jedynie silnych związków przyczynowych i jeśli chcemy zaproponować odpowiedzialny model - powinniśmy rozpocząć od dopuszczenia wszelakich związków pomiędzy zmiennymi na początku konstruowania modelu. Oparty o to przesłanie model Sims nazwał modelem VAR - Vector AutoRegression systems, w którym dopuszczalne są wszystkie zależności autoregresyjne pomiędzy zmiennymi aż do określonej głębi czasu.
+Według Simsa złym sposobem rozumienia modeli wielowymiarowych było badanie jedynie silnych związków przyczynowych i jeśli chcemy zaproponować odpowiedni model - powinniśmy rozpocząć od dopuszczenia wszelakich związków pomiędzy zmiennymi na początku konstruowania modelu. Oparty o to przesłanie model Sims nazwał modelem VAR - Vector AutoRegression systems, w którym dopuszczalne są wszystkie zależności autoregresyjne pomiędzy zmiennymi aż do określonej głębi czasu.
 
 Uwaga! Z uwagi na rozważanie tu wektorów szeregów czasowych - znacząco trudniej będzie rozróżnić wektorowy proces stochastyczny od jego realizacji. Dodatkowo miejmy na uwadze, że wszystkie mnożenia macierzowe traktują wektory domyślnie jak wektory kolumnowe (klasyczna notacja).
 
@@ -2502,15 +2511,15 @@ FPE(p) = \bracket{\frac{T+kp+1}{T-kp-1}}^k \det \Sigma(p).
 $$
 \item Kryterium Akaike (AIC)\index{Błąd!AIC}
 $$
-AIC(p) = \function[{\ln}]{\det \Sigma(p)} + (k + pk^2) \frac{2}{T}.
+AIC(p) = \function{\ln}{\det \Sigma(p)} + (k + pk^2) \frac{2}{T}.
 $$
 \item Kryterium Hannan-Quinn (HQ) \index{Błąd!HQ}\index{Błąd!Hannan-Quinn}
 $$
-HQ(p) = \function[{\ln}]{\det \Sigma(p)} + (k + pk^2) \frac{2 \function[{\ln}]{\function[{\ln}]{T} } }{T}.
+HQ(p) = \function{\ln}{\det \Sigma(p)} + (k + pk^2) \frac{2 \function{\ln}{\function{\ln}{T} } }{T}.
 $$
 \item Kryterium Schwarza (SC) \index{Błąd!Schwarza}\index{Błąd!SC}
 $$
-SC(p) = \function[{\ln}]{\det \Sigma(p)} + (k + pk^2) \frac{\function[{\ln}]{T} }{T} .
+SC(p) = \function{\ln}{\det \Sigma(p)} + (k + pk^2) \frac{\function{\ln}{T} }{T} .
 $$
 \end{itemize}
 W powyższych wzorach $p$ to rozmiar modelu, $k$ to ilość zmiennych, $T$ rozmiar zbioru danych. Natomiast $\Sigma(p)$ oznacza macierz kowariancji błędów, tj.
@@ -2693,7 +2702,7 @@ $$
 \Variance{y_t} = \sum_{i=1}^{t} u_t = t \sigma^2_u.
 $$
 
-Rozszerzmy koncepcje oparte o błądzenie losowe\index{Błądzenie losowe}. Aby móc zastosować tę koncepcję - błądzenie losowego musiałoby posiadać trend. Wykorzystamy proces nazywany błądzeniem losowym z ślizgiem\index{Błądzenie losowe z ślizgem}. Uzyskujemy efekt ślizgu poprzez dodanie stałej składowej w równaniu, tj. 
+Rozszerzmy koncepcje oparte o błądzenie losowe\index{Błądzenie losowe}. Aby móc zastosować tę koncepcję - błądzenie losowe musiałoby posiadać trend. Wykorzystamy proces nazywany błądzeniem losowym z ślizgiem\index{Błądzenie losowe z ślizgem}. Uzyskujemy efekt ślizgu poprzez dodanie stałej składowej w równaniu, tj. 
 $$
 y_t = \delta + y_{t-1} + u_t
 $$
@@ -2702,7 +2711,7 @@ Wtedy nasz proces pozostaje niestacjonarny mając za swoje charakterystyki
 & \Ex{y_t}= y_0 + \delta t = \mu_t, \\
 & \Variance{y_t} = \delta t , \\
 & \Covariance{y_t}{y_{t-\tau}}= (t-\tau) \sigma^2, \\
-& \function[{\rho_X}]{\tau,t} = \sqrt{1 - \frac{\tau}{t}}.
+& \function{\rho_X}{\tau,t} = \sqrt{1 - \frac{\tau}{t}}.
 \end{align*}
 
 \begin{figure}
@@ -2720,9 +2729,9 @@ Wtedy nasz proces pozostaje niestacjonarny mając za swoje charakterystyki
 \end{figure}
 
 Sposób w jaki jeden z rodzajów trendów wyróżnia się wobec drugiego widać wyraźnie na wykresach
-\ref{figure-deterministic-trend} oraz \ref{figure-stochastic-trend}. Dwa modele w praktycznych podejściach rozpoznaje się poprzez rezydua z modelu. Model deterministyczny pozostawia rezydual w typie szumu białego, a model stochastyczny w innej zależności.
+\ref{figure-deterministic-trend} oraz \ref{figure-stochastic-trend}. Dwa modele w praktycznych podejściach rozpoznaje się poprzez rezydua z modelu. Model deterministyczny pozostawia rezydua w typie szumu białego, a model stochastyczny w innej zależności.
 
-Różnice widać również z całości przebiegu. W wersji ze trendem deterministycznym, znajomość chwili czasu jest dostateczna do określenia wartości średniej w prognozie na kolejny moment czasu. W modelach stochastycznych wartość ta jest silnie zależna od bieżącego stanu realizacji szeregu czasowego.
+Różnice widać również z całości przebiegu. W wersji z trendem deterministycznym, znajomość chwili czasu jest dostateczna do określenia wartości średniej w prognozie na kolejny moment czasu. W modelach stochastycznych wartość ta jest silnie zależna od bieżącego stanu realizacji szeregu czasowego.
 
 Wprowadźmy dalej proste uogólnienie błądzenia losowego z ślizgiem. 
 
@@ -2739,7 +2748,7 @@ Szereg czasowy nazywamy całkowalnym rzędu $d$ jeśli istnieje stacjorany szere
 $$
 (1-L)^d y_t = \sigma + x_t.
 $$
-Procesy z tej rodziany oznaczane są przez $I(d)$. Jeśli proces $x_t$ jest zgodny z ARMA(p,q), to jest on procesem z rodziny ARIMA(p,d,q). Z uwagi na postać wielomianu nie jest on stacjonarny, gdyż $\alpha(L)$ ma $d$-pierwiastów, wszystkie o module równym $1$.  
+Procesy z tej rodziny oznaczane są przez $I(d)$. Jeśli proces $x_t$ jest zgodny z ARMA(p,q), to jest on procesem z rodziny ARIMA(p,d,q). Z uwagi na postać wielomianu nie jest on stacjonarny, gdyż $\alpha(L)$ ma $d$-pierwiastów, wszystkie o module równym $1$.  
 \end{definition}
 
 \section{Testy jednostkowe pierwiastków}
@@ -2773,7 +2782,7 @@ Każdy proces zgodny z modelem $ARIMA(p,1,q)$ można rozłożyć na dwie składo
 
 Rozdział opracowany na podstawie następującej literatury \citep{geron2018uczenie}.
 
-W niniejszej części wprowadzimy podstawowe pojęcia dotyczące uczenia maszynowego. Choć dla wielu może się on wydawać odległą i skrajnie różną od stanu obecnego przyszłością - to już obecnie obszary stosujące uczenie maszynowe są powszechne i wykazują się skutecznością zdolną pozostawać niezauważonym dla ludzkich oczu. Przykładami takich obszarów są techniki rozpoznawania obrazów, pisma czy też powszechnie spotykane filtry spamu. Środowiska naukowe oraz przedsiębiorstwa szeroko korzystające ze współczesnych rozwiązań IT są niezmiennie przez ostatnie lata głęboko zafascynowane rozwojem uczenia maszynowego. Powod jest jeden i prozaiczny. Każdy dowolny kolejny dzień, może przynieść przełom wywracający całą strukturę naszego świata. Ostatnim znaczącym przełomem była przełomowa praca z zakresu głębokich sieci neuronowych opublikowana w 2006 roku \cite{hinton2006fast}, która wskazała ogrom zastosowań tych sieci. Jednym z najbardziej jaskrawych przykładów ich zastosowania jest opracowany przez firmę DeepMind (Grupa Google) algorytm AlphaGo. Jest to komputerowy gracz w japońskiej grze Go, uznawanej za jedną z najtrudniejszych gier logicznych w historii człowieka. Opracowany algorytm w roku 2016 pokonał mistrzów europy, mistrzów świata, a ostatecznie całą czołówkę graczy - dodatkowo wygrywając wszystkie partie. Co więcej strategie używane przez algorytm są niezrozumiałe dla zwykłych graczy, całkowicie niwilując efekty wszelkich obecnie znanych człowiekowi strategii. 
+W niniejszej części wprowadzimy podstawowe pojęcia dotyczące uczenia maszynowego. Choć dla wielu może się on wydawać odległą i skrajnie różną od stanu obecnego przyszłością - to już obecnie obszary stosujące uczenie maszynowe są powszechne i wykazują się skutecznością zdolną pozostawać niezauważonym dla ludzkich oczu. Przykładami takich obszarów są techniki rozpoznawania obrazów, pisma czy też powszechnie spotykane filtry spamu. Środowiska naukowe oraz przedsiębiorstwa szeroko korzystające ze współczesnych rozwiązań IT są niezmiennie przez ostatnie lata głęboko zafascynowane rozwojem uczenia maszynowego. Powód jest jeden i prozaiczny. Każdy dowolny kolejny dzień, może przynieść przełom wywracający całą strukturę naszego świata. Ostatnim znaczącym przełomem była przełomowa praca z zakresu głębokich sieci neuronowych opublikowana w 2006 roku \cite{hinton2006fast}, która wskazała ogrom zastosowań tych sieci. Jednym z najbardziej jaskrawych przykładów ich zastosowania jest opracowany przez firmę DeepMind (Grupa Google) algorytm AlphaGo. Jest to komputerowy gracz w japońskiej grze Go, uznawanej za jedną z najtrudniejszych gier logicznych w historii człowieka. Opracowany algorytm w roku 2016 pokonał mistrzów europy, mistrzów świata, a ostatecznie całą czołówkę graczy - dodatkowo wygrywając wszystkie partie. Co więcej strategie używane przez algorytm są niezrozumiałe dla zwykłych graczy, całkowicie niwilując efekty wszelkich obecnie znanych człowiekowi strategii. 
 
 W zakresie definicji uczenia maszynowe wymieniane są dwie wiodące definicje
 
@@ -2806,7 +2815,7 @@ Omówmy dalej najważniejsze klasy i pojęcia związane z uczeniem maszynowym.
 
 Dane są tak bardzo niezbędne w uczeniu maszynowym, że aż w samej definicji maszyny uczącej musieliśmy podkreślić ich niezbędność. Co można powiedzieć o danych?
 \begin{itemize}
-\item Ilość - musi ich być dużo. Pracując z uczeniem maszynowym przyjmuje się, że im większą ilość danych dostarczymy naszemu modelowi, tym lepiej musi on rozwiązywać zadanie przed nim postawione. Nie zakłada się tempa tego wzrostu, ani nawet mając chwilowe pogorszenie modelu - nie będzie powodowało pochopnego odrzucenia modelu. Określa to jedynie długofalow efekt działania lub uczenia danego modelu.
+\item Ilość - musi ich być dużo. Pracując z uczeniem maszynowym przyjmuje się, że im większą ilość danych dostarczymy naszemu modelowi, tym lepiej musi on rozwiązywać zadanie przed nim postawione. Nie zakłada się tempa tego wzrostu, ani nawet mając chwilowe pogorszenie modelu - nie będzie powodowało pochopnego odrzucenia modelu. Określa to jedynie długofalowe efekt działania lub uczenia danego modelu.
 \item Dane muszą być uporządkowane, uformowane i uzupełnione. Aby dane były dostępne w przetwarzaniu komputerowym muszą bowiem posiadać odpowiednie ustrukturyzowanie.
 \item Dane powinny być wielowymiarowe. Albo analizowane w długiej osi czasu.Nie ma sensu analizować danych, które nie mają do siebie odniesienia. Tym co może być zaskakujące jest zastosowanie tych metod do np. obrazów. Jednak w tym wszystkim można dostrzec, że teoretycznie pojedynczy obraz jest tak naprawdę zbiorem kilku tysięcy (lub większej) pikseli różnych kolorów, dodatkowo często silnie ze sobą skorelowanych.  
 \item Dane powinny być reprezentatywne. To znaczy przedstawiać pełny przekrój (często nawet zgodny co do proporcji) zjawiska, które ma badać. Znane są historycznie przypadki, kiedy takie zaniedbanie posiadało haniebne skutki. Jednym z najbardziej znanych jest algorytm, który został opracowany celem rozpoznawania twarzy na obrazach cyfrowych. Z uwagi na niefrasobliwy dobór zbioru uczącego, algorytm ten nie był w stanie poprawnie oznaczyć twarzy osób rasy afrykańskiej oraz o wyjątkowo ciemnej karnacji. 
@@ -2896,12 +2905,12 @@ Inspiracją do stworzenia sztucznych sieci neuronowych, podobnie jak w przypadku
 \end{figure}
 
 \begin{enumerate}
-\item Komórka nerwowa wyposażona jest jądro komorkowego, wiele końcówek komórki nazywane dendrytami oraz pojedynczą końcówekę nazywaną aksonem.
+\item Komórka nerwowa wyposażona jest jądro komorkowe, wiele końcówek komórki nazywanych dendrytami oraz pojedynczą końcówkę nazywaną aksonem.
 \item Neurony komunikują się ze sobą wysyłając do siebie elektrochemiczne (elektryczne w komórce, chemicznie na łączeniu) sygnały.
 \item Neuron w trybie gotowości prowadzi nasłuchiwanie i czeka na pobudzenie elektryczne na dowolnym z jego dendrytów . 
 \item Kiedy zostanień pobudzony poprzez dowolny z dendrytów, wyznaczana jest wartość wewnętrznego stanu neuronu.
-\item Jeśli stan te przekracza pewien poziom progowy, neuron przechodzi w tryb aktywności i otrzymywaną energię zaczyna w postaci wzmocnnionej przekazywać.
-\item Jeśli neuron przechodzi w stan aktywności, to za pomocą jego aksonu przekazywane jest do sąsiadów rozważanego neuronu - sygnał w stanie pobudzenia.
+\item Jeśli stan ten przekracza pewien poziom progowy, neuron przechodzi w tryb aktywności i otrzymywaną energię zaczyna wzmacniać i przekazywać dalej.
+\item Jeśli neuron przechodzi w stan aktywności, to za pomocą jego aksonu przekazywany jest do sąsiadów rozważanego neuronu - sygnał w stanie pobudzenia.
 \item Połączenia prowadzące do aktywacji neuonów powodują wzmacnianie ich wpływu na końcowy egekt działania kodu.
 \end{enumerate}
 
@@ -2911,7 +2920,7 @@ Inspiracją do stworzenia sztucznych sieci neuronowych, podobnie jak w przypadku
 \caption{Model neuronu McCullocha i Pittsa.} \label{fig.chapter.predictions.neuron.model}
 \end{figure}
 
-W roku 1943 opracowany został matematyczny model neuronu autorstwa  McCullocha i Pittsa opisane np. na grafice \ref{fig.chapter.predictions.neuron.model}. Wyszczególniam on pojęcia takie jak:
+W roku 1943 opracowany został matematyczny model neuronu autorstwa  McCullocha i Pittsa opisane np. na grafice \ref{fig.chapter.predictions.neuron.model}. Wyszczególnia on pojęcia takie jak:
 \begin{itemize}
 \item Funkcja aktywacji - transformacja, której poddawany jest łączny sygnał z wejść, przed oceną przekroczenia progu aktywacji.  
 \item Wagi - parametry opisujące początkową ocenę sygnału odczytanego przez dendryty.
@@ -2926,7 +2935,7 @@ Najbardziej podstawowy podział neuronów odbywa się z uwagi na funkcję aktywa
 \begin{itemize}
 \item Adaline - funkcja aktywacji jest identycznością
 \item Perceptron - funkcja aktywacji jest signum lub podobną funkcją
-\item Sigmoidalny - funkcja aktywacji jest funkcja podobna do signum, ale różniczkowalna
+\item Sigmoidalny - funkcja aktywacji jest funkcją podobna do signum, ale różniczkowalną. Wyszczególniamy:
 \begin{itemize}
 \item unipolarna $ f(x) = \frac{1}{1+e^{-\beta x}}$
 \item bipolarna $ f(x) = \frac{2}{1+e^{-\beta x}} -1$
@@ -2945,7 +2954,7 @@ Wyróżniamy:
 \end{itemize}
 
 \begin{remark*}
-Dla większości sieci neuronowych nie zostały opracowane matematyczne dowody zbieżności procesu uczenia. Zbieżność danego rodzaju sieci do danego problemu są z reguły potwierdzane na kanwie eksperymentów numerycznych.Rozwiązania za pomocą sieci neuronowych są zatem heurystykami.
+Dla większości sieci neuronowych nie zostały opracowane matematyczne dowody zbieżności procesu uczenia. Zbieżności danego rodzaju sieci dla ustalonych problemów są z reguły potwierdzane na kanwie eksperymentów numerycznych. Rozwiązania za pomocą sieci neuronowych są zatem heurystykami.
 \end{remark*}
 
 \subsection{Sieci jednokierunkowe}
@@ -3000,7 +3009,7 @@ Wprowadzanie poprawki w wektorach wag jest zadaniem z zakresu optymalizacji wiel
 w^{i,j}_k(t+1) = w^{i,j}_k (t) - \eta \ddx{w^{i,j}_k(t)} Error(w)
 \end{equation*}
 
-Współczynnik $-\eta$ jest parametrem danego procesu uczenia, $\eta \in (0,1)$. Zapewnia wykonanie przesunięcie wektora wag danego neuronu w kierunki przeciwnym do gradientu funkcji w tym punkcie (czyli przesunięcie ku największemu spadkowi).  Wprowadźmy następujące oznaczenia:
+Współczynnik $-\eta$ jest parametrem danego procesu uczenia, $\eta \in (0,1)$. Zapewnia wykonanie przesunięcia wektora wag danego neuronu w kierunki przeciwnym do gradientu funkcji w tym punkcie (czyli przesunięcie ku największemu spadkowi).  Wprowadźmy następujące oznaczenia:
 \begin{description}
 \item[$M$] - ilość warstw sieci
 \item[$i$] - licznik warstw sieci
@@ -3032,7 +3041,7 @@ gdzie
 
 \subsubsection{Czemu sieci działają}
 
-Aby zrozumieć motywację za działaniem sieci przypomnijmy sobie zasadę działania klasyfikatora liniowego (obrazek 
+Aby zrozumieć motywację za działaniem sieci przypomnijmy sobie zasadę działania klasyfikatora liniowego (obrazek \ref{fig.chapter.predictions.linear.ann}).
 \begin{figure}
 \centering
 \includegraphics[scale=0.3]{images/klasyfikator_liniowy.png}
@@ -3165,22 +3174,22 @@ Predykcja przecież czemuś musi służyć, jakiemuś szerszemu celowi.
 Co możę być celem predykcji?
 
 \begin{itemize}
-\item W przypadku prognozy pogody może to podpowiedzieć czy należy wziąć parason, rozpocząć żniwa, czy też zakupić wycieczkę nad polskie morze,
+\item W przypadku prognozy pogody może to podpowiedzieć czy należy wziąć parasol, rozpocząć żniwa, czy też zakupić wycieczkę nad polskie morze,
 \item W przypadku wartości giełdowej, pozwoli nam to na odpowiedzenie na pytanie czy kupić jakiś produkt, sprzedać lub przechować,
 \item W przypadku dobowej sprzedaży w jakimś sklepie, pozwoli nam to okreslić ilości wymaganych zapasów i w efekcie zminimalizować koszty składowania i psucia się produktów. 
 \end{itemize}
 
-Podsumowująć powyższą listę można dojść do prostego wniosku. Dzięki predykcji, podstawową umiejętność którą zdobywamy jest możliwość podejmowania decyzji dotyczących przyszłości. Biorąc pod uwagę to, że predykcja jest obarczona modelami probabilistycznymi należy nazwać to podejmowaniem decyzji w warunkach niepewności. Powiedzmy sobie zatem co nie co o modelach podejmowania decyzji.
+Podsumowująć powyższą listę można dojść do prostego wniosku. Dzięki predykcji, podstawową umiejętność którą zdobywamy jest możliwość podejmowania decyzji dotyczących przyszłości. Biorąc pod uwagę to, że predykcja jest obarczona modelami probabilistycznymi należy nazwać to podejmowaniem decyzji w warunkach niepewności. Powiedzmy sobie zatem co nieco o modelach podejmowania decyzji.
 
 \subsection{Najprostszy modele podejmowania decyzji}
 
 W najprostszym modelu podejmowania decyzji można wyszczególnić jedynie kilka elementów:
 \begin{itemize}
 \item Pojedynczy model predykcyjny, generujący predykcję przyszłej wartości zjawiska, oraz
-\item Funkcje przypisującą do konkretnych przedziałów wartości możliwe decyzje. Funkcje takie najczęściej mają konstrukcje progową. Jeśli przekroczona jest wartość prognowa należy wykonać pewną akcję. Jeśli przeciwnie, wykonać drugą akcję. 
+\item Funkcje przypisującą do konkretnych przedziałów wartości możliwe decyzje. Funkcje takie najczęściej mają konstrukcję progową. Jeśli przekroczona jest wartość prognowa należy wykonać pewną akcję. Jeśli przeciwnie, wykonać drugą akcję. 
 \end{itemize}
 
-Istotnie nie ma tu wielkiego poziomu skomplikowania. I mogłoby się wydawać, że prostota ta zapewnia nam wszystko co jest na potrzebne. Zapewne tak by właśnie było w idealnym wszechświecie, gdzie odnajdujemy jeden najwłaściwszy model predykcyjny, gdzie estymujemy właściwe statystyki, a dane testowe są doskonale reprezentatywne dla zjawiska. Jak łatwo się domyslić - w praktyce - nie mamy możliwości pracowania z tak dobrymi modelami predykcyjnymi, by ten najprostszy model podejmowania decyzji okazał się trafionym.
+Istotnie nie ma tu wielkiego poziomu skomplikowania. I mogłoby się wydawać, że prostota ta zapewnia nam wszystko co jest nam potrzebne. Zapewne tak by właśnie było w idealnym wszechświecie, gdzie odnajdujemy jeden najwłaściwszy model predykcyjny, gdzie estymujemy właściwe statystyki, a dane testowe są doskonale reprezentatywne dla zjawiska. Jak łatwo się domyslić - w praktyce - nie mamy możliwości pracowania z tak dobrymi modelami predykcyjnymi, by ten najprostszy model podejmowania decyzji okazał się trafionym.
 
 Trzeba rozpocząć ogólniejsze rozważania.
 
@@ -3206,13 +3215,13 @@ Na różnych etapach były to różne przesłanki. Można je zgrupować w nastę
 Jakie stąd można wysnuć wnioski? Do podjęcia decyzji wykorzystaliśmy wiele informacji, o różnym charakterze, wyliczonych na podstawie różnych formuł. Podobny algorytm możemy zastosować w kontekście podejmowania decyzji na podstawie naszych modeli predykcyjnych. 
 
 \begin{problem*}
-Rozważmy przypadek w którym mamy zespół, który ma wesprzeć podjęcie decyzji biznesowej w firmie. Zespoł dzieli się i wytwarza kilka modeli - które ocenia jako obiecujące. Wsród nich można oczywiścia wskazać model najlepszy. Jaką podjąć decyzje na podstawie tych informacji.
+Rozważmy przypadek w którym mamy zespół, który ma wesprzeć podjęcie decyzji biznesowej w firmie. Zespół dzieli się i wytwarza kilka modeli - które ocenia jako obiecujące. Wsród nich można oczywiścia wskazać model najlepszy. Jaką podjąć decyzję na podstawie tych informacji?
 \end{problem*}
 
 Jeszcze chwilę temu podjęlibyśmy decyzję wskazaną przez najlepszy model, sposród tych wytworzonych przez różne podzespoły. Obecnie jednak dostrzegamy już w tym, że wszelkie informacje ozyskane przez nieco gorsze modele byłyby odrzucone. Zatem obecnie już decyzję podjęlibyśmy patrząc na informacje zwrócone przez wszystkie modele predykcyjne i na tej podstawie podjęlibyśmy łączną decyzję.
 
 \begin{problem*}
-Przyjmijmy, że mamy 7 modeli predykcyjnych. Na tej podstawie musimy podjąć decyzję biznesową. Model wykazujący się w testach najniższym błędem każde podjać decyzję A. Pozostałe 6 modeli wskazuje że należy podjąć decyzję B. Czy podjęcie ostatecznie decyzji B jest bezzasadne?
+Przyjmijmy, że mamy 7 modeli predykcyjnych. Na tej podstawie musimy podjąć decyzję biznesową. Model wykazujący się w testach najniższym błędem każde podjąć decyzję A. Pozostałe 6 modeli wskazuje że należy podjąć decyzję B. Czy podjęcie ostatecznie decyzji B jest bezzasadne?
 \end{problem*}
 
 \begin{definition}[Prosty model podejmowania decyzji]
@@ -3345,7 +3354,7 @@ Procesem decyzyjnym Markova nazywać będziemy model składający się z
 $$
 T(s, a, s') = P( s' | s, a ).
 $$
-Czyli oddający prawdopodobieństwa przejścia ze stanu $s$ do stanu $s'$ w efekcie wykonania akcji $a$. Funkcja ta stanowi opis świata, zbió© wszystkich praw jego fizyki,
+Czyli oddający prawdopodobieństwa przejścia ze stanu $s$ do stanu $s'$ w efekcie wykonania akcji $a$. Funkcja ta stanowi opis świata, zbiór wszystkich praw jego fizyki,
 \item  Nagrody , które mogą być wprowadzano na jeden z 3 sposobów:
 \begin{itemize}
 \item Nagroda za przebywanie w danym stanie $R(s)$,
@@ -3379,7 +3388,7 @@ Ważnym jest zroumienie pewnej szczególnej różnicy
 Polityka to nie ciąg akcji zapewniajacy zysk (nie ciąg komend) - ale wskazówka (nakaz) co zrobić gdy znajdziemy się w określonym stanie (nawet gdy znaleźliśmy się w nim przez przypadek).
 \end{remark*}
 
-Niewątpliwie najtrudniejszą częścią całej tej teorii jest odszukanie polityki optymalnej. Nie jest to tak łatwe jakby się wydawało  W przypadku procesu decyzyjnego Markowa nagroda za dobre decyzje często może przyjść z bardzo dużym opóźnieniem. Rozważmy kilka przykładów
+Niewątpliwie najtrudniejszą częścią całej tej teorii jest odszukanie polityki optymalnej. Nie jest to tak łatwe jakby się wydawało. W przypadku procesu decyzyjnego Markowa nagroda za dobre decyzje często może przyjść z bardzo dużym opóźnieniem. Rozważmy kilka przykładów
 
 \begin{example}[Przykłady]
 
@@ -3460,7 +3469,7 @@ I tak
 Ponadto oznaczmy przez $SS$ przestrzeń wszystkich ciągów stanów, $SR$ przestrzeń wszystkich ciągów nagród oraz $SA$ przestrzeń wszystkich ciagów akcji.
 \end{definition}
 
-Zauważmy, że przez stacjonarność w problemach nasze ciągi nagród są potencjalnie nieskończone. Intuicyjnie ciągi nagród stanowia dla nas podstawę do oceny jakości danej polityki. Podstawa część naszego rozumowania na chwilę obecną może być opisana algorytmem:
+Zauważmy, że przez stacjonarność w problemach nasze ciągi nagród są potencjalnie nieskończone. Intuicyjnie ciągi nagród stanowią dla nas podstawę do oceny jakości danej polityki. Podstawa część naszego rozumowania na chwilę obecną może być opisana algorytmem:
 
 \begin{enumerate}
 \item Określamy pewną politykę, 
@@ -3531,7 +3540,7 @@ Korzystamy w powyższym z tego, że przestrzeń stanów jest skończona - a zate
 \end{proof}
 
 \begin{remark*}
-Często faktyczną lambda użyteczność nagrody ze stanu $s_k$ tj $\lambda^i R(s_k)$ często jest nazywana zdyskonowaną nagrodą (i-krotnie zdyskontowaną). Przez to dostrzegamy kolejne analogie do matematyki finansowej czy ubezpieczeniowej.
+Często faktyczna lambda użyteczność nagrody ze stanu $s_k$ tj $\lambda^i R(s_k)$ jest nazywana zdyskonowaną nagrodą (i-krotnie zdyskontowaną). Przez to dostrzegamy kolejne analogie do matematyki finansowej czy ubezpieczeniowej.
 \end{remark*}
 
 
@@ -3657,7 +3666,7 @@ polityka optymalna to taka, która maksymalizuje przyszłą użyteczność dalsz
 
 \section{Algorytm iterowanych wartości}
 
-Równania Bellman pojawiły sie w naszej teorii w chwili gdy zaczęliśmy zastanawiać się nad możliwością odszukania optymalnej polityki. Aż do tej pory nie bardzo widzimy w jaki sposób te prawdziwe (bo to udowodniliśmy) równania Bellmana mogą nam pomóc rozwiązać problem decyzyjny Markowa. Przyjrzyjmy się ponownie równaniu Bellmana.
+Równania Bellmana pojawiły się w naszej teorii w chwili gdy zaczęliśmy zastanawiać się nad możliwością odszukania optymalnej polityki. Aż do tej pory nie bardzo widzimy w jaki sposób te prawdziwe (bo to udowodniliśmy) równania Bellmana mogą nam pomóc rozwiązać problem decyzyjny Markowa. Przyjrzyjmy się ponownie równaniu Bellmana.
 
 $$
 U^{\pi^\ast}(s) = R(s) + \lambda \max_{a} \sum_{s'} T(s,a,s') U^{\pi^\ast}( s').
@@ -3718,12 +3727,12 @@ Istotnym elementem jest w kroku 2 wyznaczenie wartości użyteczności. Aby to z
 $$
 U_t(s) = R(s) + \lambda \sum_{s'} T(s, \pi_t(s), s') U_t(s').
 $$
-Zauważmy, żę tym razem - znając politykę zgodnie z którą postępujemy - aby wyznaczyć wartości funkcji $U_t(s)$ należy rozwiązać układ N równań z N niewiadomymi - który tym razem jest układem liniowym. Oznacza to, że możemy wyliczyć wartości prawdziwych użyteczności przy zadanej polityce dzięki operacjom algebry liniowej.
+Zauważmy, że tym razem - znając politykę zgodnie z którą postępujemy - aby wyznaczyć wartości funkcji $U_t(s)$ należy rozwiązać układ N równań z N niewiadomymi - który tym razem jest układem liniowym. Oznacza to, że możemy wyliczyć wartości prawdziwych użyteczności przy zadanej polityce dzięki operacjom algebry liniowej.
 \end{definition}
 
 \chapter{Uczenie wzmacniane w Modelach decyzyjnych Markowa}
 
-Choć powiedzieliśmy sobie dość dużo o modelach decyzyjnych Markowa - nie mówiliśmy nic o uczeniu maszynowym czy uczeniu wzmacnianym. Skąd wiemy, że nie mówiliśmy o uczeniu maszynowym? Ponieważ ani razu nie mówiliśmy nic o danych - ani o wnioskowaniu z nich. Czy byłyby dane w modelach decyzyjnych Markowa.
+Choć powiedzieliśmy sobie dość dużo o modelach decyzyjnych Markowa - nie mówiliśmy nic o uczeniu maszynowym czy uczeniu wzmacnianym. Skąd wiemy, że nie mówiliśmy o uczeniu maszynowym? Ponieważ ani razu nie mówiliśmy nic o danych - ani o wnioskowaniu z nich. Czym byłyby dane w modelach decyzyjnych Markowa?
 
 \begin{definition}[Dane w modelach decyzyjnych Markowa]
 W przypadku kiedy mówimy o danych w modelach decyzyjnych Markowa - oznacza to, że nie jest nam znana postać funkcji nagrody $R(s)$ jak również nie jest nam znana postać funkcji przejścia $T(s,a,s')$. Danymi pochodzącymi z modelu decyzyjnego Markowa nazwiemy zbiór uporządkowanych czwórek postaci 
@@ -3747,7 +3756,7 @@ W efekcie powyższego dostrzegamy, że dostępne nam są 3 różne sposoby pracy
 
 \begin{enumerate}
 \item Pierwsze podejście zakłada aproksymowanie polityki optymalnej czyli funkcji przypisującej akcję do stanu. Algorytmem który miał tutaj zastosowanie było iterowanie polityki.
-\item Drugie podejście zakład aproksymowanie użyteczności. Po odpowiednim jej przybliżeniu - możemy na tej podstawie wyznaczyć politykę - której poszukujemy.
+\item Drugie podejście zakłada aproksymowanie użyteczności. Po odpowiednim jej przybliżeniu - możemy na tej podstawie wyznaczyć politykę - której poszukujemy.
 \item Trzecie podejście natomiast zakłada aproksymowanie przekształcenia które dla stanu i akcji przypisuje stan końcowy oraz nagrodę. Na podstawie tego przybliżenia mamy możliwość wyznaczenia użyteczności na na tej podstawie dalej politykę.
 \end{enumerate}
 
@@ -3811,7 +3820,7 @@ $$
 Q_{t+1}(s,a) = Q_{t}(s,a) + \alpha_t \bracket{ \bracket{r + \gamma \max_{a'} Q_{t}(s',a')} - Q_{t}(s,a)},
 $$
 gdzie $\alpha_t$ jest wybrana tak, że $\sum_{t} \alpha_t = \infty$ oraz $\sum_{t} \alpha_t^2 < \infty$.
-\item Krok 2 jest powtarzania aż do uzyskania zbieżności. Na podstawie uzyskanych wartości Q-funkcji wyznaczamy użyteczności oraz optymalną politykę.
+\item Krok 2 jest powtarzany aż do uzyskania zbieżności. Na podstawie uzyskanych wartości Q-funkcji wyznaczamy użyteczności oraz optymalną politykę.
 \end{enumerate}
 
 \end{definition}
