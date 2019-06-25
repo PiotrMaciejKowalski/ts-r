@@ -1,0 +1,122 @@
+---
+title: "Modele ARIMA"
+author: "Dudaczyk"
+date: "4 czerwca 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(forecast)
+library(readxl)
+dane <- read.csv("dudaczyk-GPW-WOJAS.csv", header=TRUE)[,1:5]
+
+summary(dane)
+```
+
+
+```{r}
+otwarcie=dane$Otwarcie
+data=dane$Data
+```
+
+```{r}
+otwarcie=ts(otwarcie, frequency=1)
+dates=as.Date(data, format='%Y-%m-%d')
+sessional_otwarcie=ts(otwarcie,frequency = 5)
+```
+## wykres ACF dla cen otwarcia
+```{r}
+acf(otwarcie)
+```
+
+## wykres PACF dla cen otwarcia
+```{r}
+pacf(otwarcie)
+```
+
+## różnicowanie szeregu
+```{r}
+plot(diff(otwarcie), col=2)
+```
+
+```{r}
+length(otwarcie)
+uczacy<-window(otwarcie, end = 70)
+uczacy
+testowy<-window(otwarcie, start = 71)
+testowy
+```
+
+```{r}
+ts.plot(uczacy, testowy, col=1:4, lty=c(1,4))
+```
+
+# Model AR
+```{r}
+model<-Arima(uczacy, order = c(2,1,0))
+summary(model)
+```
+
+#Model MA
+```{r}
+model1<-Arima(uczacy, order=c(0,1,1))
+summary(model1)
+```
+
+# Model ARIMA
+```{r}
+model2<- Arima(uczacy, order=c(1,2,2))
+summary(model2)
+```
+
+```{r}
+plot(model$residuals)
+tsdiag(model)
+```
+
+# Prognozy
+
+AR:
+
+```{r}
+prog=forecast(model, h=length(testowy))
+prog
+plot(prog)
+lines(testowy,col="red")
+```
+
+MA:
+
+```{r}
+prog1=forecast(model1, h=length(testowy))
+prog1
+plot(prog1)
+lines(testowy,col="red")
+```
+
+ARIMA:
+
+```{r}
+prog2<- forecast(model2, h=length(testowy))
+prog2
+plot(prog2)
+lines(testowy,col="red")
+```
+
+# Błędy średniokwadratowe dla każdego modelu
+```{r}
+bladAR=mean((prog$mean-testowy)^2)
+bladAR
+bladMA=mean((prog1$mean-testowy)^2)
+bladMA
+bladARIMA=mean((prog2$mean-testowy)^2)
+bladARIMA
+```
+ Zauważmy, że pierwszy model (AR) ma najmniejszy błąd, zatem jest on dla nas najlepszy.
+
